@@ -15,7 +15,9 @@
     .row{display:flex;align-items:center;gap:10px}
     .rank{width:44px;height:44px;border-radius:8px;background:linear-gradient(180deg,#fff,#f0f6ff);display:inline-flex;align-items:center;justify-content:center;font-weight:700;color:var(--accent);border:1px solid rgba(31,78,120,0.06)}
     .name{font-weight:700;flex:1}
-    .meta{font-size:13px;color:var(--muted);display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+    article.card{cursor:pointer}
+    .meta{font-size:13px;color:var(--muted);display:none;gap:8px;flex-wrap:wrap;margin-top:6px}
+    article.card.expanded .meta{display:flex}
     .pill{background:#f1f7ff;padding:6px 8px;border-radius:999px;font-weight:600;color:var(--accent);font-size:13px;border:1px solid rgba(31,78,120,0.04)}
     .paid{color:#207a4f;font-weight:700}
     .notpaid{color:#cc3a44;font-weight:700}
@@ -183,5 +185,19 @@
 
     <p style="color:var(--muted);font-size:13px">Vill du att jag uppdaterar navigeringslänkarna så denna mobilversion öppnas från menyn?</p>
   </main>
+  <script>
+    (function(){
+      var cards = document.querySelectorAll('section[aria-label="Deltagare"] article.card');
+      if(!cards || !cards.length) return;
+      cards.forEach(function(card){
+        card.setAttribute('role','button');
+        card.setAttribute('aria-expanded','false');
+        card.addEventListener('click', function(){
+          var expanded = card.classList.toggle('expanded');
+          card.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+        });
+      });
+    })();
+  </script>
 </body>
 </html>
