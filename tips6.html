@@ -154,6 +154,26 @@
                     <h1>VM 2026 </h1>
                 </a>
             </div>
+            <div id="api-test">Testar API...</div>
+
+<script>
+fetch("https://v3.football.api-sports.io/fixtures?league=1&season=2026", {
+  headers: {
+    "x-apisports-key": "170d2afb853fb860d9432d14d7eaaaa5""
+  }
+})
+.then(r => r.json())
+.then(data => {
+  document.getElementById("api-test").innerHTML =
+    "API fungerar. Antal matcher: " + data.response.length;
+  console.log(data);
+})
+.catch(err => {
+  document.getElementById("api-test").innerHTML =
+    "API fungerar inte. Se console.";
+  console.error(err);
+});
+</script>
             <img src="https://hits.sh/vm2026.info.svg?style=flat-square&label=Besökare&color=005293&labelColor=FECB00">
             <nav>
                 <ul>
