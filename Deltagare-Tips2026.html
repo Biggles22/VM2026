@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Deltagare & betalning - VM Tips 2026</title>
+  <style>
+    :root {
+      color: #14294d;
+      background: #eef4fb;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: radial-gradient(circle at top left, #ffffff 0%, #dfe9f6 40%, #eef4fb 100%);
+      color: #14294d;
+    }
+    .page {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 28px 20px 48px;
+    }
+    header {
+      display: grid;
+      gap: 16px;
+      padding: 24px 24px 20px;
+      border-radius: 28px;
+      background: rgba(255,255,255,0.92);
+      box-shadow: 0 26px 60px rgba(20, 41, 77, 0.08);
+    }
+    header h1 {
+      margin: 0;
+      font-size: clamp(2rem, 2.8vw, 3rem);
+      line-height: 1.05;
+    }
+    header p {
+      margin: 0;
+      max-width: 760px;
+      color: #4e637f;
+      font-size: 1rem;
+      line-height: 1.7;
+    }
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      margin-top: 16px;
+    }
+    .summary-card {
+      padding: 18px 20px;
+      border-radius: 18px;
+      background: #ffffff;
+      border: 1px solid rgba(20, 41, 77, 0.08);
+      box-shadow: 0 12px 30px rgba(20, 41, 77, 0.05);
+    }
+    .summary-card h2 {
+      margin: 0 0 4px;
+      font-size: 1.2rem;
+      color: #1f4f7a;
+    }
+    .summary-card p {
+      margin: 0;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #14294d;
+    }
+    .table-card {
+      margin-top: 30px;
+      overflow-x: auto;
+      border-radius: 24px;
+      background: #ffffff;
+      border: 1px solid rgba(20, 41, 77, 0.08);
+      box-shadow: 0 24px 60px rgba(20, 41, 77, 0.08);
+    }
+    table {
+      width: 100%;
+      min-width: 760px;
+      border-collapse: collapse;
+    }
+    thead {
+      background: linear-gradient(90deg, #1f4f7a, #3a78c8);
+      color: #ffffff;
+    }
+    th,
+    td {
+      padding: 16px 18px;
+      border-bottom: 1px solid rgba(20, 41, 77, 0.08);
+      text-align: left;
+      vertical-align: middle;
+      font-size: 0.96rem;
+    }
+    th {
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+    }
+    tbody tr:nth-child(even) {
+      background: rgba(31, 78, 120, 0.03);
+    }
+    tbody tr:hover {
+      background: rgba(31, 78, 120, 0.08);
+    }
+    .status-yes {
+      color: #1a6c2f;
+      font-weight: 700;
+    }
+    .status-no {
+      color: #ab2a28;
+      font-weight: 700;
+    }
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 72px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 0.9rem;
+      letter-spacing: 0.01em;
+    }
+    .tag-paid { background: rgba(26, 108, 47, 0.12); color: #1a6c2f; }
+    .tag-unpaid { background: rgba(171, 42, 40, 0.12); color: #ab2a28; }
+    .tag-active { background: rgba(31, 78, 120, 0.12); color: #1f4f7a; }
+    .tag-inactive { background: rgba(110, 113, 120, 0.12); color: #464f5f; }
+    @media (max-width: 860px) {
+      header { padding: 20px; }
+      th, td { padding: 14px 12px; }
+    }
+    @media (max-width: 680px) {
+      .summary { grid-template-columns: 1fr; }
+      .container { padding: 20px 16px 40px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header>
+      <div>
+        <h1>Deltagare och betalning</h1>
+        <p>Samlad översikt över deltagarna i A&A VM-Tips 2026, deras betalningsstatus, insats och om de fortfarande är aktiva.</p>
+      </div>
+      <div class="summary">
+        <div class="summary-card">
+          <h2>Antal deltagare</h2>
+          <p>16</p>
+        </div>
+        <div class="summary-card">
+          <h2>Betalat</h2>
+          <p>3</p>
+        </div>
+        <div class="summary-card">
+          <h2>Aktiva</h2>
+          <p>16</p>
+        </div>
+        <div class="summary-card">
+          <h2>Pott</h2>
+          <p>900 kr</p>
+        </div>
+      </div>
+    </header>
+
+    <section class="table-card">
+      <table>
+        <thead>
+          <tr>
+            <th>Placering</th>
+            <th>Deltagare</th>
+            <th>Betalat?</th>
+            <th>Insats</th>
+            <th>Kommentar</th>
+            <th>Aktiv?</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>1</td><td>Anders E</td><td><span class="tag tag-paid">Ja</span></td><td>300 kr</td><td></td><td><span class="tag tag-active">Ja</span></td></tr>
+          <tr><td>2</td><td>Anneli</td><td><span class="tag tag-paid">Ja</span></td><td>300 kr</td><td></td><td><span class="tag tag-active">Ja</span></td></tr>
+          <tr><td>3</td><td>Emelie</td><td><span class="tag tag-unpaid">Nej</span></td><td>300 kr</td><td></td><td><span class="tag tag-active">Ja</span></td></tr>
+          <tr><td>4</td><td>Andreas</td><td><span class="tag tag-unpaid">Nej</span></td><td>300 kr</td><td></td><td><span class="tag tag-active">Ja</span></td></tr>
+          <tr><td>5</td><td>Anders F</td><td><span class="tag tag-unpaid">Nej</span></td><td>300 kr</td><td></td><td><span class="tag tag-active">Ja</span></td></tr>
+          <tr><td>6</td><td>Elton</td><td><span class="tag tag-unpaid">Nej</span></td><td>300 kr</td><td></td><td><span class="tag tag-active">Ja</span></td></tr>
+          <tr><td>7</td><td>Carl</td><td><span class="tag tag-paid">Ja</span></td><td>300 kr</td><td></td><td><span class="tag tag-active">Ja</span></td></tr>
+          <tr><td>8</td><td>Robin</td><td><span class="tag tag-unpaid">Nej</span></td><td>300 kr</td><td></td><td><span class="tag tag-active">Ja</span></td></tr>
+          <tr><td>9</td><td>Niklas</td><td><span class="tag tag-unpaid">Nej</span></td><td>300 kr</td><td></td><td><span class="tag tag-active">Ja</span></td></tr>
+          <tr><td>10</td><td>Anna N</td><td><span class="tag tag-unpaid">Nej</span></td><td>300 kr</td><td></td><td><span class="tag tag-active">Ja</span></td></tr>
+          <tr><td>11</td><td>Anna M</td><td><span class="tag tag-unpaid">Nej</span></td><td>300 kr</td><td></td><td><span class="tag tag-active">Ja</span></td></tr>
+          <tr><td>12</td><td>Simon</td><td><span class="tag tag-unpaid">Nej</span></td><td>300 kr</td><td></td><td><span class="tag tag-active">Ja</span></td></tr>
+          <tr><td>13</td><td>David</td><td><span class="tag tag-unpaid">Nej</span></td><td>300 kr</td><td></td><td><span class="tag tag-active">Ja</span></td></tr>
+          <tr><td>14</td><td>Mathias</td><td><span class="tag tag-unpaid">Nej</span></td><td>300 kr</td><td></td><td><span class="tag tag-active">Ja</span></td></tr>
+          <tr><td>15</td><td>Jacob</td><td><span class="tag tag-unpaid">Nej</span></td><td>300 kr</td><td></td><td><span class="tag tag-active">Ja</span></td></tr>
+          <tr><td>16</td><td>Frida</td><td><span class="tag tag-unpaid">Nej</span></td><td>300 kr</td><td></td><td><span class="tag tag-active">Ja</span></td></tr>
+        </tbody>
+      </table>
+    </section>
+  </div>
+</body>
+</html>
+"; Set-Content -Path 'e:\VM2026\Deltagare-Tips2026.html' -Value $content -Encoding UTF8

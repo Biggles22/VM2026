@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VM 2026 – Under konstruktion</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: radial-gradient(circle at top left, #eef5ff 0%, #d8e6fb 46%, #b1c7f2 100%);
+      color: #14233d;
+    }
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .card {
+      width: min(960px, 100%);
+      background: rgba(255, 255, 255, 0.98);
+      border: 1px solid rgba(20, 36, 72, 0.1);
+      border-radius: 28px;
+      box-shadow: 0 30px 80px rgba(21, 45, 82, 0.12);
+      overflow: hidden;
+    }
+    .hero {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+      align-items: center;
+      padding: 56px 56px 44px;
+    }
+    .hero-icon {
+      width: 96px;
+      height: 96px;
+      display: grid;
+      place-items: center;
+      border-radius: 24px;
+      background: linear-gradient(135deg, #3d79ff 0%, #71a1ff 100%);
+      color: #fff;
+      font-size: 44px;
+      box-shadow: 0 18px 40px rgba(61, 121, 255, 0.24);
+    }
+    h1 {
+      margin: 0 0 18px;
+      font-size: clamp(2.6rem, 4vw, 3.4rem);
+      line-height: 1.02;
+    }
+    p {
+      margin: 0 0 26px;
+      font-size: 1.05rem;
+      line-height: 1.75;
+      color: #3e4f73;
+      max-width: 620px;
+    }
+    .features {
+      display: grid;
+      gap: 12px;
+      margin-bottom: 28px;
+      list-style: none;
+      padding: 0;
+    }
+    .features li {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      color: #1f3a67;
+      font-size: 1rem;
+    }
+    .features li::before {
+      content: '•';
+      color: #3d79ff;
+      font-size: 1.5rem;
+      line-height: 1;
+    }
+    .button-wrap {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 14px 28px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #3d79ff 0%, #6ea7ff 100%);
+      color: white;
+      text-decoration: none;
+      font-weight: 700;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 18px 35px rgba(61, 121, 255, 0.2);
+    }
+    .aside {
+      padding: 32px;
+      border-radius: 24px;
+      background: linear-gradient(180deg, rgba(61, 121, 255, 0.1), rgba(255, 255, 255, 0.85));
+      border: 1px solid rgba(61, 121, 255, 0.16);
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.4);
+    }
+    .aside h2 {
+      margin: 0 0 16px;
+      font-size: 1.4rem;
+      color: #1f3a67;
+    }
+    .aside p {
+      margin: 0;
+      color: #42547f;
+      line-height: 1.8;
+    }
+    .status-card {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+      margin-top: 30px;
+    }
+    .status-card span {
+      display: block;
+      padding: 18px 20px;
+      border-radius: 20px;
+      background: #fff;
+      border: 1px solid rgba(20, 36, 72, 0.08);
+      font-weight: 700;
+      color: #1f3a67;
+      text-align: center;
+      box-shadow: 0 14px 40px rgba(23, 44, 87, 0.06);
+    }
+    @media (max-width: 850px) {
+      .hero {
+        grid-template-columns: 1fr;
+      }
+      .aside {
+        order: -1;
+      }
+    }
+    @media (max-width: 640px) {
+      .hero {
+        padding: 36px 26px 28px;
+      }
+      .aside {
+        padding: 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <article class="card">
+    <section class="hero">
+      <div>
+        <div class="hero-icon">🔧</div>
+        <h1>Ny sida på väg</h1>
+        <p>Den här sidan är under konstruktion och kommer snart att ersätta den gamla tipsvyn med en fräschare layout. Vi arbetar med bättre navigation, tydligare information och ett renare utseende för VM 2026.</p>
+        <ul class="features">
+          <li>Modern design som fungerar på mobil och dator</li>
+          <li>Tydlig översikt över deltagare och poängställning</li>
+          <li>Snabb laddning och enkel användning</li>
+        </ul>
+        <div class="button-wrap">
+          <a class="button" href="index.html">Till startsidan</a>
+          <a class="button" href="Lankar.html">Källor och länkar</a>
+        </div>
+      </div>
+
+      <aside class="aside">
+        <h2>Vad kommer att finnas här?</h2>
+        <p>En ny informationssida som samlar all viktig VM 2026-information. Det blir enklare att hitta spelschema, betalningsstatus, leaderboard och länkar till extern information.</p>
+        <div class="status-card">
+          <span>Design klar snart</span>
+          <span>Funktioner: pågående</span>
+        </div>
+      </aside>
+    </section>
+  </article>
+</body>
+</html>

@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VM 2026 - Tipset</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        header {
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo img {
+            height: 60px;
+            width: auto;
+        }
+
+        .logo h1 {
+            font-size: 28px;
+            color: #333;
+            font-weight: 700;
+        }
+
+        /* Navigation */
+        nav ul {
+            list-style: none;
+            display: flex;
+            gap: 30px;
+            align-items: center;
+        }
+
+        nav a {
+            text-decoration: none;
+            color: #333;
+            font-weight: 600;
+            font-size: 16px;
+            transition: color 0.3s ease;
+            border-bottom: 3px solid transparent;
+            padding-bottom: 5px;
+        }
+
+        nav a:hover {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        /* Main Content */
+        main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .iframe-wrapper {
+            width: 100vw;
+            margin: 0 calc(50% - 50vw) 0;
+        }
+
+        iframe {
+            width: 100%;
+            height: calc(100vh - 92px);
+            border: none;
+            border-radius: 0;
+            background: #ffffff;
+            display: block;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero {
+                grid-template-columns: 1fr;
+                gap: 40px;
+            }
+
+            .hero-content h2 {
+                font-size: 36px;
+            }
+
+            nav ul {
+                gap: 15px;
+                flex-wrap: wrap;
+            }
+
+            nav a {
+                font-size: 14px;
+            }
+
+            .features {
+                grid-template-columns: 1fr;
+            }
+
+            .cta-buttons {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+                text-align: center;
+            }
+
+            .logo h1 {
+                font-size: 20px;
+            }
+
+            .logo img {
+                height: 50px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-container">
+            <div class="logo">
+                <a href="index.html" class="logo-link">
+                    <img src="2026_FIFA_World_Cup_emblem.svg.webp" alt="VM 2026 Logo">
+                    <h1>VM 2026</h1>
+                </a>
+            </div>
+            <img src="https://hits.sh/vm2026.info.svg?style=flat-square&label=Besökare&color=005293&labelColor=FECB00">
+            <nav>
+                <ul>
+                    <li><a href="Spelschema.html" target="contentFrame">Spelschema</a></li>
+                    <li><a href="Anders_vm_tips.html?v=3" target="contentFrame">Regler</a></li>
+                    <li><a href= "UnderKonstruktion.html" target="contentFrame">Poängställning</a></li>
+                    <li><a href="Deltagare-Tips2026.html" target="contentFrame">Deltagare & betalning</a></li>
+                    <li><a href="landing-mobile.html" target="contentFrame">Mobilanpassade sidor</a></li>
+                    <li><a href="Lankar.html" target="contentFrame">Källor och länkar</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="iframe-wrapper">
+            <iframe id="contentFrame" name="contentFrame" src="start.html" title="Innehållsruta"></iframe>
+        </section>
+    </main>
+</body>
+</html>
