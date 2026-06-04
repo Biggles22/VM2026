@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Regler – VM 2026 Tipspel</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            color: #333;
+        }
+
+        header {
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo img {
+            height: 60px;
+            width: auto;
+        }
+
+        .logo h1 {
+            font-size: 28px;
+            color: #333;
+            font-weight: 700;
+        }
+
+        nav ul {
+            list-style: none;
+            display: flex;
+            gap: 24px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        nav a {
+            text-decoration: none;
+            color: #333;
+            font-weight: 600;
+            font-size: 15px;
+            transition: color 0.3s ease;
+            border-bottom: 3px solid transparent;
+            padding-bottom: 5px;
+        }
+
+        nav a:hover {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        main {
+            flex: 1;
+            max-width: 1200px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 40px 20px 80px;
+        }
+
+        .hero {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 50px;
+            align-items: center;
+            margin-bottom: 50px;
+        }
+
+        .hero-content h2 {
+            font-size: 44px;
+            color: white;
+            margin-bottom: 18px;
+            font-weight: 700;
+        }
+
+        .hero-content p {
+            font-size: 18px;
+            color: rgba(255, 255, 255, 0.92);
+            margin-bottom: 30px;
+            line-height: 1.7;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 18px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 16px 42px;
+            font-size: 15px;
+            font-weight: 700;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-primary {
+            background: white;
+            color: #667eea;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.22);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.35);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .hero-image {
+            display: flex;
+            justify-content: center;
+        }
+
+        .hero-image img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 22px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+        }
+
+        .content-section {
+            background: rgba(255, 255, 255, 0.14);
+            border: 1px solid rgba(255, 255, 255, 0.28);
+            border-radius: 24px;
+            padding: 32px;
+            color: white;
+            backdrop-filter: blur(10px);
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
+        }
+
+        .content-section h3 {
+            font-size: 24px;
+            margin-bottom: 18px;
+        }
+
+        .content-section p,
+        .content-section li {
+            font-size: 16px;
+            line-height: 1.8;
+            margin-bottom: 14px;
+            opacity: 0.95;
+        }
+
+        .rule-list {
+            margin-left: 22px;
+            margin-bottom: 24px;
+        }
+
+        .rule-list li {
+            margin-bottom: 12px;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            margin-top: 42px;
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.16);
+            border-radius: 22px;
+            padding: 22px;
+            border: 1px solid rgba(255, 255, 255, 0.22);
+        }
+
+        .feature-card h4 {
+            font-size: 20px;
+            margin-bottom: 12px;
+        }
+
+        .feature-card p {
+            font-size: 15px;
+            opacity: 0.88;
+        }
+
+        @media (max-width: 900px) {
+            .hero {
+                grid-template-columns: 1fr;
+            }
+
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 680px) {
+            .header-container {
+                flex-direction: column;
+                gap: 18px;
+                align-items: flex-start;
+            }
+
+            .hero-content h2 {
+                font-size: 34px;
+            }
+
+            nav ul {
+                gap: 12px;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-container">
+            <div class="logo">
+                <img src="2026_FIFA_World_Cup_emblem.svg.webp" alt="VM 2026 Logo">
+                <h1>VM 2026</h1>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="spelschema.html">Spelschema</a></li>
+                    <li><a href="Anders_VM_tips_2026.html">Regler</a></li>
+                    <li><a href="#topplista">Topplista</a></li>
+                    <li><a href="landing-mobile.html">Mobilstart</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero">
+            <div class="hero-content">
+                <h2>Regler för tipsspelet</h2>
+                <p>Här hittar du reglerna och speluppställningen som tidigare fanns i PDF-filen Anders_VM_tips_2026.pdf.</p>
+                <div class="cta-buttons">
+                    <a href="spelschema.html" class="btn btn-primary">Spelschema</a>
+                    <a href="#poang" class="btn btn-secondary">Poängsystem</a>
+                    <a href="landing-mobile.html" class="btn btn-secondary">Mobilstart</a>
+                </div>
+            </div>
+            <div class="hero-image">
+                <img src="2026_FIFA_World_Cup_emblem.svg.webp" alt="VM 2026 regler">
+            </div>
+        </section>
+
+        <section class="content-section" id="rules">
+            <h3>Så fungerar tipsspelet</h3>
+            <ul class="rule-list">
+                <li>Gör dina tips innan varje match startar. Ändringar efter avspark räknas inte.</li>
+                <li>Tipsa om resultat, vinnare och eventuella gruppplaceringar enligt schemat.</li>
+                <li>Alla deltagare följer samma regler och poängsystem.</li>
+                <li>Spelschemat uppdateras i realtid på sidan <a href="spelschema.html" style="color: #fff; text-decoration: underline;">Spelschema</a>.</li>
+            </ul>
+            <p>Ta gärna kopia på dina tips innan turneringen börjar så att du kan se dina val jämfört med slutresultaten.</p>
+        </section>
+
+        <section class="content-section" id="poang">
+            <h3>Poängsystem</h3>
+            <p>Poäng beräknas enligt följande:</p>
+            <ul class="rule-list">
+                <li><strong>3 poäng</strong> för rätt resultat (exakt målantal för båda lagen).</li>
+                <li><strong>1 poäng</strong> för rätt vinnare oavsett målantal.</li>
+                <li><strong>Bonuspoäng</strong> kan ges för lockande extra frågor, som slutsegrare eller målskytt.</li>
+                <li>Felaktiga eller sena tips ger 0 poäng.</li>
+            </ul>
+            <p>Topplistan uppdateras med totalpoängen efter varje spelad match.</p>
+        </section>
+
+        <section class="content-section" id="tips">
+            <h3>Tips & rekommendationer</h3>
+            <ul class="rule-list">
+                <li>Läs noga igenom matcher, starttider och gruppplaceringar i spelschemat.</li>
+                <li>Använd tidigare statistik, men ha alltid koll på skador och avstängningar.</li>
+                <li>Kom ihåg att den säkra vägen ofta är att tippa rätt vinnare istället för exakt resultat.</li>
+            </ul>
+        </section>
+
+        <div class="feature-grid">
+            <div class="feature-card">
+                <h4>Snabb åtkomst</h4>
+                <p>Enkel navigering till Spelschema och Topplista med samma visuella stil som startsidan.</p>
+            </div>
+            <div class="feature-card">
+                <h4>Mobilvänlig</h4>
+                <p>Sidan fungerar bra på både dator och mobil och följer samma layout som resten av sidan.</p>
+            </div>
+            <div class="feature-card">
+                <h4>Klart och tydligt</h4>
+                <p>Reglerna är presenterade så att alla deltagare enkelt kan hitta poängsystem och spelregler.</p>
+            </div>
+        </div>
+    </main>
+</body>
+</html>
