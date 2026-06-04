@@ -62,24 +62,74 @@
         nav ul {
             list-style: none;
             display: flex;
-            gap: 30px;
+            gap: 16px;
             align-items: center;
+            padding: 0 8px;
+            flex-wrap: nowrap;
+            overflow: hidden;
         }
 
         nav a {
             text-decoration: none;
             color: #333;
             font-weight: 600;
-            font-size: 16px;
-            transition: color 0.3s ease;
-            border-bottom: 3px solid transparent;
-            padding-bottom: 5px;
+            font-size: 15px;
+            transition: color 0.22s ease, transform 0.12s ease;
+            padding: 8px 12px;
+            border-radius: 8px;
+            display: inline-block;
         }
 
         nav a:hover {
-            color: #667eea;
-            border-bottom-color: #667eea;
+            color: #fff;
+            background: #667eea;
+            transform: translateY(-2px);
         }
+
+        /* Compact link list + More dropdown */
+        .more {
+            position: relative;
+        }
+
+        .more-button {
+            background: transparent;
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #333;
+        }
+
+        .more-menu {
+            position: absolute;
+            right: 0;
+            top: calc(100% + 8px);
+            background: white;
+            border: 1px solid #e9ecef;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+            border-radius: 8px;
+            min-width: 200px;
+            display: none;
+            z-index: 200;
+        }
+
+        .more-menu a {
+            display: block;
+            padding: 10px 14px;
+            color: #333;
+            border-bottom: 1px solid #f1f1f1;
+        }
+
+        .more-menu a:hover {
+            background: #f8f9fa;
+            color: #667eea;
+        }
+
+        .more.open .more-menu { display: block; }
 
         /* Main Content */
         main {
@@ -156,13 +206,18 @@
             </div>
             <img src="https://hits.sh/vm2026.info.svg?style=flat-square&label=Besökare&color=005293&labelColor=FECB00">
             <nav>
-                <ul>
+                <ul class="nav-links">
                     <li><a href="Spelschema.html" target="contentFrame">Spelschema</a></li>
+                    <li><a href="Resultat.html?V=3" target="contentFrame">Resultat</a></li>
                     <li><a href="Anders_vm_tips.html?v=4" target="contentFrame">Regler</a></li>
-                    <li><a href= "poangstallning.html?v=1" target="contentFrame">Poängställning</a></li>
+                    <li><a href="poangstallning.html?V=1" target="contentFrame">Poängställning</a></li>
                     <li><a href="Deltagare-Tips2026.html?v=1" target="contentFrame">Deltagare & betalning</a></li>
-                    <li><a href="landing-mobile.html?v=2" target="contentFrame">Mobilanpassade sidor</a></li>
+                    <li><a href="landing-mobile.html?V=2" target="contentFrame">Mobilanpassade sidor</a></li>
                     <li><a href="Lankar.html" target="contentFrame">Källor och länkar</a></li>
+                    <li class="more" aria-hidden="true">
+                        <button class="more-button" type="button">Mer ▾</button>
+                        <div class="more-menu" aria-hidden="true"></div>
+                    </li>
                 </ul>
             </nav>
         </div>
@@ -173,5 +228,48 @@
             <iframe id="contentFrame" name="contentFrame" src="start.html" title="Innehållsruta"></iframe>
         </section>
     </main>
+    <script>
+        // Flytta extra länkar in i "Mer"-menyn om det behövs
+        document.addEventListener('DOMContentLoaded', () => {
+            const nav = document.querySelector('.nav-links');
+            if (!nav) return;
+
+            const items = Array.from(nav.querySelectorAll('li'));
+            const moreItem = nav.querySelector('.more');
+            const moreMenu = moreItem.querySelector('.more-menu');
+            const moreButton = moreItem.querySelector('.more-button');
+
+            // Visa initialt bara första 4 länkar i baren, resten i dropdown
+            const visibleCount = 4;
+            const linkItems = items.filter(i => !i.classList.contains('more'));
+
+            linkItems.forEach((li, idx) => {
+                if (idx >= visibleCount) {
+                    // Flytta in i dropdown
+                    const a = li.querySelector('a');
+                    if (a) {
+                        const copy = a.cloneNode(true);
+                        copy.addEventListener('click', () => {
+                            moreItem.classList.remove('open');
+                        });
+                        moreMenu.appendChild(copy);
+                    }
+                    li.style.display = 'none';
+                }
+            });
+
+            // Toggle dropdown
+            moreButton.addEventListener('click', () => {
+                moreItem.classList.toggle('open');
+            });
+
+            // Klick utanför stänger menyn
+            document.addEventListener('click', (ev) => {
+                if (!moreItem.contains(ev.target)) {
+                    moreItem.classList.remove('open');
+                }
+            });
+        });
+    </script>
 </body>
 </html>
