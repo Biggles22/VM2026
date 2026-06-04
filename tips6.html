@@ -173,6 +173,16 @@ fetch("https://v3.football.api-sports.io/fixtures?league=1&season=2026", {
     "API fungerar inte. Se console.";
   console.error(err);
 });
+fetch("https://v3.football.api-sports.io/leagues?search=world cup", {
+  headers: { "x-apisports-key": "170d2afb853fb860d9432d14d7eaaaa5" }
+})
+.then(r => r.json())
+.then(data => console.log(data));
+fetch("https://v3.football.api-sports.io/fixtures?date=2026-06-11", {
+  headers: { "x-apisports-key": "170d2afb853fb860d9432d14d7eaaaa5" }
+})
+.then(r => r.json())
+.then(data => console.log(data));
 </script>
             <img src="https://hits.sh/vm2026.info.svg?style=flat-square&label=Besökare&color=005293&labelColor=FECB00">
             <nav>
