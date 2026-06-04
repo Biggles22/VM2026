@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="sv">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Poängställning — Mobil - VM 2026</title>
+  <style>
+    :root{--bg:#f5f9ff;--card:#fff;--accent:#1f4e78;--muted:#6b7c91}
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);font-family:system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;color:#122547}
+    .wrap{max-width:760px;margin:0 auto;padding:14px}
+    header{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+    header h1{font-size:18px;margin:0;color:var(--accent)}
+    .card{background:var(--card);border-radius:12px;padding:12px;margin-bottom:10px;box-shadow:0 6px 18px rgba(10,30,80,0.06);border:1px solid rgba(18,37,71,0.06);}
+    .row{display:flex;align-items:center;gap:10px}
+    .rank{width:44px;height:44px;border-radius:8px;background:linear-gradient(180deg,#fff,#f0f6ff);display:inline-flex;align-items:center;justify-content:center;font-weight:700;color:var(--accent);border:1px solid rgba(31,78,120,0.06)}
+    .name{font-weight:700;flex:1}
+    .meta{font-size:13px;color:var(--muted);display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+    .pill{background:#f1f7ff;padding:6px 8px;border-radius:999px;font-weight:600;color:var(--accent);font-size:13px;border:1px solid rgba(31,78,120,0.04)}
+    .paid{color:#207a4f;font-weight:700}
+    .notpaid{color:#cc3a44;font-weight:700}
+    .legend{font-size:13px;color:var(--muted);margin:8px 0 16px}
+    .controls{display:flex;gap:8px;margin-bottom:8px}
+    .btn{background:var(--accent);color:#fff;padding:8px 10px;border-radius:8px;border:none;font-weight:700;font-size:13px}
+    @media(min-width:760px){.wrap{padding:22px}header h1{font-size:22px}}
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <header>
+      <h1>Poängställning — Mobil</h1>
+      <div style="margin-left:auto;color:var(--muted);font-size:13px">Uppdaterad</div>
+    </header>
+
+    <div class="legend">Visning per deltagare — tryck för att se detaljer. Kolumner: Gruppspel / Slutspel / Totalt / Diff / Betalat</div>
+
+    <section class="card" aria-label="Deltagare">
+      <article class="card">
+        <div class="row">
+          <div class="rank">1</div>
+          <div class="name">Anders E</div>
+          <div class="pill paid">Ja</div>
+        </div>
+        <div class="meta"><span>Gruppspel: 16</span><span>Slutspel: 0</span><span>Totalt: 16</span><span>Diff: 0</span></div>
+      </article>
+
+      <article class="card">
+        <div class="row">
+          <div class="rank">2</div>
+          <div class="name">Carl</div>
+          <div class="pill paid">Ja</div>
+        </div>
+        <div class="meta"><span>Gruppspel: 8</span><span>Slutspel: 0</span><span>Totalt: 8</span><span>Diff: 0</span></div>
+      </article>
+
+      <article class="card">
+        <div class="row">
+          <div class="rank">3</div>
+          <div class="name">Anneli</div>
+          <div class="pill notpaid">Nej</div>
+        </div>
+        <div class="meta"><span>Gruppspel: 0</span><span>Slutspel: 0</span><span>Totalt: 0</span><span>Diff: 0</span></div>
+      </article>
+
+      <article class="card">
+        <div class="row">
+          <div class="rank">4</div>
+          <div class="name">Emelie</div>
+          <div class="pill notpaid">Nej</div>
+        </div>
+        <div class="meta"><span>Gruppspel: 0</span><span>Slutspel: 0</span><span>Totalt: 0</span><span>Diff: 0</span></div>
+      </article>
+
+      <article class="card">
+        <div class="row">
+          <div class="rank">5</div>
+          <div class="name">Andreas</div>
+          <div class="pill notpaid">Nej</div>
+        </div>
+        <div class="meta"><span>Gruppspel: 0</span><span>Slutspel: 0</span><span>Totalt: 0</span><span>Diff: 0</span></div>
+      </article>
+
+      <article class="card">
+        <div class="row">
+          <div class="rank">6</div>
+          <div class="name">Anders F</div>
+          <div class="pill notpaid">Nej</div>
+        </div>
+        <div class="meta"><span>Gruppspel: 0</span><span>Slutspel: 0</span><span>Totalt: 0</span><span>Diff: 0</span></div>
+      </article>
+
+      <article class="card">
+        <div class="row">
+          <div class="rank">7</div>
+          <div class="name">Elton</div>
+          <div class="pill notpaid">Nej</div>
+        </div>
+        <div class="meta"><span>Gruppspel: 0</span><span>Slutspel: 0</span><span>Totalt: 0</span><span>Diff: 0</span></div>
+      </article>
+
+      <article class="card">
+        <div class="row">
+          <div class="rank">8</div>
+          <div class="name">Robin</div>
+          <div class="pill notpaid">Nej</div>
+        </div>
+        <div class="meta"><span>Gruppspel: 0</span><span>Slutspel: 0</span><span>Totalt: 0</span><span>Diff: 0</span></div>
+      </article>
+
+      <article class="card">
+        <div class="row">
+          <div class="rank">9</div>
+          <div class="name">Niklas</div>
+          <div class="pill notpaid">Nej</div>
+        </div>
+        <div class="meta"><span>Gruppspel: 0</span><span>Slutspel: 0</span><span>Totalt: 0</span><span>Diff: 0</span></div>
+      </article>
+
+      <article class="card">
+        <div class="row">
+          <div class="rank">10</div>
+          <div class="name">Anna N</div>
+          <div class="pill notpaid">Nej</div>
+        </div>
+        <div class="meta"><span>Gruppspel: 0</span><span>Slutspel: 0</span><span>Totalt: 0</span><span>Diff: 0</span></div>
+      </article>
+
+      <article class="card">
+        <div class="row">
+          <div class="rank">11</div>
+          <div class="name">Anna M</div>
+          <div class="pill notpaid">Nej</div>
+        </div>
+        <div class="meta"><span>Gruppspel: 0</span><span>Slutspel: 0</span><span>Totalt: 0</span><span>Diff: 0</span></div>
+      </article>
+
+      <article class="card">
+        <div class="row">
+          <div class="rank">12</div>
+          <div class="name">Simon</div>
+          <div class="pill notpaid">Nej</div>
+        </div>
+        <div class="meta"><span>Gruppspel: 0</span><span>Slutspel: 0</span><span>Totalt: 0</span><span>Diff: 0</span></div>
+      </article>
+
+      <article class="card">
+        <div class="row">
+          <div class="rank">13</div>
+          <div class="name">David</div>
+          <div class="pill notpaid">Nej</div>
+        </div>
+        <div class="meta"><span>Gruppspel: 0</span><span>Slutspel: 0</span><span>Totalt: 0</span><span>Diff: 0</span></div>
+      </article>
+
+      <article class="card">
+        <div class="row">
+          <div class="rank">14</div>
+          <div class="name">Mathias</div>
+          <div class="pill notpaid">Nej</div>
+        </div>
+        <div class="meta"><span>Gruppspel: 0</span><span>Slutspel: 0</span><span>Totalt: 0</span><span>Diff: 0</span></div>
+      </article>
+
+      <article class="card">
+        <div class="row">
+          <div class="rank">15</div>
+          <div class="name">Jacob</div>
+          <div class="pill notpaid">Nej</div>
+        </div>
+        <div class="meta"><span>Gruppspel: 0</span><span>Slutspel: 0</span><span>Totalt: 0</span><span>Diff: 0</span></div>
+      </article>
+
+      <article class="card">
+        <div class="row">
+          <div class="rank">16</div>
+          <div class="name">Frida</div>
+          <div class="pill notpaid">Nej</div>
+        </div>
+        <div class="meta"><span>Gruppspel: 0</span><span>Slutspel: 0</span><span>Totalt: 0</span><span>Diff: 0</span></div>
+      </article>
+
+    </section>
+
+    <p style="color:var(--muted);font-size:13px">Vill du att jag uppdaterar navigeringslänkarna så denna mobilversion öppnas från menyn?</p>
+  </main>
+</body>
+</html>
