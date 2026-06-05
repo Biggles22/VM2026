@@ -26,14 +26,6 @@
             margin: 24px auto;
             padding: 0 16px 40px;
         }
-        .note {
-            background: #fff5c2;
-            border: 1px solid #fcd34d;
-            color: #663c00;
-            padding: 14px 16px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-        }
         .status-box {
             display: inline-block;
             margin-top: 10px;
@@ -105,7 +97,12 @@
         <h1>VM 2026 Gruppställningar</h1>
         <p class="status-box" id="status">Laddar gruppställningar från api-football...</p>
     </header>
-  
+
+    <div class="container">
+        <div id="standings">
+            <div class="loading">Hämtar gruppställningar...</div>
+        </div>
+    </div>
 
     <script>
         const API_KEY = "170d2afb853fb860d9432d14d7eaaaa5"; // ⚠️ Byt ut mot din API-nyckel från api-football.com
@@ -126,6 +123,11 @@
             }
 
             return response.json();
+        }
+
+        function isRealGroup(groupData) {
+            const groupName = groupData[0]?.group;
+            return typeof groupName === "string" && /^(?:Group|Grupp)?\s*[A-L]$/i.test(groupName.trim());
         }
 
         function renderGroup(groupData, index) {
@@ -175,15 +177,16 @@
             try {
                 const data = await apiFootball(`standings?league=${LEAGUE}&season=${SEASON}`);
                 const standings = data.response[0]?.league?.standings || [];
+                const groups = standings.filter(isRealGroup);
 
-                if (standings.length === 0) {
+                if (groups.length === 0) {
                     container.innerHTML = `<div class="error">Inga gruppställningar hittades för VM 2026.</div>`;
                     statusBox.textContent = "Ingen data hittad.";
                     return;
                 }
 
-                container.innerHTML = standings.map(renderGroup).join("");
-                statusBox.textContent = `Visa ${standings.length} grupper för FIFA World Cup 2026.`;
+                container.innerHTML = groups.map(renderGroup).join("");
+                statusBox.textContent = `Visa ${groups.length} grupper för FIFA World Cup 2026.`;
             } catch (error) {
                 console.error(error);
                 container.innerHTML = `<div class="error">Kunde inte hämta gruppställningar. Kontrollera API-nyckeln och att tjänsten är tillgänglig.</div>`;
