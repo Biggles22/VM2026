@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VM 2026 - Slutspelsträd</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            background: #eef4fb;
+            color: #102a43;
+        }
+        header {
+            background: #0f4c81;
+            color: white;
+            padding: 24px 18px;
+            text-align: center;
+        }
+        header h1 {
+            margin: 0;
+            font-size: clamp(2rem, 3vw, 2.8rem);
+        }
+        .container {
+            max-width: 1180px;
+            margin: 24px auto;
+            padding: 0 18px 40px;
+        }
+        .status-box {
+            display: inline-flex;
+            align-items: center;
+            padding: 12px 16px;
+            margin-bottom: 20px;
+            background: #dbeafe;
+            border-radius: 14px;
+            color: #102a43;
+        }
+        .note {
+            margin-bottom: 24px;
+            padding: 18px 20px;
+            background: #ffffff;
+            border: 1px solid #dbe3ea;
+            border-radius: 16px;
+            color: #334e68;
+            line-height: 1.7;
+        }
+        .bracket {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 18px;
+        }
+        .round {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .round h2 {
+            margin: 0;
+            padding: 14px 16px;
+            background: #0f4c81;
+            color: white;
+            border-radius: 14px;
+            font-size: 1.05rem;
+        }
+        .match-card {
+            background: white;
+            border-radius: 16px;
+            padding: 16px;
+            box-shadow: 0 14px 30px rgba(16, 42, 67, 0.08);
+            border: 1px solid #dbe3ea;
+        }
+        .match-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 18px 36px rgba(16, 42, 67, 0.12);
+        }
+        .match-date {
+            font-size: 0.95rem;
+            margin-bottom: 12px;
+            color: #475569;
+        }
+        .team-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 0;
+            border-top: 1px solid #eef2ff;
+        }
+        .team-row:first-of-type {
+            border-top: none;
+        }
+        .team-name {
+            flex: 1;
+            font-weight: 700;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .score {
+            width: 52px;
+            text-align: center;
+            font-weight: 700;
+            color: #0f4c81;
+        }
+        .status {
+            margin-top: 12px;
+            font-size: 0.9rem;
+            color: #334e68;
+        }
+        .error,
+        .loading {
+            padding: 18px;
+            border-radius: 16px;
+            margin-top: 12px;
+        }
+        .loading {
+            background: white;
+            border: 1px solid #dbe3ea;
+        }
+        .error {
+            background: #fee2e2;
+            border: 1px solid #fecaca;
+            color: #991b1b;
+        }
+        @media (max-width: 900px) {
+            .bracket {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>VM 2026 Slutspelsträd</h1>
+    </header>
+    <div class="container">
+        <div class="status-box" id="status">Laddar slutspelsträd från api-football...</div>
+        <div class="note">Sidan visar ett dynamiskt slutspelsträd för VM 2026 utifrån API-data. Klicka på matchkortet för att öppna matchdetaljer när de finns tillgängliga.</div>
+        <div id="bracket" class="bracket">
+            <div class="loading">Hämtar slutspelet...</div>
+        </div>
+    </div>
+    <script>
+        const API_KEY = "170d2afb853fb860d9432d14d7eaaaa5";
+        const BASE_URL = "https://v3.football.api-sports.io";
+        const LEAGUE = 1;
+        const SEASON = 2026;
+
+        function normalizeStage(round) {
+            if (!round) return null;
+            const text = round.toLowerCase();
+            if (text.includes('round of 16') || text.includes('åttondels') || text.includes('1/8') || text.includes('round 16')) return 'Åttondelsfinal';
+            if (text.includes('quarter') || text.includes('kvarts')) return 'Kvartsfinal';
+            if (text.includes('semi') || text.includes('semif')) return 'Semifinal';
+            if (text.includes('third') || text.includes('brons') || text.includes('bronze')) return 'Bronsmatch';
+            if (text.includes('final') && !text.includes('third')) return 'Final';
+            if (text.includes('play-off') || text.includes('playoff')) return 'Kval';
+            return null;
+        }
+
+        function sortStageOrder(a, b) {
+            const order = ['Åttondelsfinal', 'Kvartsfinal', 'Semifinal', 'Bronsmatch', 'Final'];
+            return order.indexOf(a) - order.indexOf(b);
+        }
+
+        function getDemoBracket() {
+            return [
+                {
+                    name: 'Åttondelsfinal',
+                    matches: [
+                        {
+                            fixture: { date: '2026-12-03T20:00:00+00:00', id: 999001, status: { long: 'Planerad', short: 'FT' } },
+                            teams: { home: { id: 101, name: 'Brasilien' }, away: { id: 102, name: 'Sverige' } },
+                            goals: { home: null, away: null }
+                        },
+                        {
+                            fixture: { date: '2026-12-04T20:00:00+00:00', id: 999002, status: { long: 'Planerad', short: 'FT' } },
+                            teams: { home: { id: 103, name: 'Frankrike' }, away: { id: 104, name: 'Argentina' } },
+                            goals: { home: null, away: null }
+                        }
+                    ]
+                },
+                {
+                    name: 'Kvartsfinal',
+                    matches: [
+                        {
+                            fixture: { date: '2026-12-10T20:00:00+00:00', id: 999003, status: { long: 'Planerad', short: 'FT' } },
+                            teams: { home: { id: 105, name: 'England' }, away: { id: 106, name: 'Tyskland' } },
+                            goals: { home: null, away: null }
+                        }
+                    ]
+                },
+                {
+                    name: 'Final',
+                    matches: [
+                        {
+                            fixture: { date: '2026-12-18T18:00:00+00:00', id: 999004, status: { long: 'Planerad', short: 'FT' } },
+                            teams: { home: { id: 107, name: 'Spanien' }, away: { id: 108, name: 'Italien' } },
+                            goals: { home: null, away: null }
+                        }
+                    ]
+                }
+            ];
+        }
+
+        function buildMatchCard(match) {
+            const home = match.teams.home.name;
+            const away = match.teams.away.name;
+            const homeGoals = match.goals.home !== null ? match.goals.home : '-';
+            const awayGoals = match.goals.away !== null ? match.goals.away : '-';
+            const date = new Date(match.fixture.date).toLocaleString('sv-SE', { weekday:'short', day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit', hour12:false, timeZone:'Europe/Stockholm' });
+            const status = match.fixture.status.long || match.fixture.status.short || 'Okänt';
+            const fixtureId = match.fixture.id;
+            const homeId = match.teams.home.id;
+            const awayId = match.teams.away.id;
+            const href = `FIFA2026-match-details.html?fixture=${fixtureId}&home=${homeId}&away=${awayId}`;
+
+            return `
+                <a class="match-card" href="${href}" target="_blank">
+                    <div class="match-date">${date}</div>
+                    <div class="team-row">
+                        <div class="team-name">${home}</div>
+                        <div class="score">${homeGoals}</div>
+                    </div>
+                    <div class="team-row">
+                        <div class="team-name">${away}</div>
+                        <div class="score">${awayGoals}</div>
+                    </div>
+                    <div class="status">${status}</div>
+                </a>
+            `;
+        }
+
+        function renderBracket(groups) {
+            if (!groups.length) {
+                return '<div class="error">Inga slutspelsmatcher hittades i API-svaret.</div>';
+            }
+
+            return groups.map(stage => `
+                <section class="round">
+                    <h2>${stage.name}</h2>
+                    ${stage.matches.map(buildMatchCard).join('')}
+                </section>
+            `).join('');
+        }
+
+        async function loadBracket() {
+            const bracket = document.getElementById('bracket');
+            const status = document.getElementById('status');
+
+            try {
+                const response = await fetch(`${BASE_URL}/fixtures?league=${LEAGUE}&season=${SEASON}`, {
+                    headers: { 'x-apisports-key': API_KEY }
+                });
+                if (!response.ok) throw new Error(`API-fel ${response.status}`);
+                const data = await response.json();
+                const fixtures = data.response || [];
+
+                const stages = {};
+                fixtures.forEach(match => {
+                    const round = normalizeStage(match.league?.round || match.fixture?.status?.long);
+                    if (!round) return;
+                    if (!stages[round]) stages[round] = [];
+                    stages[round].push(match);
+                });
+
+                const grouped = Object.keys(stages).sort(sortStageOrder).map(name => ({
+                    name,
+                    matches: stages[name].sort((a,b) => new Date(a.fixture.date) - new Date(b.fixture.date))
+                }));
+
+                if (!grouped.length) {
+                    bracket.innerHTML = renderBracket(getDemoBracket());
+                    status.textContent = 'Visar demo-data eftersom inga slutspelsmatcher hittades.';
+                    return;
+                }
+
+                bracket.innerHTML = renderBracket(grouped);
+                status.textContent = `Visar ${grouped.length} slutspelsrundor från API:et.`;
+            } catch (error) {
+                console.error(error);
+                bracket.innerHTML = renderBracket(getDemoBracket());
+                status.textContent = 'Visar demo-data eftersom API-anropet misslyckades.';
+            }
+        }
+
+        loadBracket();
+    </script>
+</body>
+</html>
