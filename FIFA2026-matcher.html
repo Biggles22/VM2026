@@ -47,12 +47,22 @@
             display: grid;
             gap: 18px;
         }
+        .match-link {
+            display: block;
+            color: inherit;
+            text-decoration: none;
+        }
         .match-card {
             background: #ffffff;
             border-radius: 14px;
             box-shadow: 0 12px 30px rgba(0,0,0,0.06);
             padding: 18px 20px;
             border: 1px solid rgba(0,0,0,0.04);
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+        .match-link:hover .match-card {
+            transform: translateY(-2px);
+            box-shadow: 0 16px 36px rgba(0,0,0,0.12);
         }
         .match-date {
             font-size: 14px;
@@ -123,7 +133,7 @@
     </header>
     <div class="container">
         <div class="note">
-            <strong>Obs:</strong> Byt ut din API-nyckel i JavaScript-koden nedan. Sidan använder endpointen <code>fixtures?league=1&amp;season=2026</code> för FIFA World Cup 2026.
+            <strong>Obs:</strong> Klicka på en match för att se mer detaljer som startelvor, odds och head-to-head.
         </div>
         <div id="matches" class="matches">
             <div class="loading">Hämtar matcher...</div>
@@ -172,21 +182,26 @@
             const venue = match.fixture.venue?.name || "Plats saknas";
             const city = match.fixture.venue?.city ? `, ${match.fixture.venue.city}` : "";
             const date = formatDate(match.fixture.date);
+            const fixtureId = match.fixture.id;
+            const homeId = match.teams.home.id;
+            const awayId = match.teams.away.id;
 
             return `
-                <article class="match-card">
-                    <div class="match-date">${date}</div>
-                    <div class="match-teams">
-                        <div class="team-name">${home}</div>
-                        <div class="score">${homeGoals} – ${awayGoals}</div>
-                        <div class="team-name">${away}</div>
-                    </div>
-                    <div class="match-details">
-                        <span>Status: ${status}</span>
-                        <span>Stadium: ${venue}${city}</span>
-                        <span>Match ID: ${match.fixture.id}</span>
-                    </div>
-                </article>
+                <a class="match-link" href="FIFA2026-match-details.html?fixture=${fixtureId}&home=${homeId}&away=${awayId}">
+                    <article class="match-card">
+                        <div class="match-date">${date}</div>
+                        <div class="match-teams">
+                            <div class="team-name">${home}</div>
+                            <div class="score">${homeGoals} – ${awayGoals}</div>
+                            <div class="team-name">${away}</div>
+                        </div>
+                        <div class="match-details">
+                            <span>Status: ${status}</span>
+                            <span>Stadium: ${venue}${city}</span>
+                            <span>Match ID: ${fixtureId}</span>
+                        </div>
+                    </article>
+                </a>
             `;
         }
 
