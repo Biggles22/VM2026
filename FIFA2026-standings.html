@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VM 2026 Gruppställningar</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 0;
+            background: #f7f9fc;
+            color: #1d1d1d;
+        }
+        header {
+            background: #005293;
+            color: #ffffff;
+            padding: 24px 16px;
+            text-align: center;
+        }
+        header h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+        .container {
+            max-width: 980px;
+            margin: 24px auto;
+            padding: 0 16px 40px;
+        }
+        .note {
+            background: #fff5c2;
+            border: 1px solid #fcd34d;
+            color: #663c00;
+            padding: 14px 16px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        .status-box {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 10px 14px;
+            border-radius: 10px;
+            background: #e2e8f0;
+            color: #0f172a;
+            font-size: 14px;
+        }
+        .group {
+            background: #ffffff;
+            border-radius: 14px;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.06);
+            padding: 18px 20px;
+            border: 1px solid rgba(0,0,0,0.04);
+            margin-bottom: 20px;
+        }
+        .group h2 {
+            margin-top: 0;
+            font-size: 20px;
+            color: #0f172a;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 14px;
+        }
+        th, td {
+            padding: 10px 12px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 14px;
+        }
+        th {
+            background: #f1f5f9;
+            font-weight: 700;
+        }
+        td.rank {
+            width: 40px;
+            font-weight: 700;
+        }
+        td.team {
+            min-width: 180px;
+        }
+        .error {
+            background: #fee2e2;
+            border: 1px solid #fecaca;
+            color: #991b1b;
+            padding: 16px;
+            border-radius: 12px;
+        }
+        .loading {
+            padding: 18px;
+            border-radius: 12px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            color: #475569;
+        }
+        @media (max-width: 720px) {
+            th, td {
+                padding: 8px 10px;
+                font-size: 13px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>VM 2026 Gruppställningar</h1>
+        <p class="status-box" id="status">Laddar gruppställningar från api-football...</p>
+    </header>
+    <div class="container">
+        <div class="note">
+            <strong>Obs:</strong> Byt ut din API-nyckel i JavaScript-koden nedan. Sidan använder endpointen <code>standings?league=1&amp;season=2026</code> för FIFA World Cup 2026.
+        </div>
+        <div id="standings">
+            <div class="loading">Hämtar gruppställningar...</div>
+        </div>
+    </div>
+
+    <script>
+        const API_KEY = "170d2afb853fb860d9432d14d7eaaaa5"; // ⚠️ Byt ut mot din API-nyckel från api-football.com
+        const BASE_URL = "https://v3.football.api-sports.io";
+        const LEAGUE = 1;
+        const SEASON = 2026;
+
+        async function apiFootball(endpoint) {
+            const response = await fetch(`${BASE_URL}/${endpoint}`, {
+                headers: {
+                    "x-apisports-key": API_KEY
+                }
+            });
+
+            if (!response.ok) {
+                const text = await response.text();
+                throw new Error(`API-fel ${response.status}: ${response.statusText} ${text}`);
+            }
+
+            return response.json();
+        }
+
+        function renderGroup(groupData, index) {
+            const groupName = groupData[0]?.group || `Grupp ${String.fromCharCode(65 + index)}`;
+            const rows = groupData.map(team => {
+                const stats = team.all || {};
+                return `
+                    <tr>
+                        <td class="rank">${team.rank}</td>
+                        <td class="team">${team.team.name}</td>
+                        <td>${stats.played ?? 0}</td>
+                        <td>${stats.win ?? 0}</td>
+                        <td>${stats.draw ?? 0}</td>
+                        <td>${stats.lose ?? 0}</td>
+                        <td>${team.goalsDiff ?? 0}</td>
+                        <td>${team.points ?? 0}</td>
+                    </tr>
+                `;
+            }).join("");
+
+            return `
+                <section class="group">
+                    <h2>${groupName}</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Lag</th>
+                                <th>Sp</th>
+                                <th>V</th>
+                                <th>O</th>
+                                <th>F</th>
+                                <th>MS</th>
+                                <th>P</th>
+                            </tr>
+                        </thead>
+                        <tbody>${rows}</tbody>
+                    </table>
+                </section>
+            `;
+        }
+
+        async function loadStandings() {
+            const container = document.getElementById("standings");
+            const statusBox = document.getElementById("status");
+
+            try {
+                const data = await apiFootball(`standings?league=${LEAGUE}&season=${SEASON}`);
+                const standings = data.response[0]?.league?.standings || [];
+
+                if (standings.length === 0) {
+                    container.innerHTML = `<div class="error">Inga gruppställningar hittades för VM 2026.</div>`;
+                    statusBox.textContent = "Ingen data hittad.";
+                    return;
+                }
+
+                container.innerHTML = standings.map(renderGroup).join("");
+                statusBox.textContent = `Visa ${standings.length} grupper för FIFA World Cup 2026.`;
+            } catch (error) {
+                console.error(error);
+                container.innerHTML = `<div class="error">Kunde inte hämta gruppställningar. Kontrollera API-nyckeln och att tjänsten är tillgänglig.</div>`;
+                statusBox.textContent = "Fel vid hämtning av gruppställningar.";
+            }
+        }
+
+        loadStandings();
+    </script>
+</body>
+</html>
