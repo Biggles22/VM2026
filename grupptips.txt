@@ -1,0 +1,84 @@
+Anders E	A	Mexiko	Sydkorea	Tjeckien	
+Anders E	B	Kanada	Schweiz	Qatar	
+Anders E	C	Brasilien	Marocko	Skottland	
+Anders E	D	USA	Paraguay	Australien	
+Anders E	E	Tyskland	Ecuador	Elfenbenskusten	
+Anders E	F	Nederländerna	Japan	Tunisien	
+Anders E	G	Belgien	Iran	Egypten	
+Anders E	H	Spanien	Uruguay	Saudiarabien	
+Anders E	I	Frankrike	Senegal	Norge	
+Anders E	J	Argentina	Österrike	Algeriet	
+Anders E	K	Portugal	Colombia	Uzbekistan	
+Anders E	L	England	Kroatien	Panama	
+Anneli	A				
+Anneli	B				
+Anneli	C				
+Anneli	D				
+Anneli	E				
+Anneli	F				
+Anneli	G				
+Anneli	H				
+Anneli	I				
+Anneli	J				
+Anneli	K				
+Anneli	L				
+Emelie	A				
+Emelie	B				
+Emelie	C				
+Emelie	D				
+Emelie	E				
+Emelie	F				
+Emelie	G				
+Emelie	H				
+Emelie	I				
+Emelie	J				
+Emelie	K				
+Emelie	L				
+Andreas	A				
+Andreas	B				
+Andreas	C				
+Andreas	D				
+Andreas	E				
+Andreas	F				
+Andreas	G				
+Andreas	H				
+Andreas	I				
+Andreas	J				
+Andreas	K				
+Andreas	L				
+Anders F	A				
+Anders F	B				
+Anders F	C				
+Anders F	D				
+Anders F	E				
+Anders F	F				
+Anders F	G				
+Anders F	H				
+Anders F	I				
+Anders F	J				
+Anders F	K				
+Anders F	L				
+Elton	A				
+Elton	B				
+Elton	C				
+Elton	D				
+Elton	E				
+Elton	F				
+Elton	G				
+Elton	H				
+Elton	I				
+Elton	J				
+Elton	K				
+Elton	L				
+Carl	A	Tjeckien	Mexiko	Sydkorea	
+Carl	B	Schweiz	Bosnien och Hercegovina	Kanada	
+Carl	C	Brasilien	Skottland	Marocko	
+Carl	D	Paraguay	Turkiet	USA	
+Carl	E	Tyskland	Ecuador	Elfenbenskusten	
+Carl	F	Nederländerna	Sverige	Japan	
+Carl	G	Belgien	Egypten	Iran	
+Carl	H	Spanien	Uruguay	Saudiarabien	
+Carl	I	Frankrike	Norge	Senegal	
+Carl	J	Argentina	Österrike	Algeriet	
+Carl	K	Portugal	Colombia	Uzbekistan	
+Carl	L	Kroatien	England	Ghana	

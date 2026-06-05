@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Poängställning - VM 2026</title>
+  <style>
+    :root {
+      color: #122547;
+      background: #eef4fb;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: radial-gradient(circle at top, #dce8ff 0%, #eef4fb 50%, #ffffff 100%);
+    }
+
+    .page {
+      width: min(1180px, 96%);
+      margin: 0 auto;
+      padding: 32px 0 48px;
+    }
+
+    header {
+      text-align: center;
+      padding: 24px 20px 10px;
+      margin-bottom: 24px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2rem, 3vw, 2.8rem);
+      letter-spacing: -0.04em;
+      color: #0f2a4d;
+    }
+
+    p.lead {
+      margin: 16px auto 0;
+      max-width: 760px;
+      color: #42526a;
+      font-size: 1rem;
+      line-height: 1.7;
+    }
+
+    .card {
+      overflow-x: auto;
+      background: #ffffff;
+      border-radius: 24px;
+      border: 1px solid rgba(18, 37, 71, 0.08);
+      box-shadow: 0 24px 60px rgba(18, 37, 71, 0.08);
+    }
+
+    table {
+      width: 100%;
+      min-width: 820px;
+      border-collapse: collapse;
+    }
+
+    thead {
+      background: linear-gradient(90deg, #1f4e78, #3e7cc8);
+      color: #ffffff;
+    }
+
+    th, td {
+      padding: 16px 18px;
+      text-align: left;
+      font-size: 0.95rem;
+      border-bottom: 1px solid rgba(18, 37, 71, 0.08);
+      vertical-align: middle;
+    }
+
+    th {
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+    }
+
+    tbody tr:nth-child(even) {
+      background: rgba(31, 78, 120, 0.04);
+    }
+
+    tbody tr:hover {
+      background: rgba(31, 78, 120, 0.08);
+    }
+
+    .rank {
+      font-weight: 700;
+      color: #1f4e78;
+      width: 80px;
+    }
+
+    .status-yes {
+      color: #207a4f;
+      font-weight: 700;
+    }
+
+    .status-no {
+      color: #cc3a44;
+      font-weight: 700;
+    }
+
+    .notes {
+      margin-top: 18px;
+      color: #4d657f;
+      font-size: 0.95rem;
+      line-height: 1.7;
+    }
+
+    @media (max-width: 740px) {
+      th, td {
+        padding: 14px 12px;
+      }
+
+      .page {
+        padding: 24px 0 32px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header>
+      <h1>Poängställning</h1>
+      <p class="lead">Här visas nuvarande poängställning för VM 2026-tippet. Alla tips läses in från <code>grupptips.txt</code> och jämförs med den aktuella tabellen från FIFA2026-standings.</p>
+    </header>
+
+    <section class="card" id="statusCard">
+      <div id="statusText" style="padding:18px 24px; font-size:1rem; color:#122547;">Laddar tips och aktuell ställning...</div>
+    </section>
+
+    <section class="card" id="currentStandingsCard">
+      <h2 style="margin:0;padding:24px 24px 0 24px;color:#0f2a4d;">Aktuell gruppställning</h2>
+      <div id="currentStandings" style="padding:0 24px 24px;"></div>
+    </section>
+
+    <section class="card" id="tipsCard">
+      <h2 style="margin:0;padding:24px 24px 0 24px;color:#0f2a4d;">Allas tips och poäng</h2>
+      <div id="tipsTable" style="padding:0 24px 24px;"></div>
+    </section>
+
+    <section class="card" id="rulesCard">
+      <h2 style="margin:0;padding:24px 24px 0 24px;color:#0f2a4d;">Poängsystem</h2>
+      <div style="padding:0 24px 24px; color:#42526a; line-height:1.7;">
+        <p>Poängen som används här är hämtade från <code>Anders_vm_tips.html</code>:</p>
+        <ul>
+          <li><strong>Rätt gruppvinnare:</strong> 5 p</li>
+          <li><strong>Rätt grupptvåa:</strong> 3 p</li>
+          <li><strong>Rätt grupptrea:</strong> 1 p</li>
+        </ul>
+        <p>Filen uppdateras automatiskt när aktuell gruppställning hämtas från API:et.</p>
+      </div>
+    </section>
+  </main>
+  <script>
+    const API_KEY = "170d2afb853fb860d9432d14d7eaaaa5";
+    const BASE_URL = "https://v3.football.api-sports.io";
+    const LEAGUE = 1;
+    const SEASON = 2026;
+
+    function parseTips(text) {
+      const lines = text.split(/\r?\n/).filter(line => line.trim().length > 0);
+      const participants = {};
+      const groups = [];
+
+      for (const line of lines) {
+        const parts = line.split(/\t+/).map(x => x.trim());
+        if (parts.length < 2) continue;
+        const [name, group, first = "", second = "", third = ""] = parts;
+        if (!name || !group) continue;
+        if (!participants[name]) {
+          participants[name] = { name, predictions: {} };
+        }
+        participants[name].predictions[group.toUpperCase()] = [first, second, third];
+        if (!groups.includes(group.toUpperCase())) groups.push(group.toUpperCase());
+      }
+
+      return { participants: Object.values(participants), groups: groups.sort() };
+    }
+
+    function formatGroupStandings(actualGroups) {
+      const rows = actualGroups.map(group => {
+        const [first, second, third] = group.teams;
+        return `
+          <tr>
+            <td>${group.group}</td>
+            <td>${first}</td>
+            <td>${second}</td>
+            <td>${third}</td>
+          </tr>
+        `;
+      }).join("");
+
+      return `
+        <table>
+          <thead>
+            <tr>
+              <th>Grupp</th>
+              <th>1:a</th>
+              <th>2:a</th>
+              <th>3:a</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      `;
+    }
+
+    function renderTips(participants, actualGroups) {
+      const groupMap = Object.fromEntries(actualGroups.map(g => [g.group, g.teams]));
+
+      const rows = participants.map(participant => {
+        let points = 0;
+        const details = [];
+        for (const [group, prediction] of Object.entries(participant.predictions)) {
+          const actual = groupMap[group] || ["", "", ""];
+          const [p1, p2, p3] = prediction;
+          if (p1 && p1 === actual[0]) { points += 5; details.push(`${group} 1:a korrekt`); }
+          if (p2 && p2 === actual[1]) { points += 3; details.push(`${group} 2:a korrekt`); }
+          if (p3 && p3 === actual[2]) { points += 1; details.push(`${group} 3:a korrekt`); }
+        }
+        return { ...participant, points, details: details.join(", ") };
+      });
+
+      rows.sort((a, b) => b.points - a.points || a.name.localeCompare(b.name, "sv"));
+
+      const htmlRows = rows.map((participant, index) => `
+        <tr>
+          <td class="rank">${index + 1}</td>
+          <td>${participant.name}</td>
+          <td>${participant.points}</td>
+          <td>${participant.details || "-"}</td>
+        </tr>
+      `).join("");
+
+      return `
+        <table>
+          <thead>
+            <tr>
+              <th>Placering</th>
+              <th>Deltagare</th>
+              <th>Poäng</th>
+              <th>Kommentar</th>
+            </tr>
+          </thead>
+          <tbody>${htmlRows}</tbody>
+        </table>
+      `;
+    }
+
+    function buildGroupObject(standings) {
+      const actualGroups = [];
+      for (const group of standings) {
+        const groupName = group[0]?.group?.replace(/^(Group|Grupp)\s*/i, "") || "?";
+        actualGroups.push({
+          group: groupName,
+          teams: [group[0]?.team?.name || "", group[1]?.team?.name || "", group[2]?.team?.name || ""]
+        });
+      }
+      actualGroups.sort((a, b) => a.group.localeCompare(b.group, "sv"));
+      return actualGroups;
+    }
+
+    async function loadData() {
+      const statusText = document.getElementById("statusText");
+      const standingsContainer = document.getElementById("currentStandings");
+      const tipsTable = document.getElementById("tipsTable");
+
+      try {
+        const [tipsResponse, standingsResponse] = await Promise.all([
+          fetch("grupptips.txt"),
+          fetch(`${BASE_URL}/standings?league=${LEAGUE}&season=${SEASON}`, {
+            headers: { "x-apisports-key": API_KEY }
+          })
+        ]);
+
+        if (!tipsResponse.ok) throw new Error("Kunde inte läsa grupptips.txt");
+        if (!standingsResponse.ok) throw new Error("Kunde inte läsa aktuella standings från API");
+
+        const tipsText = await tipsResponse.text();
+        const standingsData = await standingsResponse.json();
+
+        const { participants } = parseTips(tipsText);
+        const standings = standingsData.response[0]?.league?.standings || [];
+        const actualGroups = buildGroupObject(standings);
+
+        standingsContainer.innerHTML = formatGroupStandings(actualGroups);
+        tipsTable.innerHTML = renderTips(participants, actualGroups);
+        statusText.textContent = `Uppdaterat från API och grupptips. ${participants.length} deltagare och ${actualGroups.length} grupper jämförda.`;
+      } catch (error) {
+        console.error(error);
+        statusText.textContent = `Fel vid inläsning: ${error.message}`;
+        standingsContainer.innerHTML = `<div class="error">Kunde inte läsa aktuell ställning.</div>`;
+        tipsTable.innerHTML = `<div class="error">Kunde inte läsa in tipsen.</div>`;
+      }
+    }
+
+    loadData();
+  </script>
+</body>
+</html>
