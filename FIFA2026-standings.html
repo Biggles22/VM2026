@@ -102,6 +102,7 @@
         <div id="standings">
             <div class="loading">Hämtar gruppställningar...</div>
         </div>
+        <div id="bestThirds"></div>
     </div>
 
     <script>
@@ -128,6 +129,45 @@
         function isRealGroup(groupData) {
             const groupName = groupData[0]?.group;
             return typeof groupName === "string" && /^(?:Group|Grupp)?\s*[A-L]$/i.test(groupName.trim());
+        }
+
+        function renderBestThirds(teams) {
+            const rows = teams.map((team, index) => {
+                const stats = team.all || {};
+                return `
+                    <tr>
+                        <td class="rank">${index + 1}</td>
+                        <td class="team">${team.team.name}</td>
+                        <td>${stats.played ?? 0}</td>
+                        <td>${stats.win ?? 0}</td>
+                        <td>${stats.draw ?? 0}</td>
+                        <td>${stats.lose ?? 0}</td>
+                        <td>${team.goalsDiff ?? 0}</td>
+                        <td>${team.points ?? 0}</td>
+                    </tr>
+                `;
+            }).join("");
+
+            return `
+                <section class="group">
+                    <h2>Bäst placerade treor i alla grupper</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Lag</th>
+                                <th>Sp</th>
+                                <th>V</th>
+                                <th>O</th>
+                                <th>F</th>
+                                <th>MS</th>
+                                <th>P</th>
+                            </tr>
+                        </thead>
+                        <tbody>${rows}</tbody>
+                    </table>
+                </section>
+            `;
         }
 
         function renderGroup(groupData, index) {
@@ -171,6 +211,7 @@
         }
 
         async function loadStandings() {
+            const bestThirdsContainer = document.getElementById("bestThirds");
             const container = document.getElementById("standings");
             const statusBox = document.getElementById("status");
 
@@ -185,7 +226,22 @@
                     return;
                 }
 
+                const thirdPlaceTeams = groups
+                    .map(group => group.find(team => String(team.rank) === "3"))
+                    .filter(Boolean);
+
+                const sortedThirds = thirdPlaceTeams
+                    .slice()
+                    .sort((a, b) => {
+                        const pointsDiff = (b.points ?? 0) - (a.points ?? 0);
+                        if (pointsDiff !== 0) return pointsDiff;
+                        const goalDiff = (b.goalsDiff ?? 0) - (a.goalsDiff ?? 0);
+                        if (goalDiff !== 0) return goalDiff;
+                        return (b.all?.goals?.for ?? 0) - (a.all?.goals?.for ?? 0);
+                    });
+
                 container.innerHTML = groups.map(renderGroup).join("");
+                bestThirdsContainer.innerHTML = renderBestThirds(sortedThirds);
                 statusBox.textContent = `Visa ${groups.length} grupper för FIFA World Cup 2026.`;
             } catch (error) {
                 console.error(error);
