@@ -125,7 +125,7 @@
     </header>
     <div class="container">
         <div>
-            <a class="back-link" href="FIFA2026-matcher.html">← Tillbaka till matcher</a>
+            <a class="back-link" id="backLink" href="FIFA2026-matcher.html">← Tillbaka till matcher</a>
             <span class="status-box" id="status">Laddar matchdetaljer...</span>
         </div>
 
@@ -141,6 +141,14 @@
 
         function getQueryParam(name) {
             return new URLSearchParams(window.location.search).get(name);
+        }
+
+        function setupBackLink() {
+            const back = getQueryParam("back");
+            const allowedBackLinks = new Set(["FIFA2026-matcher.html", "FIFA2026-matcher-plus.html"]);
+            if (allowedBackLinks.has(back)) {
+                document.getElementById("backLink").href = back;
+            }
         }
 
         function formatDate(dateString) {
@@ -339,6 +347,7 @@
             }
         }
 
+        setupBackLink();
         loadMatchDetails();
     </script>
 </body>
