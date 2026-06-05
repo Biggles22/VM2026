@@ -460,6 +460,27 @@
             return "Kommande";
         }
 
+        function fixtureStatusLabel(status) {
+            const label = status.long || status.short || "Okänt";
+            const normalized = normalizeSearch(label);
+            const translations = {
+                ns: "Ej startad",
+                "not started": "Ej startad",
+                "match finished": "Slut",
+                ft: "Slut",
+                postponed: "Uppskjuten",
+                pst: "Uppskjuten",
+                cancelled: "Inställd",
+                canc: "Inställd",
+                abandoned: "Avbruten",
+                abd: "Avbruten",
+                halftime: "Halvtid",
+                ht: "Halvtid"
+            };
+
+            return translations[normalized] || label;
+        }
+
         function roundLabel(match) {
             return match.league.round || match.fixture.status.long || "Omgång saknas";
         }
@@ -579,6 +600,30 @@
             return groups;
         }
 
+        function groupLetterForTeam(teamName) {
+            const teamTerms = new Set(aliasTerms(teamName));
+
+            for (const [letter, teams] of Object.entries(GROUP_TEAMS)) {
+                const groupHasTeam = teams.some(team => aliasTerms(team).some(term => teamTerms.has(term)));
+                if (groupHasTeam) return letter.toUpperCase();
+            }
+
+            return "";
+        }
+
+        function matchGroupLabel(match) {
+            const round = normalizeSearch(match.league.round);
+            const roundMatch = round.match(/\b(?:group|grupp)\s*([a-l])\b/i);
+            if (roundMatch) return `Grupp ${roundMatch[1].toUpperCase()}`;
+
+            const homeGroup = groupLetterForTeam(match.teams.home.name);
+            const awayGroup = groupLetterForTeam(match.teams.away.name);
+            if (homeGroup && homeGroup === awayGroup) return `Grupp ${homeGroup}`;
+            if (homeGroup || awayGroup) return `Grupp ${homeGroup || awayGroup}`;
+
+            return "Grupp saknas";
+        }
+
         function searchableText(match) {
             const fields = [
                 match.teams.home.name,
@@ -617,6 +662,7 @@
             const city = fixture.venue?.city || "Stad saknas";
             const referee = fixture.referee || "Domare ej utsedd";
             const elapsed = fixture.status.elapsed ? `${fixture.status.elapsed} min` : "Ej startad";
+            const group = matchGroupLabel(match);
             const fixtureId = fixture.id;
             const href = `FIFA2026-match-details.html?fixture=${fixtureId}&home=${home.id}&away=${away.id}&back=FIFA2026-matcher-plus.html`;
 
@@ -625,6 +671,7 @@
                     <article class="match-card">
                         <div class="match-topline">
                             <span class="badge ${state === "live" ? "live" : state === "finished" ? "done" : ""}">${stateLabel(state)}</span>
+                            <span class="badge">${escapeHtml(group)}</span>
                             <span class="badge">${escapeHtml(roundLabel(match))}</span>
                             <span class="kickoff">${escapeHtml(formatDate(fixture.date))}</span>
                         </div>
@@ -646,7 +693,8 @@
                         </div>
 
                         <div class="fact-grid">
-                            <div class="fact"><span>Status</span><strong>${escapeHtml(fixture.status.long || fixture.status.short || "Okänt")}</strong></div>
+                            <div class="fact"><span>Status</span><strong>${escapeHtml(fixtureStatusLabel(fixture.status))}</strong></div>
+                            <div class="fact"><span>Grupp</span><strong>${escapeHtml(group)}</strong></div>
                             <div class="fact"><span>Spelminut</span><strong>${escapeHtml(elapsed)}</strong></div>
                             <div class="fact"><span>Domare</span><strong>${escapeHtml(referee)}</strong></div>
                             <div class="fact"><span>Match ID</span><strong>${escapeHtml(fixtureId)}</strong></div>
