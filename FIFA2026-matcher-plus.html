@@ -367,7 +367,7 @@
         <section class="toolbar" aria-label="Filtrera matcher">
             <label>
                 Sök lag eller arena
-                <input id="searchInput" type="search" placeholder="Exempel: Sverige, Dallas, Group A">
+                <input id="searchInput" type="search" placeholder="Exempel: Sverige, Sweden, Grupp F">
             </label>
             <label>
                 Status
@@ -464,8 +464,82 @@
             return match.league.round || match.fixture.status.long || "Omgång saknas";
         }
 
-        function searchableText(match) {
+        const SEARCH_ALIASES = {
+            algeria: ["algeriet"],
+            argentina: ["argentina"],
+            australia: ["australien"],
+            austria: ["osterrike", "österrike"],
+            belgium: ["belgien"],
+            brazil: ["brasilien"],
+            canada: ["kanada"],
+            colombia: ["colombia"],
+            croatia: ["kroatien"],
+            czechia: ["tjeckien"],
+            denmark: ["danmark"],
+            ecuador: ["ecuador"],
+            egypt: ["egypten"],
+            england: ["england"],
+            france: ["frankrike"],
+            germany: ["tyskland"],
+            ghana: ["ghana"],
+            iran: ["iran"],
+            japan: ["japan"],
+            mexico: ["mexiko"],
+            morocco: ["marocko"],
+            netherlands: ["nederlanderna", "nederländerna", "holland"],
+            norway: ["norge"],
+            panama: ["panama"],
+            paraguay: ["paraguay"],
+            portugal: ["portugal"],
+            qatar: ["qatar"],
+            "saudi arabia": ["saudiarabien", "saudi arabien"],
+            scotland: ["skottland"],
+            senegal: ["senegal"],
+            southkorea: ["sydkorea", "south korea"],
+            spain: ["spanien"],
+            sweden: ["sverige"],
+            switzerland: ["schweiz"],
+            tunisia: ["tunisien"],
+            turkey: ["turkiet"],
+            uruguay: ["uruguay"],
+            usa: ["united states", "usa", "forenta staterna", "förenta staterna"],
+            uzbekistan: ["uzbekistan"]
+        };
+
+        function normalizeSearch(value) {
+            return String(value ?? "")
+                .toLowerCase()
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "")
+                .replace(/[^a-z0-9]+/g, " ")
+                .trim()
+                .replace(/\s+/g, " ");
+        }
+
+        function aliasTerms(value) {
+            const normalized = normalizeSearch(value);
+            const compact = normalized.replace(/\s+/g, "");
+            const aliases = SEARCH_ALIASES[normalized] || SEARCH_ALIASES[compact] || [];
+            return [normalized, compact, ...aliases.map(normalizeSearch)];
+        }
+
+        function groupTerms(round) {
+            const normalized = normalizeSearch(round);
+            const match = normalized.match(/\b(?:group|grupp)\s*([a-l])\b/i);
+            if (!match) return [];
+
+            const letter = match[1].toLowerCase();
             return [
+                `group ${letter}`,
+                `group${letter}`,
+                `grupp ${letter}`,
+                `grupp${letter}`,
+                letter
+            ];
+        }
+
+        function searchableText(match) {
+            const fields = [
                 match.teams.home.name,
                 match.teams.away.name,
                 match.fixture.venue?.name,
@@ -473,7 +547,14 @@
                 match.league.round,
                 match.league.name,
                 match.fixture.referee
-            ].join(" ").toLowerCase();
+            ];
+
+            return [
+                ...fields.map(normalizeSearch),
+                ...aliasTerms(match.teams.home.name),
+                ...aliasTerms(match.teams.away.name),
+                ...groupTerms(match.league.round)
+            ].join(" ");
         }
 
         function updateSummary(matches) {
@@ -543,7 +624,7 @@
 
         function renderMatches() {
             const container = document.getElementById("matches");
-            const search = document.getElementById("searchInput").value.trim().toLowerCase();
+            const search = normalizeSearch(document.getElementById("searchInput").value);
             const statusFilter = document.getElementById("statusFilter").value;
             const sortOrder = document.getElementById("sortOrder").value;
 
