@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VM 2026 Matcher</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 0;
+            background: #f7f9fc;
+            color: #1d1d1d;
+        }
+        header {
+            background: #005293;
+            color: #ffffff;
+            padding: 24px 16px;
+            text-align: center;
+        }
+        header h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+        .container {
+            max-width: 980px;
+            margin: 24px auto;
+            padding: 0 16px 40px;
+        }
+        .note {
+            background: #fff5c2;
+            border: 1px solid #fcd34d;
+            color: #663c00;
+            padding: 14px 16px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        .status-box {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 10px 14px;
+            border-radius: 10px;
+            background: #e2e8f0;
+            color: #0f172a;
+            font-size: 14px;
+        }
+        .matches {
+            display: grid;
+            gap: 18px;
+        }
+        .match-card {
+            background: #ffffff;
+            border-radius: 14px;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.06);
+            padding: 18px 20px;
+            border: 1px solid rgba(0,0,0,0.04);
+        }
+        .match-date {
+            font-size: 14px;
+            color: #475569;
+            margin-bottom: 6px;
+        }
+        .match-teams {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .team-name {
+            flex: 1 1 40%;
+            font-weight: 700;
+            font-size: 16px;
+        }
+        .score {
+            font-size: 26px;
+            font-weight: 700;
+            color: #0f172a;
+            min-width: 90px;
+            text-align: center;
+        }
+        .match-details {
+            margin-top: 12px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            color: #334155;
+            font-size: 14px;
+        }
+        .match-details span {
+            background: #f1f5f9;
+            padding: 7px 10px;
+            border-radius: 999px;
+        }
+        .error {
+            background: #fee2e2;
+            border: 1px solid #fecaca;
+            color: #991b1b;
+            padding: 16px;
+            border-radius: 12px;
+        }
+        .loading {
+            padding: 18px;
+            border-radius: 12px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            color: #475569;
+        }
+        @media (max-width: 640px) {
+            .match-teams {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .score {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>VM 2026 matcher</h1>
+        <p class="status-box" id="status">Laddar matcher från api-football...</p>
+    </header>
+    <div class="container">
+        <div class="note">
+            <strong>Obs:</strong> Byt ut din API-nyckel i JavaScript-koden nedan. Sidan använder endpointen <code>fixtures?league=1&amp;season=2026</code> för FIFA World Cup 2026.
+        </div>
+        <div id="matches" class="matches">
+            <div class="loading">Hämtar matcher...</div>
+        </div>
+    </div>
+
+    <script>
+        const API_KEY = "170d2afb853fb860d9432d14d7eaaaa5"; // ⚠️ Byt ut mot din API-nyckel från api-football.com
+        const BASE_URL = "https://v3.football.api-sports.io";
+        const LEAGUE = 1;
+        const SEASON = 2026;
+
+        async function apiFootball(endpoint) {
+            const response = await fetch(`${BASE_URL}/${endpoint}`, {
+                headers: {
+                    "x-apisports-key": API_KEY
+                }
+            });
+
+            if (!response.ok) {
+                const text = await response.text();
+                throw new Error(`API-fel ${response.status}: ${response.statusText} ${text}`);
+            }
+
+            return response.json();
+        }
+
+        function formatDate(dateString) {
+            return new Intl.DateTimeFormat("sv-SE", {
+                weekday: "long",
+                day: "2-digit",
+                month: "2-digit",
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: false,
+                timeZone: "Europe/Stockholm"
+            }).format(new Date(dateString));
+        }
+
+        function buildMatchCard(match) {
+            const home = match.teams.home.name;
+            const away = match.teams.away.name;
+            const homeGoals = match.goals.home !== null ? match.goals.home : "-";
+            const awayGoals = match.goals.away !== null ? match.goals.away : "-";
+            const status = match.fixture.status.long || match.fixture.status.short || "Okänt";
+            const venue = match.fixture.venue?.name || "Plats saknas";
+            const city = match.fixture.venue?.city ? `, ${match.fixture.venue.city}` : "";
+            const date = formatDate(match.fixture.date);
+
+            return `
+                <article class="match-card">
+                    <div class="match-date">${date}</div>
+                    <div class="match-teams">
+                        <div class="team-name">${home}</div>
+                        <div class="score">${homeGoals} – ${awayGoals}</div>
+                        <div class="team-name">${away}</div>
+                    </div>
+                    <div class="match-details">
+                        <span>Status: ${status}</span>
+                        <span>Stadium: ${venue}${city}</span>
+                        <span>Match ID: ${match.fixture.id}</span>
+                    </div>
+                </article>
+            `;
+        }
+
+        async function loadMatches() {
+            const container = document.getElementById("matches");
+            const statusBox = document.getElementById("status");
+
+            try {
+                const data = await apiFootball(`fixtures?league=${LEAGUE}&season=${SEASON}`);
+                const matches = data.response || [];
+
+                if (matches.length === 0) {
+                    container.innerHTML = `<div class="error">Inga matcher hittades för VM 2026.</div>`;
+                    statusBox.textContent = "Ingen data hittad.";
+                    return;
+                }
+
+                const sorted = matches.sort((a, b) => new Date(a.fixture.date) - new Date(b.fixture.date));
+                container.innerHTML = sorted.map(buildMatchCard).join("");
+                statusBox.textContent = `Visa ${sorted.length} matcher för FIFA World Cup 2026.`;
+            } catch (error) {
+                console.error(error);
+                container.innerHTML = `<div class="error">Kunde inte hämta matcher. Kontrollera API-nyckeln och att tjänsten är tillgänglig.</div>`;
+                statusBox.textContent = "Fel vid hämtning av matcher.";
+            }
+        }
+
+        loadMatches();
+    </script>
+</body>
+</html>
