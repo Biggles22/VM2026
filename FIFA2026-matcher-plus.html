@@ -470,10 +470,12 @@
             australia: ["australien"],
             austria: ["osterrike", "österrike"],
             belgium: ["belgien"],
+            "bosnia and herzegovina": ["bosnien och hercegovina", "bosnien"],
             brazil: ["brasilien"],
             canada: ["kanada"],
             colombia: ["colombia"],
             croatia: ["kroatien"],
+            "czech republic": ["tjeckien"],
             czechia: ["tjeckien"],
             denmark: ["danmark"],
             ecuador: ["ecuador"],
@@ -483,6 +485,7 @@
             germany: ["tyskland"],
             ghana: ["ghana"],
             iran: ["iran"],
+            "ivory coast": ["elfenbenskusten", "cote d ivoire", "côte d ivoire"],
             japan: ["japan"],
             mexico: ["mexiko"],
             morocco: ["marocko"],
@@ -504,6 +507,21 @@
             uruguay: ["uruguay"],
             usa: ["united states", "usa", "forenta staterna", "förenta staterna"],
             uzbekistan: ["uzbekistan"]
+        };
+
+        const GROUP_TEAMS = {
+            a: ["Mexico", "South Korea", "Czechia", "Czech Republic"],
+            b: ["Canada", "Switzerland", "Qatar", "Bosnia and Herzegovina"],
+            c: ["Brazil", "Morocco", "Scotland"],
+            d: ["USA", "Paraguay", "Australia", "Turkey"],
+            e: ["Germany", "Ecuador", "Ivory Coast"],
+            f: ["Netherlands", "Japan", "Tunisia", "Sweden"],
+            g: ["Belgium", "Iran", "Egypt"],
+            h: ["Spain", "Uruguay", "Saudi Arabia"],
+            i: ["France", "Senegal", "Norway"],
+            j: ["Argentina", "Austria", "Algeria"],
+            k: ["Portugal", "Colombia", "Uzbekistan"],
+            l: ["England", "Croatia", "Panama", "Ghana"]
         };
 
         function normalizeSearch(value) {
@@ -538,6 +556,29 @@
             ];
         }
 
+        function termsForGroupLetter(letter) {
+            return [
+                `group ${letter}`,
+                `group${letter}`,
+                `grupp ${letter}`,
+                `grupp${letter}`
+            ];
+        }
+
+        function teamGroupTerms(teamName) {
+            const teamTerms = new Set(aliasTerms(teamName));
+            const groups = [];
+
+            Object.entries(GROUP_TEAMS).forEach(([letter, teams]) => {
+                const groupHasTeam = teams.some(team => aliasTerms(team).some(term => teamTerms.has(term)));
+                if (groupHasTeam) {
+                    groups.push(...termsForGroupLetter(letter));
+                }
+            });
+
+            return groups;
+        }
+
         function searchableText(match) {
             const fields = [
                 match.teams.home.name,
@@ -553,7 +594,9 @@
                 ...fields.map(normalizeSearch),
                 ...aliasTerms(match.teams.home.name),
                 ...aliasTerms(match.teams.away.name),
-                ...groupTerms(match.league.round)
+                ...groupTerms(match.league.round),
+                ...teamGroupTerms(match.teams.home.name),
+                ...teamGroupTerms(match.teams.away.name)
             ].join(" ");
         }
 
