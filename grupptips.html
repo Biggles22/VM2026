@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Grundspelstips - VM Tips 2026</title>
+  <style>
+    :root {
+      color: #14253f;
+      background: #f3f7fb;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      --ink: #14253f;
+      --muted: #5a6b82;
+      --line: rgba(20, 37, 63, 0.1);
+      --blue: #24547a;
+      --green: #187457;
+      --coral: #b24a3f;
+      --gold: #a96f14;
+      --paper: #ffffff;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at top left, rgba(91, 150, 198, 0.22), transparent 34rem),
+        linear-gradient(180deg, #f8fbff 0%, #edf4f8 54%, #ffffff 100%);
+      color: var(--ink);
+    }
+
+    .page {
+      width: min(1240px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 28px 0 48px;
+    }
+
+    header {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 24px;
+      align-items: end;
+      padding: 26px 0 22px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2rem, 4vw, 4.4rem);
+      line-height: 0.96;
+      letter-spacing: 0;
+      color: #10223c;
+    }
+
+    .lead {
+      margin: 14px 0 0;
+      max-width: 680px;
+      color: var(--muted);
+      line-height: 1.65;
+      font-size: 1rem;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      width: fit-content;
+      min-height: 34px;
+      padding: 7px 12px;
+      border: 1px solid rgba(24, 116, 87, 0.18);
+      background: rgba(24, 116, 87, 0.1);
+      color: var(--green);
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      white-space: nowrap;
+    }
+
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      margin: 22px 0;
+    }
+
+    .metric {
+      min-height: 112px;
+      padding: 18px;
+      border-radius: 8px;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      box-shadow: 0 18px 46px rgba(35, 54, 86, 0.07);
+    }
+
+    .metric span {
+      display: block;
+      color: var(--muted);
+      font-size: 0.88rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .metric strong {
+      display: block;
+      margin-top: 10px;
+      font-size: clamp(1.8rem, 3vw, 2.6rem);
+      line-height: 1;
+      color: #10223c;
+    }
+
+    .toolbar {
+      display: grid;
+      grid-template-columns: minmax(220px, 1fr) auto auto;
+      gap: 12px;
+      align-items: center;
+      margin: 22px 0 18px;
+    }
+
+    .search {
+      min-height: 44px;
+      width: 100%;
+      padding: 11px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--ink);
+      font: inherit;
+      outline: none;
+      box-shadow: 0 10px 26px rgba(35, 54, 86, 0.05);
+    }
+
+    .search:focus {
+      border-color: rgba(36, 84, 122, 0.45);
+      box-shadow: 0 0 0 4px rgba(36, 84, 122, 0.12);
+    }
+
+    .segmented {
+      display: inline-grid;
+      grid-template-columns: repeat(2, minmax(92px, 1fr));
+      min-height: 44px;
+      padding: 4px;
+      border-radius: 8px;
+      background: rgba(20, 37, 63, 0.08);
+      border: 1px solid rgba(20, 37, 63, 0.08);
+    }
+
+    button {
+      min-height: 36px;
+      border: 0;
+      border-radius: 6px;
+      padding: 8px 12px;
+      color: var(--ink);
+      background: transparent;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    button[aria-pressed="true"] {
+      background: #fff;
+      color: var(--blue);
+      box-shadow: 0 6px 18px rgba(20, 37, 63, 0.12);
+    }
+
+    select {
+      min-height: 44px;
+      padding: 9px 36px 9px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--ink);
+      font: inherit;
+      box-shadow: 0 10px 26px rgba(35, 54, 86, 0.05);
+    }
+
+    .content {
+      min-height: 320px;
+    }
+
+    .participant-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 16px;
+    }
+
+    .participant {
+      overflow: hidden;
+      border-radius: 8px;
+      background: #fff;
+      border: 1px solid var(--line);
+      box-shadow: 0 18px 46px rgba(35, 54, 86, 0.07);
+    }
+
+    .participant-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      align-items: center;
+      padding: 16px 18px;
+      background: linear-gradient(90deg, #173655, #24547a);
+      color: #fff;
+    }
+
+    .participant-head h2 {
+      margin: 0;
+      font-size: 1.18rem;
+      letter-spacing: 0;
+    }
+
+    .complete,
+    .missing {
+      flex: 0 0 auto;
+      padding: 5px 9px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 800;
+    }
+
+    .complete {
+      background: rgba(222, 247, 235, 0.18);
+      color: #dff8ed;
+    }
+
+    .missing {
+      background: rgba(255, 225, 220, 0.18);
+      color: #ffe5df;
+    }
+
+    .tips-list {
+      display: grid;
+      gap: 0;
+    }
+
+    .tip-row {
+      display: grid;
+      grid-template-columns: 42px 1fr;
+      gap: 12px;
+      padding: 12px 16px;
+      border-top: 1px solid rgba(20, 37, 63, 0.08);
+      align-items: start;
+    }
+
+    .group-mark {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      background: rgba(36, 84, 122, 0.1);
+      color: var(--blue);
+      font-weight: 800;
+    }
+
+    .picks {
+      display: grid;
+      gap: 6px;
+      min-width: 0;
+    }
+
+    .pick {
+      display: grid;
+      grid-template-columns: 24px minmax(0, 1fr);
+      gap: 8px;
+      align-items: center;
+      min-height: 24px;
+      color: var(--ink);
+    }
+
+    .pick b {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px;
+      height: 22px;
+      border-radius: 999px;
+      background: rgba(169, 111, 20, 0.12);
+      color: var(--gold);
+      font-size: 0.78rem;
+    }
+
+    .empty {
+      color: #8995a6;
+      font-style: italic;
+    }
+
+    .group-table-wrap {
+      overflow-x: auto;
+      border-radius: 8px;
+      background: #fff;
+      border: 1px solid var(--line);
+      box-shadow: 0 18px 46px rgba(35, 54, 86, 0.07);
+    }
+
+    table {
+      width: 100%;
+      min-width: 900px;
+      border-collapse: collapse;
+    }
+
+    th,
+    td {
+      padding: 13px 14px;
+      border-bottom: 1px solid rgba(20, 37, 63, 0.08);
+      text-align: left;
+      vertical-align: top;
+      font-size: 0.94rem;
+    }
+
+    th {
+      color: #fff;
+      background: #24547a;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    tbody tr:nth-child(even) {
+      background: rgba(36, 84, 122, 0.035);
+    }
+
+    .group-cell {
+      color: var(--blue);
+      font-weight: 800;
+      font-size: 1.05rem;
+    }
+
+    .notice {
+      padding: 18px;
+      border-radius: 8px;
+      background: rgba(178, 74, 63, 0.09);
+      border: 1px solid rgba(178, 74, 63, 0.18);
+      color: #7b2f29;
+      font-weight: 700;
+    }
+
+    @media (max-width: 900px) {
+      header,
+      .toolbar {
+        grid-template-columns: 1fr;
+      }
+
+      .summary {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .segmented,
+      select {
+        width: 100%;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .page {
+        width: min(100% - 24px, 1240px);
+        padding-top: 18px;
+      }
+
+      .summary {
+        grid-template-columns: 1fr;
+      }
+
+      .participant-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .participant-head {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header>
+      <div>
+        <h1>Grundspelstips</h1>
+        <p class="lead">Alla inlämnade gruppspelstips för A&A VM-tips 2026, sorterade direkt från <code>grupptips.txt</code>.</p>
+      </div>
+      <div class="badge" id="statusBadge">Laddar tips</div>
+    </header>
+
+    <section class="summary" aria-label="Sammanfattning">
+      <div class="metric">
+        <span>Deltagare</span>
+        <strong id="participantCount">0</strong>
+      </div>
+      <div class="metric">
+        <span>Grupper</span>
+        <strong id="groupCount">0</strong>
+      </div>
+      <div class="metric">
+        <span>Fyllda grupper</span>
+        <strong id="filledCount">0</strong>
+      </div>
+      <div class="metric">
+        <span>Tipsrader</span>
+        <strong id="rowCount">0</strong>
+      </div>
+    </section>
+
+    <section class="toolbar" aria-label="Filter">
+      <input class="search" id="searchInput" type="search" placeholder="Sök deltagare eller lag">
+      <div class="segmented" aria-label="Vy">
+        <button type="button" id="participantView" aria-pressed="true">Deltagare</button>
+        <button type="button" id="groupView" aria-pressed="false">Grupper</button>
+      </div>
+      <select id="groupFilter" aria-label="Välj grupp">
+        <option value="">Alla grupper</option>
+      </select>
+    </section>
+
+    <section class="content" id="content" aria-live="polite"></section>
+  </main>
+
+  <script>
+    const GROUPS = "ABCDEFGHIJKL".split("");
+    const state = {
+      rows: [],
+      participants: [],
+      groups: [],
+      view: "participants",
+      query: "",
+      group: ""
+    };
+
+    const els = {
+      statusBadge: document.getElementById("statusBadge"),
+      participantCount: document.getElementById("participantCount"),
+      groupCount: document.getElementById("groupCount"),
+      filledCount: document.getElementById("filledCount"),
+      rowCount: document.getElementById("rowCount"),
+      searchInput: document.getElementById("searchInput"),
+      participantView: document.getElementById("participantView"),
+      groupView: document.getElementById("groupView"),
+      groupFilter: document.getElementById("groupFilter"),
+      content: document.getElementById("content")
+    };
+
+    function escapeHtml(value) {
+      return String(value ?? "").replace(/[&<>"']/g, char => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        "\"": "&quot;",
+        "'": "&#039;"
+      }[char]));
+    }
+
+    function parseTips(text) {
+      const rows = text
+        .split(/\r?\n/)
+        .map(line => line.split("\t").map(cell => cell.trim()))
+        .filter(parts => parts[0] && parts[1])
+        .map(parts => ({
+          name: parts[0],
+          group: parts[1].toUpperCase(),
+          picks: [parts[2] || "", parts[3] || "", parts[4] || ""]
+        }));
+
+      const participantMap = new Map();
+      rows.forEach(row => {
+        if (!participantMap.has(row.name)) {
+          participantMap.set(row.name, { name: row.name, predictions: new Map() });
+        }
+        participantMap.get(row.name).predictions.set(row.group, row.picks);
+      });
+
+      return {
+        rows,
+        participants: [...participantMap.values()],
+        groups: [...new Set(rows.map(row => row.group))].sort((a, b) => a.localeCompare(b, "sv"))
+      };
+    }
+
+    function isFilled(picks) {
+      return picks.filter(Boolean).length === 3;
+    }
+
+    function getParticipantRows() {
+      const query = state.query.toLowerCase();
+      return state.participants.filter(participant => {
+        const predictions = [...participant.predictions.entries()];
+        const matchesGroup = !state.group || participant.predictions.has(state.group);
+        const matchesQuery = !query || participant.name.toLowerCase().includes(query) || predictions.some(([, picks]) =>
+          picks.some(team => team.toLowerCase().includes(query))
+        );
+        return matchesGroup && matchesQuery;
+      });
+    }
+
+    function getGroupRows() {
+      const query = state.query.toLowerCase();
+      return state.rows.filter(row => {
+        const matchesGroup = !state.group || row.group === state.group;
+        const matchesQuery = !query || row.name.toLowerCase().includes(query) || row.picks.some(team =>
+          team.toLowerCase().includes(query)
+        );
+        return matchesGroup && matchesQuery;
+      });
+    }
+
+    function renderPickList(picks) {
+      return picks.map((team, index) => `
+        <div class="pick">
+          <b>${index + 1}</b>
+          <span class="${team ? "" : "empty"}">${team ? escapeHtml(team) : "Ej ifyllt"}</span>
+        </div>
+      `).join("");
+    }
+
+    function renderParticipants() {
+      const participants = getParticipantRows();
+      if (!participants.length) {
+        els.content.innerHTML = '<div class="notice">Inga tips matchar filtret.</div>';
+        return;
+      }
+
+      els.content.innerHTML = `
+        <div class="participant-grid">
+          ${participants.map(participant => {
+            const visibleGroups = GROUPS.filter(group => !state.group || group === state.group);
+            const filled = GROUPS.filter(group => isFilled(participant.predictions.get(group) || [])).length;
+            return `
+              <article class="participant">
+                <div class="participant-head">
+                  <h2>${escapeHtml(participant.name)}</h2>
+                  <span class="${filled === GROUPS.length ? "complete" : "missing"}">${filled}/${GROUPS.length} grupper</span>
+                </div>
+                <div class="tips-list">
+                  ${visibleGroups.map(group => {
+                    const picks = participant.predictions.get(group) || ["", "", ""];
+                    return `
+                      <div class="tip-row">
+                        <span class="group-mark">${group}</span>
+                        <div class="picks">${renderPickList(picks)}</div>
+                      </div>
+                    `;
+                  }).join("")}
+                </div>
+              </article>
+            `;
+          }).join("")}
+        </div>
+      `;
+    }
+
+    function renderGroups() {
+      const rows = getGroupRows();
+      const groups = state.group ? [state.group] : state.groups;
+      const groupedRows = groups.map(group => ({
+        group,
+        rows: rows.filter(row => row.group === group)
+      })).filter(group => group.rows.length);
+
+      if (!groupedRows.length) {
+        els.content.innerHTML = '<div class="notice">Inga tips matchar filtret.</div>';
+        return;
+      }
+
+      els.content.innerHTML = `
+        <div class="group-table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Grupp</th>
+                <th>Deltagare</th>
+                <th>1:a</th>
+                <th>2:a</th>
+                <th>3:a</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${groupedRows.map(group => group.rows.map((row, index) => `
+                <tr>
+                  ${index === 0 ? `<td class="group-cell" rowspan="${group.rows.length}">${group.group}</td>` : ""}
+                  <td>${escapeHtml(row.name)}</td>
+                  <td class="${row.picks[0] ? "" : "empty"}">${escapeHtml(row.picks[0] || "Ej ifyllt")}</td>
+                  <td class="${row.picks[1] ? "" : "empty"}">${escapeHtml(row.picks[1] || "Ej ifyllt")}</td>
+                  <td class="${row.picks[2] ? "" : "empty"}">${escapeHtml(row.picks[2] || "Ej ifyllt")}</td>
+                </tr>
+              `).join("")).join("")}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    function renderStats() {
+      const filledRows = state.rows.filter(row => isFilled(row.picks)).length;
+      els.participantCount.textContent = state.participants.length;
+      els.groupCount.textContent = state.groups.length;
+      els.filledCount.textContent = filledRows;
+      els.rowCount.textContent = state.rows.length;
+      els.statusBadge.textContent = `${filledRows} av ${state.rows.length} rader ifyllda`;
+    }
+
+    function renderGroupOptions() {
+      els.groupFilter.innerHTML = '<option value="">Alla grupper</option>' + state.groups.map(group =>
+        `<option value="${group}">Grupp ${group}</option>`
+      ).join("");
+    }
+
+    function render() {
+      els.participantView.setAttribute("aria-pressed", String(state.view === "participants"));
+      els.groupView.setAttribute("aria-pressed", String(state.view === "groups"));
+      if (state.view === "participants") {
+        renderParticipants();
+      } else {
+        renderGroups();
+      }
+    }
+
+    async function loadTips() {
+      try {
+        const response = await fetch("grupptips.txt", { cache: "no-store" });
+        if (!response.ok) throw new Error("Kunde inte läsa grupptips.txt");
+        const parsed = parseTips(await response.text());
+        Object.assign(state, parsed);
+        renderStats();
+        renderGroupOptions();
+        render();
+      } catch (error) {
+        els.statusBadge.textContent = "Kunde inte läsa tipsen";
+        els.content.innerHTML = `<div class="notice">${escapeHtml(error.message)}</div>`;
+      }
+    }
+
+    els.searchInput.addEventListener("input", event => {
+      state.query = event.target.value.trim();
+      render();
+    });
+
+    els.participantView.addEventListener("click", () => {
+      state.view = "participants";
+      render();
+    });
+
+    els.groupView.addEventListener("click", () => {
+      state.view = "groups";
+      render();
+    });
+
+    els.groupFilter.addEventListener("change", event => {
+      state.group = event.target.value;
+      render();
+    });
+
+    loadTips();
+  </script>
+</body>
+</html>
