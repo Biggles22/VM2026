@@ -118,18 +118,18 @@ Anna N	I
 Anna N	J			
 Anna N	K			
 Anna N	L			
-Anna M	A			
-Anna M	B			
-Anna M	C			
-Anna M	D			
-Anna M	E			
-Anna M	F			
-Anna M	G			
-Anna M	H			
-Anna M	I			
-Anna M	J			
-Anna M	K			
-Anna M	L			
+Anna M	A	Sydkorea	Mexiko	Tjeckien
+Anna M	B	Schweiz	Kanada	Bosnien och Hercegovina
+Anna M	C	Brasilien	Marocko	Skottland
+Anna M	D	USA	Turkiet	Australien
+Anna M	E	Tyskland	Ecuador	Elfenbenskusten
+Anna M	F	Nederländerna	Japan	Sverige
+Anna M	G	Belgien	Egypten	Iran
+Anna M	H	Spanien	Uruguay	Saudiarabien
+Anna M	I	Frankrike	Norge	Senegal
+Anna M	J	Argentina	Österrike	Algeriet
+Anna M	K	Colombia	Portugal	Uzbekistan
+Anna M	L	England	Kroatien	Ghana
 Simon	A	Sydkorea	Mexiko	Tjeckien
 Simon	B	Schweiz	Bosnien och Hercegovina	Kanada
 Simon	C	Brasilien	Skottland	Marocko
