@@ -71,7 +71,7 @@ Elton	J
 Elton	K			
 Elton	L			
 Carl	A	Tjeckien	Mexiko	Sydkorea
-Carl	B	Schweiz	Bosnien och Hercegovina	Kanada
+Carl	B	Schweiz	Bosnien & Hercegovina	Kanada
 Carl	C	Brasilien	Skottland	Marocko
 Carl	D	Paraguay	Turkiet	USA
 Carl	E	Tyskland	Ecuador	Elfenbenskusten
@@ -191,7 +191,7 @@ Frida	J
 Frida	K			
 Frida	L			
 Susi	A	Mexiko	Sydkorea	Tjeckien
-Susi	B	Schweiz	Bosnien och Hercegovina	Kanada
+Susi	B	Schweiz	Bosnien & Hercegovina	Kanada
 Susi	C	Brasilien	Marocko	Skottland
 Susi	D	USA	Turkiet	Paraguay
 Susi	E	Tyskland	Elfenbenskusten	Ecuador
