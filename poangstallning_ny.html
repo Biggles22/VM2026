@@ -149,7 +149,6 @@
         <ul>
           <li><strong>Rätt gruppvinnare:</strong> 5 p</li>
           <li><strong>Rätt grupptvåa:</strong> 3 p</li>
-          <li><strong>Rätt grupptrea:</strong> 1 p</li>
         </ul>
         <p>Filen uppdateras automatiskt när aktuell gruppställning hämtas från API:et.</p>
       </div>
@@ -303,10 +302,9 @@
         const details = [];
         for (const [group, prediction] of Object.entries(participant.predictions)) {
           const actual = groupMap[group] || ["", "", ""];
-          const [p1, p2, p3] = prediction.map(canonicalTeamName);
+          const [p1, p2] = prediction.map(canonicalTeamName);
           if (p1 && p1 === actual[0]) { points += 5; details.push(`${group} 1:a korrekt`); }
           if (p2 && p2 === actual[1]) { points += 3; details.push(`${group} 2:a korrekt`); }
-          if (p3 && p3 === actual[2]) { points += 1; details.push(`${group} 3:a korrekt`); }
         }
         return { ...participant, points, details: details.join(", ") };
       });
