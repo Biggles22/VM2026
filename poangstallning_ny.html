@@ -124,8 +124,8 @@
 <body>
   <main class="page">
     <header>
-      <h1>Poängställning</h1>
-      <p class="lead">Här visas nuvarande poängställning för VM 2026-tippet. Alla tips läses in från <code>grupptips.txt</code> och jämförs med den aktuella tabellen från FIFA2026-standings.</p>
+      <h1>Löpande gruppspels poängställning</h1>
+      <p class="lead">Här visas nuvarande poängställning för VM 2026-grundspelstipset. Alla tips jämförs med den aktuella tabellen från FIFA2026 gruppresultat.</p>
     </header>
 
     <section class="card" id="statusCard">
@@ -254,7 +254,10 @@
     function buildGroupObject(standings) {
       const actualGroups = [];
       for (const group of standings) {
-        const groupName = group[0]?.group?.replace(/^(Group|Grupp)\s*/i, "") || "?";
+        const rawGroupName = group[0]?.group || "";
+        if (!/^(?:Group|Grupp)?\s*[A-L]$/i.test(rawGroupName.trim())) continue;
+
+        const groupName = rawGroupName.replace(/^(Group|Grupp)\s*/i, "") || "?";
         actualGroups.push({
           group: groupName,
           teams: [group[0]?.team?.name || "", group[1]?.team?.name || "", group[2]?.team?.name || ""]
@@ -289,7 +292,7 @@
 
         standingsContainer.innerHTML = formatGroupStandings(actualGroups);
         tipsTable.innerHTML = renderTips(participants, actualGroups);
-        statusText.textContent = `Uppdaterat från API och grupptips. ${participants.length} deltagare och ${actualGroups.length} grupper jämförda.`;
+        statusText.textContent = `Uppdaterat från grupptips. ${participants.length} deltagare och ${actualGroups.length} grupper jämförda.`;
       } catch (error) {
         console.error(error);
         statusText.textContent = `Fel vid inläsning: ${error.message}`;
