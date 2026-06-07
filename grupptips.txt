@@ -130,18 +130,18 @@ Anna M	I
 Anna M	J			
 Anna M	K			
 Anna M	L			
-Simon	A			
-Simon	B			
-Simon	C			
-Simon	D			
-Simon	E			
-Simon	F			
-Simon	G			
-Simon	H			
-Simon	I			
-Simon	J			
-Simon	K			
-Simon	L			
+Simon	A	Sydkorea	Mexiko	Tjeckien
+Simon	B	Schweiz	Bosnien och Hercegovina	Kanada
+Simon	C	Brasilien	Skottland	Marocko
+Simon	D	USA	Australien	Turkiet
+Simon	E	Ecuador	Tyskland	Elfenbenskusten
+Simon	F	Japan	Nederländerna	Sverige
+Simon	G	Belgien	Egypten	Iran
+Simon	H	Spanien	Uruguay	Kap Verde
+Simon	I	Norge	Frankrike	Senegal
+Simon	J	Argentina	Algeriet	Österrike
+Simon	K	Portugal	Colombia	Uzbekistan
+Simon	L	Kroatien	England	Panama
 David	A			
 David	B			
 David	C			
@@ -191,7 +191,7 @@ Frida	J
 Frida	K			
 Frida	L			
 Susi	A	Mexiko	Sydkorea	Tjeckien
-Susi	B	Schweiz	Bosnien och Hercegovina	Kanada
+Susi	B	Schweiz	 	Kanada
 Susi	C	Brasilien	Marocko	Skottland
 Susi	D	USA	Turkiet	Paraguay
 Susi	E	Tyskland	Elfenbenskusten	Ecuador
