@@ -161,6 +161,92 @@
     const LEAGUE = 1;
     const SEASON = 2026;
 
+    const TEAM_NAME_ALIASES = {
+      "algeriet": "algeria",
+      "algeria": "algeria",
+      "argentina": "argentina",
+      "osterrike": "austria",
+      "austria": "austria",
+      "australien": "australia",
+      "australia": "australia",
+      "belgien": "belgium",
+      "belgium": "belgium",
+      "bosnien och hercegovina": "bosnia and herzegovina",
+      "bosnia and herzegovina": "bosnia and herzegovina",
+      "brasilien": "brazil",
+      "brazil": "brazil",
+      "colombia": "colombia",
+      "ecuador": "ecuador",
+      "egypten": "egypt",
+      "egypt": "egypt",
+      "elfenbenskusten": "ivory coast",
+      "ivory coast": "ivory coast",
+      "cote d ivoire": "ivory coast",
+      "england": "england",
+      "frankrike": "france",
+      "france": "france",
+      "ghana": "ghana",
+      "iran": "iran",
+      "japan": "japan",
+      "kanada": "canada",
+      "canada": "canada",
+      "kroatien": "croatia",
+      "croatia": "croatia",
+      "marocko": "morocco",
+      "morocco": "morocco",
+      "mexiko": "mexico",
+      "mexico": "mexico",
+      "nederlanderna": "netherlands",
+      "netherlands": "netherlands",
+      "norge": "norway",
+      "norway": "norway",
+      "panama": "panama",
+      "paraguay": "paraguay",
+      "portugal": "portugal",
+      "qatar": "qatar",
+      "saudiarabien": "saudi arabia",
+      "saudi arabia": "saudi arabia",
+      "schweiz": "switzerland",
+      "switzerland": "switzerland",
+      "senegal": "senegal",
+      "skottland": "scotland",
+      "scotland": "scotland",
+      "spanien": "spain",
+      "spain": "spain",
+      "sverige": "sweden",
+      "sweden": "sweden",
+      "sydkorea": "south korea",
+      "south korea": "south korea",
+      "tjeckien": "czechia",
+      "czechia": "czechia",
+      "czech republic": "czechia",
+      "tunisien": "tunisia",
+      "tunisia": "tunisia",
+      "turkiet": "turkey",
+      "turkey": "turkey",
+      "tyskland": "germany",
+      "germany": "germany",
+      "uruguay": "uruguay",
+      "usa": "usa",
+      "united states": "usa",
+      "uzbekistan": "uzbekistan"
+    };
+
+    function normalizeName(value) {
+      return String(value || "")
+        .trim()
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9]+/g, " ")
+        .trim();
+    }
+
+    function canonicalTeamName(value) {
+      const normalized = normalizeName(value);
+      return TEAM_NAME_ALIASES[normalized] || normalized;
+    }
+
     function parseTips(text) {
       const lines = text.split(/\r?\n/).filter(line => line.trim().length > 0);
       const participants = {};
@@ -210,14 +296,14 @@
     }
 
     function renderTips(participants, actualGroups) {
-      const groupMap = Object.fromEntries(actualGroups.map(g => [g.group, g.teams]));
+      const groupMap = Object.fromEntries(actualGroups.map(g => [g.group, g.teams.map(canonicalTeamName)]));
 
       const rows = participants.map(participant => {
         let points = 0;
         const details = [];
         for (const [group, prediction] of Object.entries(participant.predictions)) {
           const actual = groupMap[group] || ["", "", ""];
-          const [p1, p2, p3] = prediction;
+          const [p1, p2, p3] = prediction.map(canonicalTeamName);
           if (p1 && p1 === actual[0]) { points += 5; details.push(`${group} 1:a korrekt`); }
           if (p2 && p2 === actual[1]) { points += 3; details.push(`${group} 2:a korrekt`); }
           if (p3 && p3 === actual[2]) { points += 1; details.push(`${group} 3:a korrekt`); }
