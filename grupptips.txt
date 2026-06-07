@@ -1,84 +1,204 @@
-Anders E	A	Mexiko	Sydkorea	Tjeckien	
-Anders E	B	Kanada	Schweiz	Qatar	
-Anders E	C	Brasilien	Marocko	Skottland	
-Anders E	D	USA	Paraguay	Australien	
-Anders E	E	Tyskland	Ecuador	Elfenbenskusten	
-Anders E	F	Nederländerna	Japan	Tunisien	
-Anders E	G	Belgien	Iran	Egypten	
-Anders E	H	Spanien	Uruguay	Saudiarabien	
-Anders E	I	Frankrike	Senegal	Norge	
-Anders E	J	Argentina	Österrike	Algeriet	
-Anders E	K	Portugal	Colombia	Uzbekistan	
-Anders E	L	England	Kroatien	Panama	
-Anneli	A				
-Anneli	B				
-Anneli	C				
-Anneli	D				
-Anneli	E				
-Anneli	F				
-Anneli	G				
-Anneli	H				
-Anneli	I				
-Anneli	J				
-Anneli	K				
-Anneli	L				
-Emelie	A				
-Emelie	B				
-Emelie	C				
-Emelie	D				
-Emelie	E				
-Emelie	F				
-Emelie	G				
-Emelie	H				
-Emelie	I				
-Emelie	J				
-Emelie	K				
-Emelie	L				
-Andreas	A				
-Andreas	B				
-Andreas	C				
-Andreas	D				
-Andreas	E				
-Andreas	F				
-Andreas	G				
-Andreas	H				
-Andreas	I				
-Andreas	J				
-Andreas	K				
-Andreas	L				
-Anders F	A				
-Anders F	B				
-Anders F	C				
-Anders F	D				
-Anders F	E				
-Anders F	F				
-Anders F	G				
-Anders F	H				
-Anders F	I				
-Anders F	J				
-Anders F	K				
-Anders F	L				
-Elton	A				
-Elton	B				
-Elton	C				
-Elton	D				
-Elton	E				
-Elton	F				
-Elton	G				
-Elton	H				
-Elton	I				
-Elton	J				
-Elton	K				
-Elton	L				
-Carl	A	Tjeckien	Mexiko	Sydkorea	
-Carl	B	Schweiz	Bosnien och Hercegovina	Kanada	
-Carl	C	Brasilien	Skottland	Marocko	
-Carl	D	Paraguay	Turkiet	USA	
-Carl	E	Tyskland	Ecuador	Elfenbenskusten	
-Carl	F	Nederländerna	Sverige	Japan	
-Carl	G	Belgien	Egypten	Iran	
-Carl	H	Spanien	Uruguay	Saudiarabien	
-Carl	I	Frankrike	Norge	Senegal	
-Carl	J	Argentina	Österrike	Algeriet	
-Carl	K	Portugal	Colombia	Uzbekistan	
-Carl	L	Kroatien	England	Ghana	
+Anders E	A	Mexiko	Sydkorea	Tjeckien
+Anders E	B	Kanada	Schweiz	Qatar
+Anders E	C	Brasilien	Marocko	Skottland
+Anders E	D	USA	Paraguay	Australien
+Anders E	E	Tyskland	Ecuador	Elfenbenskusten
+Anders E	F	Nederländerna	Japan	Tunisien
+Anders E	G	Belgien	Iran	Egypten
+Anders E	H	Spanien	Uruguay	Saudiarabien
+Anders E	I	Frankrike	Senegal	Norge
+Anders E	J	Argentina	Österrike	Algeriet
+Anders E	K	Portugal	Colombia	Uzbekistan
+Anders E	L	England	Kroatien	Panama
+Anneli	A			
+Anneli	B			
+Anneli	C			
+Anneli	D			
+Anneli	E			
+Anneli	F			
+Anneli	G			
+Anneli	H			
+Anneli	I			
+Anneli	J			
+Anneli	K			
+Anneli	L			
+Emelie	A			
+Emelie	B			
+Emelie	C			
+Emelie	D			
+Emelie	E			
+Emelie	F			
+Emelie	G			
+Emelie	H			
+Emelie	I			
+Emelie	J			
+Emelie	K			
+Emelie	L			
+Andreas	A			
+Andreas	B			
+Andreas	C			
+Andreas	D			
+Andreas	E			
+Andreas	F			
+Andreas	G			
+Andreas	H			
+Andreas	I			
+Andreas	J			
+Andreas	K			
+Andreas	L			
+Anders F	A			
+Anders F	B			
+Anders F	C			
+Anders F	D			
+Anders F	E			
+Anders F	F			
+Anders F	G			
+Anders F	H			
+Anders F	I			
+Anders F	J			
+Anders F	K			
+Anders F	L			
+Elton	A			
+Elton	B			
+Elton	C			
+Elton	D			
+Elton	E			
+Elton	F			
+Elton	G			
+Elton	H			
+Elton	I			
+Elton	J			
+Elton	K			
+Elton	L			
+Carl	A	Tjeckien	Mexiko	Sydkorea
+Carl	B	Schweiz	Bosnien och Hercegovina	Kanada
+Carl	C	Brasilien	Skottland	Marocko
+Carl	D	Paraguay	Turkiet	USA
+Carl	E	Tyskland	Ecuador	Elfenbenskusten
+Carl	F	Nederländerna	Sverige	Japan
+Carl	G	Belgien	Egypten	Iran
+Carl	H	Spanien	Uruguay	Saudiarabien
+Carl	I	Frankrike	Norge	Senegal
+Carl	J	Argentina	Österrike	Algeriet
+Carl	K	Portugal	Colombia	Uzbekistan
+Carl	L	Kroatien	England	Ghana
+Robin	A			
+Robin	B			
+Robin	C			
+Robin	D			
+Robin	E			
+Robin	F			
+Robin	G			
+Robin	H			
+Robin	I			
+Robin	J			
+Robin	K			
+Robin	L			
+Niklas	A			
+Niklas	B			
+Niklas	C			
+Niklas	D			
+Niklas	E			
+Niklas	F			
+Niklas	G			
+Niklas	H			
+Niklas	I			
+Niklas	J			
+Niklas	K			
+Niklas	L			
+Anna N	A			
+Anna N	B			
+Anna N	C			
+Anna N	D			
+Anna N	E			
+Anna N	F			
+Anna N	G			
+Anna N	H			
+Anna N	I			
+Anna N	J			
+Anna N	K			
+Anna N	L			
+Anna M	A			
+Anna M	B			
+Anna M	C			
+Anna M	D			
+Anna M	E			
+Anna M	F			
+Anna M	G			
+Anna M	H			
+Anna M	I			
+Anna M	J			
+Anna M	K			
+Anna M	L			
+Simon	A			
+Simon	B			
+Simon	C			
+Simon	D			
+Simon	E			
+Simon	F			
+Simon	G			
+Simon	H			
+Simon	I			
+Simon	J			
+Simon	K			
+Simon	L			
+David	A			
+David	B			
+David	C			
+David	D			
+David	E			
+David	F			
+David	G			
+David	H			
+David	I			
+David	J			
+David	K			
+David	L			
+Mathias	A			
+Mathias	B			
+Mathias	C			
+Mathias	D			
+Mathias	E			
+Mathias	F			
+Mathias	G			
+Mathias	H			
+Mathias	I			
+Mathias	J			
+Mathias	K			
+Mathias	L			
+Jacob	A			
+Jacob	B			
+Jacob	C			
+Jacob	D			
+Jacob	E			
+Jacob	F			
+Jacob	G			
+Jacob	H			
+Jacob	I			
+Jacob	J			
+Jacob	K			
+Jacob	L			
+Frida	A			
+Frida	B			
+Frida	C			
+Frida	D			
+Frida	E			
+Frida	F			
+Frida	G			
+Frida	H			
+Frida	I			
+Frida	J			
+Frida	K			
+Frida	L			
+Susi	A	Mexiko	Sydkorea	Tjeckien
+Susi	B	Schweiz	Bosnien och Hercegovina	Kanada
+Susi	C	Brasilien	Marocko	Skottland
+Susi	D	USA	Turkiet	Paraguay
+Susi	E	Tyskland	Elfenbenskusten	Ecuador
+Susi	F	Nederländerna	Sverige	Japan
+Susi	G	Belgien	Egypten	Iran
+Susi	H	Spanien	Uruguay	Saudiarabien
+Susi	I	Frankrike	Senegal	Norge
+Susi	J	Argentina	Österrike	Algeriet
+Susi	K	Colombia	Portugal	Uzbekistan
+Susi	L	Kroatien	England	Ghana
