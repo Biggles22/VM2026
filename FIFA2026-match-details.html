@@ -223,10 +223,23 @@
                 return `<h2>Odds</h2><div class="error">Inga odds finns för denna match.</div>`;
             }
 
+            const preferredBookmakers = ["bet365", "unibet"];
+            const bookmakerPriority = name => {
+                const normalizedName = (name || "").toLowerCase();
+                const index = preferredBookmakers.findIndex(preferred => normalizedName.includes(preferred));
+                return index === -1 ? preferredBookmakers.length : index;
+            };
+
             return `
                 <h2>Odds</h2>
                 ${oddsResponse.map(entry => {
-                    const bookmakers = entry.bookmakers || entry.odds || [];
+                    const bookmakers = (entry.bookmakers || entry.odds || [])
+                        .map((bookmaker, index) => ({ bookmaker, index }))
+                        .sort((a, b) => {
+                            const priorityDiff = bookmakerPriority(a.bookmaker.name) - bookmakerPriority(b.bookmaker.name);
+                            return priorityDiff || a.index - b.index;
+                        })
+                        .map(entry => entry.bookmaker);
                     return bookmakers.length === 0 ? `<div class="error">Inga bookmaker-data.</div>` : bookmakers.map(bookmaker => {
                         const bets = bookmaker.bets || [];
                         return `
