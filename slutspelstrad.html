@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Slutspelsträd - VM 2026</title>
+  <style>
+    :root {
+      color: #122547;
+      background: #eef4fb;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: radial-gradient(circle at top, #dce8ff 0%, #eef4fb 50%, #ffffff 100%);
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .page {
+      width: min(1400px, 96%);
+      margin: 0 auto;
+      padding: 32px 0 48px;
+    }
+
+    header {
+      text-align: center;
+      padding: 24px 20px 10px;
+      margin-bottom: 24px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2rem, 3vw, 2.8rem);
+      letter-spacing: -0.04em;
+      color: #0f2a4d;
+    }
+
+    .lead {
+      margin: 16px auto 0;
+      max-width: 800px;
+      color: #42526a;
+      font-size: 1rem;
+      line-height: 1.7;
+    }
+
+    .status-card,
+    .round {
+      background: #ffffff;
+      border: 1px solid rgba(18, 37, 71, 0.08);
+      border-radius: 24px;
+      box-shadow: 0 24px 60px rgba(18, 37, 71, 0.08);
+    }
+
+    .status-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 24px;
+      padding: 18px 22px;
+      color: #42526a;
+      line-height: 1.6;
+    }
+
+    .status-pill {
+      flex: 0 0 auto;
+      display: inline-flex;
+      align-items: center;
+      min-height: 34px;
+      padding: 7px 12px;
+      border-radius: 999px;
+      background: rgba(31, 78, 120, 0.1);
+      color: #1f4e78;
+      font-size: 0.9rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .bracket {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(230px, 1fr));
+      gap: 18px;
+      overflow-x: auto;
+      padding-bottom: 16px;
+    }
+
+    .round {
+      min-width: 230px;
+      overflow: hidden;
+    }
+
+    .round h2 {
+      margin: 0;
+      padding: 16px 18px;
+      background: linear-gradient(90deg, #1f4e78, #3e7cc8);
+      color: #ffffff;
+      font-size: 1rem;
+      letter-spacing: 0.02em;
+    }
+
+    .round-body {
+      display: grid;
+      gap: 14px;
+      padding: 16px;
+    }
+
+    .match-card {
+      display: block;
+      padding: 14px;
+      border: 1px solid rgba(18, 37, 71, 0.08);
+      border-radius: 16px;
+      background: #ffffff;
+      box-shadow: 0 12px 28px rgba(18, 37, 71, 0.07);
+      transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+    }
+
+    .match-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(31, 78, 120, 0.28);
+      box-shadow: 0 18px 36px rgba(18, 37, 71, 0.12);
+    }
+
+    .match-meta {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+      color: #4d657f;
+      font-size: 0.84rem;
+      line-height: 1.4;
+    }
+
+    .team-row {
+      display: grid;
+      grid-template-columns: 28px 1fr auto;
+      align-items: center;
+      gap: 10px;
+      min-height: 38px;
+      padding: 8px;
+      border-top: 1px solid rgba(18, 37, 71, 0.08);
+    }
+
+    .team-row:first-of-type {
+      border-top: 0;
+    }
+
+    .team-row img {
+      width: 26px;
+      height: 26px;
+      object-fit: contain;
+    }
+
+    .team-name {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-weight: 700;
+      color: #122547;
+    }
+
+    .score {
+      min-width: 34px;
+      text-align: right;
+      color: #1f4e78;
+      font-weight: 800;
+    }
+
+    .winner {
+      background: rgba(32, 122, 79, 0.08);
+      color: #207a4f;
+    }
+
+    .winner .team-name::after {
+      content: " ✓";
+      color: #207a4f;
+      font-weight: 800;
+    }
+
+    .match-footer {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+      color: #4d657f;
+      font-size: 0.82rem;
+    }
+
+    .match-footer span {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      padding: 5px 9px;
+      border-radius: 999px;
+      background: rgba(31, 78, 120, 0.07);
+    }
+
+    .empty,
+    .error,
+    .loading {
+      padding: 16px;
+      border-radius: 16px;
+      line-height: 1.6;
+    }
+
+    .empty,
+    .loading {
+      background: rgba(31, 78, 120, 0.05);
+      border: 1px dashed rgba(31, 78, 120, 0.22);
+      color: #4d657f;
+    }
+
+    .error {
+      background: #fee2e2;
+      border: 1px solid #fecaca;
+      color: #991b1b;
+    }
+
+    @media (max-width: 900px) {
+      .status-card {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .bracket {
+        grid-template-columns: repeat(5, 250px);
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header>
+      <h1>Slutspelsträd</h1>
+      <p class="lead">Här visas VM 2026-slutspelet från API-Football. Matchkorten länkar vidare till matchdetaljer när match-ID finns tillgängligt.</p>
+    </header>
+
+    <section class="status-card">
+      <div id="statusText">Laddar slutspelsmatcher från API-Football...</div>
+      <div class="status-pill" id="statusPill">VM 2026</div>
+    </section>
+
+    <section id="bracket" class="bracket" aria-live="polite">
+      <div class="loading">Hämtar slutspelsträdet...</div>
+    </section>
+  </main>
+
+  <script>
+    const API_KEY = "170d2afb853fb860d9432d14d7eaaaa5";
+    const BASE_URL = "https://v3.football.api-sports.io";
+    const LEAGUE = 1;
+    const SEASON = 2026;
+
+    const ROUNDS = [
+      { title: "Round of 32", keys: ["round of 32", "1/16", "sixteenth"] },
+      { title: "Åttondelsfinaler", keys: ["round of 16", "8th finals", "eighth", "1/8"] },
+      { title: "Kvartsfinaler", keys: ["quarter", "kvarts"] },
+      { title: "Semifinaler", keys: ["semi", "semif"] },
+      { title: "Final", keys: ["final"] }
+    ];
+
+    function normalizeRound(round) {
+      return String(round || "").toLowerCase();
+    }
+
+    function belongsToRound(match, roundDef) {
+      const round = normalizeRound(match.league?.round);
+      if (roundDef.title === "Final" && (round.includes("3rd") || round.includes("third"))) return false;
+      return roundDef.keys.some(key => round.includes(key));
+    }
+
+    function formatDate(dateString) {
+      if (!dateString) return "Datum ej klart";
+      const date = new Date(dateString);
+      if (Number.isNaN(date.getTime())) return "Datum ej klart";
+
+      return date.toLocaleString("sv-SE", {
+        weekday: "short",
+        day: "2-digit",
+        month: "short",
+        hour: "2-digit",
+        minute: "2-digit",
+        timeZone: "Europe/Stockholm"
+      });
+    }
+
+    function scoreFor(match, side) {
+      const goals = match.goals?.[side];
+      const penalty = match.score?.penalty?.[side];
+      if (goals === null || goals === undefined) return "-";
+      return penalty !== null && penalty !== undefined ? `${goals} (${penalty})` : goals;
+    }
+
+    function teamRow(match, side) {
+      const team = match.teams?.[side] || {};
+      const isWinner = team.winner === true;
+      const name = team.name || "Ej klart";
+      const logo = team.logo || "";
+
+      return `
+        <div class="team-row ${isWinner ? "winner" : ""}">
+          ${logo ? `<img src="${logo}" alt="">` : "<span></span>"}
+          <span class="team-name">${name}</span>
+          <span class="score">${scoreFor(match, side)}</span>
+        </div>
+      `;
+    }
+
+    function matchCard(match) {
+      const fixtureId = match.fixture?.id || "";
+      const homeId = match.teams?.home?.id || "";
+      const awayId = match.teams?.away?.id || "";
+      const href = fixtureId
+        ? `FIFA2026-match-details.html?fixture=${fixtureId}&home=${homeId}&away=${awayId}`
+        : "#";
+      const venue = match.fixture?.venue?.name || "Arena ej klar";
+      const status = match.fixture?.status?.long || match.fixture?.status?.short || "Status ej klar";
+
+      return `
+        <a class="match-card" href="${href}">
+          <div class="match-meta">
+            <span>${formatDate(match.fixture?.date)}</span>
+            <span>${match.fixture?.status?.short || ""}</span>
+          </div>
+          ${teamRow(match, "home")}
+          ${teamRow(match, "away")}
+          <div class="match-footer">
+            <span>${status}</span>
+            <span>${venue}</span>
+          </div>
+        </a>
+      `;
+    }
+
+    function renderBracket(fixtures) {
+      const bracket = document.getElementById("bracket");
+
+      bracket.innerHTML = ROUNDS.map(round => {
+        const matches = fixtures
+          .filter(match => belongsToRound(match, round))
+          .sort((a, b) => new Date(a.fixture?.date || 0) - new Date(b.fixture?.date || 0));
+
+        const cards = matches.length
+          ? matches.map(matchCard).join("")
+          : `<div class="empty">Inga matcher hittade ännu för denna runda.</div>`;
+
+        return `
+          <section class="round">
+            <h2>${round.title}</h2>
+            <div class="round-body">${cards}</div>
+          </section>
+        `;
+      }).join("");
+    }
+
+    async function loadBracket() {
+      const statusText = document.getElementById("statusText");
+      const statusPill = document.getElementById("statusPill");
+      const bracket = document.getElementById("bracket");
+
+      try {
+        const response = await fetch(`${BASE_URL}/fixtures?league=${LEAGUE}&season=${SEASON}`, {
+          headers: { "x-apisports-key": API_KEY }
+        });
+
+        if (!response.ok) throw new Error(`API-fel ${response.status}`);
+
+        const data = await response.json();
+        if (data.errors && Object.keys(data.errors).length) {
+          throw new Error(JSON.stringify(data.errors));
+        }
+
+        const fixtures = data.response || [];
+        renderBracket(fixtures);
+        statusText.textContent = `Hämtade ${fixtures.length} matcher. Slutspelsrundorna fylls i när API:et har publicerat dem.`;
+        statusPill.textContent = `Uppdaterad ${new Date().toLocaleTimeString("sv-SE", { hour: "2-digit", minute: "2-digit" })}`;
+      } catch (error) {
+        console.error(error);
+        bracket.innerHTML = `<div class="error">Kunde inte hämta slutspelsträdet: ${error.message}</div>`;
+        statusText.textContent = "API-anropet misslyckades.";
+        statusPill.textContent = "Fel";
+      }
+    }
+
+    loadBracket();
+  </script>
+</body>
+</html>
