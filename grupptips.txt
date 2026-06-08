@@ -106,18 +106,18 @@ Niklas	I
 Niklas	J			
 Niklas	K			
 Niklas	L			
-Anna N	A			
-Anna N	B			
-Anna N	C			
-Anna N	D			
-Anna N	E			
-Anna N	F			
-Anna N	G			
-Anna N	H			
-Anna N	I			
-Anna N	J			
-Anna N	K			
-Anna N	L			
+Anna N	A	Sydkorea	Tjeckien	Mexiko
+Anna N	B	Schweiz	Bosnien och Hercegovina	Qatar
+Anna N	C	Brasilien	Skottland	Marocko
+Anna N	D	Turkiet	Paraguay	USA
+Anna N	E	Tyskland	Elfenbenskusten	Ecuador
+Anna N	F	Nederländerna	Japan	Sverige
+Anna N	G	Belgien	Iran	Nya Zeeland
+Anna N	H	Spanien	Uruguay	Saudiarabien
+Anna N	I	Frankrike	Norge	Senegal
+Anna N	J	Österrike	Argentina	Algeriet
+Anna N	K	Portugal	Colombia	DR Kongo
+Anna N	L	England	Kroatien	Ghana
 Anna M	A	Sydkorea	Mexiko	Tjeckien
 Anna M	B	Schweiz	Kanada	Bosnien och Hercegovina
 Anna M	C	Brasilien	Marocko	Skottland
