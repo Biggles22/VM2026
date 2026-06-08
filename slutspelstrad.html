@@ -242,11 +242,11 @@
   <main class="page">
     <header>
       <h1>Slutspelsträd</h1>
-      <p class="lead">Här visas VM 2026-slutspelet från API-Football. Matchkorten länkar vidare till matchdetaljer när match-ID finns tillgängligt.</p>
+      <p class="lead">Här visas VM 2026-slutspelet. Matchkorten länkar vidare till matchdetaljer när match-ID finns tillgängligt.</p>
     </header>
 
     <section class="status-card">
-      <div id="statusText">Laddar slutspelsmatcher från API-Football...</div>
+      <div id="statusText">Laddar slutspelsmatcher från FIFA...</div>
       <div class="status-pill" id="statusPill">VM 2026</div>
     </section>
 
@@ -382,7 +382,7 @@
 
         const fixtures = data.response || [];
         renderBracket(fixtures);
-        statusText.textContent = `Hämtade ${fixtures.length} matcher. Slutspelsrundorna fylls i när API:et har publicerat dem.`;
+        statusText.textContent = `Hämtade ${fixtures.length} matcher. Slutspelsrundorna fylls i när FIFA har publicerat dem.`;
         statusPill.textContent = `Uppdaterad ${new Date().toLocaleTimeString("sv-SE", { hour: "2-digit", minute: "2-digit" })}`;
       } catch (error) {
         console.error(error);
