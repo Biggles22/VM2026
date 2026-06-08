@@ -166,18 +166,18 @@ Mathias	I
 Mathias	J			
 Mathias	K			
 Mathias	L			
-Jacob	A			
-Jacob	B			
-Jacob	C			
-Jacob	D			
-Jacob	E			
-Jacob	F			
-Jacob	G			
-Jacob	H			
-Jacob	I			
-Jacob	J			
-Jacob	K			
-Jacob	L			
+Jacob	A	Tjeckien	Sydkorea	Sydafrika
+Jacob	B	Schweiz	Bosnien och Hercegovina	Kanada
+Jacob	C	Marocko	Brasilien	Skottland
+Jacob	D	Paraguay	USA	Turkiet
+Jacob	E	Tyskland	Ecuador	Elfenbenskusten
+Jacob	F	Nederländerna	Sverige	Japan
+Jacob	G	Belgien	Egypten	Iran
+Jacob	H	Spanien	Uruguay	Saudiarabien
+Jacob	I	Frankrike	Norge	Senegal
+Jacob	J	Argentina	Österrike	Algeriet
+Jacob	K	Colombia	Portugal	Uzbekistan
+Jacob	L	England	Kroatien	Ghana
 Frida	A			
 Frida	B			
 Frida	C			
