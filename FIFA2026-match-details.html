@@ -112,6 +112,30 @@
             padding: 10px 12px;
             border-radius: 10px;
         }
+        .odds-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin: 12px 0 16px;
+        }
+        .odds-toolbar label {
+            font-weight: 700;
+            color: #334155;
+        }
+        .odds-select {
+            min-width: 220px;
+            max-width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            background: #ffffff;
+            color: #0f172a;
+            font: inherit;
+        }
+        .bookmaker-odds[hidden] {
+            display: none;
+        }
         @media (max-width: 720px) {
             .info-grid {
                 grid-template-columns: 1fr;
@@ -229,21 +253,34 @@
                 const index = preferredBookmakers.findIndex(preferred => normalizedName.includes(preferred));
                 return index === -1 ? preferredBookmakers.length : index;
             };
+            const bookmakers = oddsResponse
+                .flatMap(entry => entry.bookmakers || entry.odds || [])
+                .map((bookmaker, index) => ({ bookmaker, index }))
+                .sort((a, b) => {
+                    const priorityDiff = bookmakerPriority(a.bookmaker.name) - bookmakerPriority(b.bookmaker.name);
+                    return priorityDiff || a.index - b.index;
+                })
+                .map(entry => entry.bookmaker);
+
+            if (!bookmakers.length) {
+                return `<h2>Odds</h2><div class="error">Inga bookmaker-data.</div>`;
+            }
 
             return `
                 <h2>Odds</h2>
-                ${oddsResponse.map(entry => {
-                    const bookmakers = (entry.bookmakers || entry.odds || [])
-                        .map((bookmaker, index) => ({ bookmaker, index }))
-                        .sort((a, b) => {
-                            const priorityDiff = bookmakerPriority(a.bookmaker.name) - bookmakerPriority(b.bookmaker.name);
-                            return priorityDiff || a.index - b.index;
-                        })
-                        .map(entry => entry.bookmaker);
-                    return bookmakers.length === 0 ? `<div class="error">Inga bookmaker-data.</div>` : bookmakers.map(bookmaker => {
+                <div class="odds-toolbar">
+                    <label for="bookmakerSelect">VÃ¤lj bettingbolag</label>
+                    <select class="odds-select" id="bookmakerSelect">
+                        ${bookmakers.map((bookmaker, index) => `
+                            <option value="${index}">${bookmaker.name}</option>
+                        `).join('')}
+                    </select>
+                </div>
+                <div id="bookmakerOdds">
+                    ${bookmakers.map((bookmaker, index) => {
                         const bets = bookmaker.bets || [];
                         return `
-                            <div class="section" style="margin-bottom:12px; padding:14px;">
+                            <div class="section bookmaker-odds" data-bookmaker-index="${index}" style="margin-bottom:12px; padding:14px;" ${index === 0 ? '' : 'hidden'}>
                                 <h3>${bookmaker.name}</h3>
                                 ${bets.map(bet => {
                                     const values = bet.values || [];
@@ -256,9 +293,23 @@
                                 }).join('')}
                             </div>
                         `;
-                    }).join('');
-                }).join('')}
+                    }).join('')}
+                </div>
             `;
+        }
+
+        function setupBookmakerSelect() {
+            const select = document.getElementById("bookmakerSelect");
+            const oddsCards = document.querySelectorAll(".bookmaker-odds");
+            if (!select || !oddsCards.length) {
+                return;
+            }
+
+            select.addEventListener("change", () => {
+                oddsCards.forEach(card => {
+                    card.hidden = card.dataset.bookmakerIndex !== select.value;
+                });
+            });
         }
 
         function renderHeadToHead(response, homeId, awayId) {
@@ -335,6 +386,7 @@
 
                 lineupsBox.innerHTML = renderLineups(lineupsData.response || []);
                 oddsBox.innerHTML = renderOdds(oddsData.response || []);
+                setupBookmakerSelect();
                 statusBox.textContent = `Visar detaljer för ${match.teams.home.name} vs ${match.teams.away.name}.`;
 
                 if (!homeId || !awayId) {
