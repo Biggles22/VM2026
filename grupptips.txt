@@ -10,18 +10,18 @@ Anders E	I	Frankrike	Senegal	Norge
 Anders E	J	Argentina	Österrike	Algeriet
 Anders E	K	Portugal	Colombia	Uzbekistan
 Anders E	L	England	Kroatien	Panama
-Anneli	A			
-Anneli	B			
-Anneli	C			
-Anneli	D			
-Anneli	E			
-Anneli	F			
-Anneli	G			
-Anneli	H			
-Anneli	I			
-Anneli	J			
-Anneli	K			
-Anneli	L			
+Anneli	A	Sydkorea	Mexiko	Tjeckien
+Anneli	B	Schweiz	Kanada	Bosnien och Hercegovina
+Anneli	C	Brasilien	Skottland	Marocko
+Anneli	D	Turkiet	USA	Paraguay
+Anneli	E	Tyskland	Elfenbenskusten	Ecuador
+Anneli	F	Nederländerna	Sverige	Japan
+Anneli	G	Belgien	Egypten	Iran
+Anneli	H	Spanien	Kap Verde	Uruguay
+Anneli	I	Norge	Frankrike	Senegal
+Anneli	J	Argentina	Österrike	Algeriet
+Anneli	K	Portugal	Colombia	DR Kongo
+Anneli	L	England	Kroatien	Panama
 Emelie	A			
 Emelie	B			
 Emelie	C			
@@ -46,18 +46,18 @@ Andreas	I
 Andreas	J			
 Andreas	K			
 Andreas	L			
-Anders F	A			
-Anders F	B			
-Anders F	C			
-Anders F	D			
-Anders F	E			
-Anders F	F			
-Anders F	G			
-Anders F	H			
-Anders F	I			
-Anders F	J			
-Anders F	K			
-Anders F	L			
+Anders F	A	Sydkorea	Mexiko	Tjeckien
+Anders F	B	Schweiz	Kanada	Bosnien och Hercegovina
+Anders F	C	Brasilien	Skottland	Marocko
+Anders F	D	Turkiet	USA	Paraguay
+Anders F	E	Tyskland	Elfenbenskusten	Ecuador
+Anders F	F	Nederländerna	Sverige	Japan
+Anders F	G	Belgien	Egypten	Iran
+Anders F	H	Spanien	Kap Verde	Uruguay
+Anders F	I	Norge	Frankrike	Senegal
+Anders F	J	Argentina	Österrike	Algeriet
+Anders F	K	Portugal	Colombia	DR Kongo
+Anders F	L	England	Kroatien	Panama
 Elton	A			
 Elton	B			
 Elton	C			
