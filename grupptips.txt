@@ -191,7 +191,7 @@ Frida	J
 Frida	K			
 Frida	L			
 Susi	A	Mexiko	Sydkorea	Tjeckien
-Susi	B	Schweiz	 	Kanada
+Susi	B	Schweiz	Bosnien och Hercegovina	Kanada
 Susi	C	Brasilien	Marocko	Skottland
 Susi	D	USA	Turkiet	Paraguay
 Susi	E	Tyskland	Elfenbenskusten	Ecuador
