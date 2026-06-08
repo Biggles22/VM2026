@@ -34,18 +34,18 @@ Emelie	I
 Emelie	J			
 Emelie	K			
 Emelie	L			
-Andreas	A			
-Andreas	B			
-Andreas	C			
-Andreas	D			
-Andreas	E			
-Andreas	F			
-Andreas	G			
-Andreas	H			
-Andreas	I			
-Andreas	J			
-Andreas	K			
-Andreas	L			
+Andreas	A	Mexiko	Tjeckien	Sydkorea
+Andreas	B	Schweiz	Kanada	Bosnien och Hercegovina
+Andreas	C	Brasilien	Marocko	Skottland
+Andreas	D	Turkiet	USA	Paraguay
+Andreas	E	Tyskland	Elfenbenskusten	Ecuador
+Andreas	F	Nederländerna	Japan	Sverige
+Andreas	G	Belgien	Egypten	Iran
+Andreas	H	Spanien	Uruguay	Saudiarabien
+Andreas	I	Frankrike	Norge	Senegal
+Andreas	J	Argentina	Österrike	Algeriet
+Andreas	K	Portugal	Colombia	DR Kongo
+Andreas	L	England	Kroatien	Ghana
 Anders F	A	Sydkorea	Mexiko	Tjeckien
 Anders F	B	Schweiz	Kanada	Bosnien och Hercegovina
 Anders F	C	Brasilien	Skottland	Marocko
