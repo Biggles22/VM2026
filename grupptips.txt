@@ -22,18 +22,18 @@ Anneli	I	Norge	Frankrike	Senegal
 Anneli	J	Argentina	Österrike	Algeriet
 Anneli	K	Portugal	Colombia	DR Kongo
 Anneli	L	England	Kroatien	Panama
-Emelie	A			
-Emelie	B			
-Emelie	C			
-Emelie	D			
-Emelie	E			
-Emelie	F			
-Emelie	G			
-Emelie	H			
-Emelie	I			
-Emelie	J			
-Emelie	K			
-Emelie	L			
+Emelie	A	Sydkorea	Mexiko	Tjeckien
+Emelie	B	Schweiz	Bosnien och Hercegovina	Kanada
+Emelie	C	Brasilien	Marocko	Skottland
+Emelie	D	Turkiet	USA	Paraguay
+Emelie	E	Tyskland	Ecuador	Elfenbenskusten
+Emelie	F	Nederländerna	Japan	Sverige
+Emelie	G	Belgien	Egypten	Iran
+Emelie	H	Spanien	Uruguay	Saudiarabien
+Emelie	I	Frankrike	Norge	Senegal
+Emelie	J	Argentina	Österrike	Algeriet
+Emelie	K	Portugal	Colombia	DR Kongo
+Emelie	L	Kroatien	England	Panama
 Andreas	A	Mexiko	Tjeckien	Sydkorea
 Andreas	B	Schweiz	Kanada	Bosnien och Hercegovina
 Andreas	C	Brasilien	Marocko	Skottland
@@ -58,18 +58,18 @@ Anders F	I	Norge	Frankrike	Senegal
 Anders F	J	Argentina	Österrike	Algeriet
 Anders F	K	Portugal	Colombia	DR Kongo
 Anders F	L	England	Kroatien	Panama
-Elton	A			
-Elton	B			
-Elton	C			
-Elton	D			
-Elton	E			
-Elton	F			
-Elton	G			
-Elton	H			
-Elton	I			
-Elton	J			
-Elton	K			
-Elton	L			
+Elton	A	Mexiko	Tjeckien	Sydkorea
+Elton	B	Schweiz	Kanada	Bosnien och Hercegovina
+Elton	C	Brasilien	Marocko	Skottland
+Elton	D	Turkiet	USA	Paraguay
+Elton	E	Elfenbenskusten	Ecuador	Tyskland
+Elton	F	Japan	Nederländerna	Sverige
+Elton	G	Belgien	Egypten	Iran
+Elton	H	Spanien	Uruguay	Saudiarabien
+Elton	I	Frankrike	Norge	Senegal
+Elton	J	Argentina	Algeriet	Österrike
+Elton	K	Portugal	Colombia	DR Kongo
+Elton	L	England	Kroatien	Ghana
 Carl	A	Tjeckien	Mexiko	Sydkorea
 Carl	B	Schweiz	Bosnien och Hercegovina	Kanada
 Carl	C	Brasilien	Skottland	Marocko
@@ -202,3 +202,15 @@ Susi	I	Frankrike	Senegal	Norge
 Susi	J	Argentina	Österrike	Algeriet
 Susi	K	Colombia	Portugal	Uzbekistan
 Susi	L	Kroatien	England	Ghana
+Marcus	A			
+Marcus	B			
+Marcus	C			
+Marcus	D			
+Marcus	E			
+Marcus	F			
+Marcus	G			
+Marcus	H			
+Marcus	I			
+Marcus	J			
+Marcus	K			
+Marcus	L			
