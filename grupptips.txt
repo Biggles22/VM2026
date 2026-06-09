@@ -154,18 +154,18 @@ David	I
 David	J			
 David	K			
 David	L			
-Mathias	A			
-Mathias	B			
-Mathias	C			
-Mathias	D			
-Mathias	E			
-Mathias	F			
-Mathias	G			
-Mathias	H			
-Mathias	I			
-Mathias	J			
-Mathias	K			
-Mathias	L			
+Mathias	A	Mexiko	Sydkorea	Tjeckien
+Mathias	B	Schweiz	Bosnien och Hercegovina	Kanada
+Mathias	C	Brasilien	Marocko	Skottland
+Mathias	D	Turkiet	USA	Paraguay
+Mathias	E	Tyskland	Ecuador	Elfenbenskusten
+Mathias	F	Nederländerna	Sverige	Japan
+Mathias	G	Belgien	Egypten	Iran
+Mathias	H	Spanien	Uruguay	Saudiarabien
+Mathias	I	Frankrike	Norge	Senegal
+Mathias	J	Argentina	Algeriet	Österrike
+Mathias	K	Portugal	Colombia	Uzbekistan
+Mathias	L	England	Ghana	Kroatien
 Jacob	A	Tjeckien	Sydkorea	Sydafrika
 Jacob	B	Schweiz	Bosnien och Hercegovina	Kanada
 Jacob	C	Marocko	Brasilien	Skottland
