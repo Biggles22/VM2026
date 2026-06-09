@@ -101,6 +101,26 @@
             padding: 7px 10px;
             border-radius: 999px;
         }
+        .match-details .lineup-ready {
+            background: #dcfce7;
+            color: #166534;
+            font-weight: 700;
+        }
+        .match-details .lineup-waiting {
+            background: #fff7ed;
+            color: #9a3412;
+            font-weight: 700;
+        }
+        .match-details .lineup-ready::before,
+        .match-details .lineup-waiting::before {
+            content: "";
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            margin-right: 6px;
+            border-radius: 999px;
+            background: currentColor;
+        }
         .error {
             background: #fee2e2;
             border: 1px solid #fecaca;
@@ -145,6 +165,10 @@
         const BASE_URL = "https://v3.football.api-sports.io";
         const LEAGUE = 1;
         const SEASON = 2026;
+        const LINEUP_RECHECK_MS = 2 * 60 * 1000;
+        const lineupStatus = new Map();
+        const lineupCheckedAt = new Map();
+        let lineupRefreshTimer = null;
 
         async function apiFootball(endpoint) {
             const response = await fetch(`${BASE_URL}/${endpoint}`, {
@@ -173,6 +197,41 @@
             }).format(new Date(dateString));
         }
 
+        function matchState(match) {
+            const short = match.fixture.status.short;
+            if (["1H", "HT", "2H", "ET", "BT", "P", "SUSP", "INT", "LIVE"].includes(short)) return "live";
+            if (["FT", "AET", "PEN"].includes(short)) return "finished";
+            return "upcoming";
+        }
+
+        function isLineupCheckWindow(match) {
+            const state = matchState(match);
+            if (state === "live") return true;
+            if (state !== "upcoming") return false;
+
+            const kickoff = new Date(match.fixture.date).getTime();
+            if (Number.isNaN(kickoff)) return false;
+
+            const hoursUntilKickoff = (kickoff - Date.now()) / (1000 * 60 * 60);
+            return hoursUntilKickoff <= 4 && hoursUntilKickoff >= -1;
+        }
+
+        function hasStartingLineups(lineups) {
+            return (lineups || []).some(team => (team.startXI || []).length >= 11);
+        }
+
+        function lineupBadge(match) {
+            const fixtureId = match.fixture.id;
+            const knownStatus = lineupStatus.get(fixtureId);
+            if (knownStatus === true) {
+                return '<span class="lineup-ready" title="API-Football har publicerat startelvor">Startelvor klara</span>';
+            }
+            if (isLineupCheckWindow(match)) {
+                return '<span class="lineup-waiting" title="Kontrolleras automatiskt inför avspark">Startelvor väntar</span>';
+            }
+            return "";
+        }
+
         function buildMatchCard(match) {
             const home = match.teams.home.name;
             const away = match.teams.away.name;
@@ -199,10 +258,43 @@
                             <span>Status: ${status}</span>
                             <span>Stadium: ${venue}${city}</span>
                             <span>Match ID: ${fixtureId}</span>
+                            ${lineupBadge(match)}
                         </div>
                     </article>
                 </a>
             `;
+        }
+
+        async function updateLineupStatuses(matches, render) {
+            const now = Date.now();
+            const candidates = matches
+                .filter(match => isLineupCheckWindow(match))
+                .filter(match => lineupStatus.get(match.fixture.id) !== true)
+                .filter(match => now - (lineupCheckedAt.get(match.fixture.id) || 0) > LINEUP_RECHECK_MS)
+                .slice(0, 12);
+
+            if (!candidates.length) return;
+
+            await Promise.all(candidates.map(async match => {
+                lineupCheckedAt.set(match.fixture.id, Date.now());
+                try {
+                    const data = await apiFootball(`fixtures/lineups?fixture=${match.fixture.id}`);
+                    lineupStatus.set(match.fixture.id, hasStartingLineups(data.response));
+                } catch (error) {
+                    console.warn("Kunde inte kontrollera startelvor:", match.fixture.id, error);
+                    lineupStatus.set(match.fixture.id, false);
+                }
+            }));
+
+            render();
+
+            if (candidates.some(match => lineupStatus.get(match.fixture.id) !== true) && !lineupRefreshTimer) {
+                lineupRefreshTimer = window.setTimeout(() => {
+                    lineupRefreshTimer = null;
+                    render();
+                    updateLineupStatuses(matches, render);
+                }, LINEUP_RECHECK_MS);
+            }
         }
 
         async function loadMatches() {
@@ -220,7 +312,11 @@
                 }
 
                 const sorted = matches.sort((a, b) => new Date(a.fixture.date) - new Date(b.fixture.date));
-                container.innerHTML = sorted.map(buildMatchCard).join("");
+                const renderSortedMatches = () => {
+                    container.innerHTML = sorted.map(buildMatchCard).join("");
+                };
+                renderSortedMatches();
+                updateLineupStatuses(sorted, renderSortedMatches);
                 statusBox.textContent = `Visa ${sorted.length} matcher för FIFA World Cup 2026.`;
             } catch (error) {
                 console.error(error);

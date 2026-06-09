@@ -221,6 +221,26 @@
             color: #166534;
         }
 
+        .badge.lineup-ready {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .badge.lineup-waiting {
+            background: #fff7ed;
+            color: #9a3412;
+        }
+
+        .badge.lineup-ready::before,
+        .badge.lineup-waiting::before {
+            content: "";
+            width: 8px;
+            height: 8px;
+            margin-right: 6px;
+            border-radius: 999px;
+            background: currentColor;
+        }
+
         .kickoff {
             margin-left: auto;
             color: #657389;
@@ -406,6 +426,10 @@
         const SEASON = 2026;
 
         let allMatches = [];
+        const LINEUP_RECHECK_MS = 2 * 60 * 1000;
+        const lineupStatus = new Map();
+        const lineupCheckedAt = new Map();
+        let lineupRefreshTimer = null;
 
         async function apiFootball(endpoint) {
             const response = await fetch(`${BASE_URL}/${endpoint}`, {
@@ -458,6 +482,37 @@
             if (state === "live") return "Live";
             if (state === "finished") return "Spelad";
             return "Kommande";
+        }
+
+        function isLineupCheckWindow(match) {
+            const state = matchState(match);
+            if (state === "live") return true;
+            if (state !== "upcoming") return false;
+
+            const kickoff = new Date(match.fixture.date).getTime();
+            if (Number.isNaN(kickoff)) return false;
+
+            const hoursUntilKickoff = (kickoff - Date.now()) / (1000 * 60 * 60);
+            return hoursUntilKickoff <= 4 && hoursUntilKickoff >= -1;
+        }
+
+        function hasStartingLineups(lineups) {
+            return (lineups || []).some(team => (team.startXI || []).length >= 11);
+        }
+
+        function lineupBadge(match) {
+            const fixtureId = match.fixture.id;
+            const knownStatus = lineupStatus.get(fixtureId);
+
+            if (knownStatus === true) {
+                return '<span class="badge lineup-ready" title="API-Football har publicerat startelvor">Startelvor klara</span>';
+            }
+
+            if (isLineupCheckWindow(match)) {
+                return '<span class="badge lineup-waiting" title="Kontrolleras automatiskt inför avspark">Startelvor väntar</span>';
+            }
+
+            return "";
         }
 
         function fixtureStatusLabel(status) {
@@ -673,6 +728,7 @@
                             <span class="badge ${state === "live" ? "live" : state === "finished" ? "done" : ""}">${stateLabel(state)}</span>
                             <span class="badge">${escapeHtml(group)}</span>
                             <span class="badge">${escapeHtml(roundLabel(match))}</span>
+                            ${lineupBadge(match)}
                             <span class="kickoff">${escapeHtml(formatDate(fixture.date))}</span>
                         </div>
 
@@ -749,6 +805,39 @@
                     </div>
                 </section>
             `).join("");
+
+            updateLineupStatuses(matches);
+        }
+
+        async function updateLineupStatuses(matches) {
+            const now = Date.now();
+            const candidates = matches
+                .filter(match => isLineupCheckWindow(match))
+                .filter(match => lineupStatus.get(match.fixture.id) !== true)
+                .filter(match => now - (lineupCheckedAt.get(match.fixture.id) || 0) > LINEUP_RECHECK_MS)
+                .slice(0, 12);
+
+            if (!candidates.length) return;
+
+            await Promise.all(candidates.map(async match => {
+                lineupCheckedAt.set(match.fixture.id, Date.now());
+                try {
+                    const data = await apiFootball(`fixtures/lineups?fixture=${match.fixture.id}`);
+                    lineupStatus.set(match.fixture.id, hasStartingLineups(data.response));
+                } catch (error) {
+                    console.warn("Kunde inte kontrollera startelvor:", match.fixture.id, error);
+                    lineupStatus.set(match.fixture.id, false);
+                }
+            }));
+
+            renderMatches();
+
+            if (candidates.some(match => lineupStatus.get(match.fixture.id) !== true) && !lineupRefreshTimer) {
+                lineupRefreshTimer = window.setTimeout(() => {
+                    lineupRefreshTimer = null;
+                    renderMatches();
+                }, LINEUP_RECHECK_MS);
+            }
         }
 
         async function loadMatches() {
