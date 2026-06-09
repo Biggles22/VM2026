@@ -82,18 +82,18 @@ Carl	I	Frankrike	Norge	Senegal
 Carl	J	Argentina	Österrike	Algeriet
 Carl	K	Portugal	Colombia	Uzbekistan
 Carl	L	Kroatien	England	Ghana
-Robin	A			
-Robin	B			
-Robin	C			
-Robin	D			
-Robin	E			
-Robin	F			
-Robin	G			
-Robin	H			
-Robin	I			
-Robin	J			
-Robin	K			
-Robin	L			
+Robin	A	Mexiko	Sydkorea	Tjeckien
+Robin	B	Schweiz	Kanada	Bosnien och Hercegovina
+Robin	C	Brasilien	Marocko	Skottland
+Robin	D	Turkiet	USA	Paraguay
+Robin	E	Tyskland	Ecuador	Elfenbenskusten
+Robin	F	Nederländerna	Sverige	Japan
+Robin	G	Belgien	Egypten	Nya Zeeland
+Robin	H	Spanien	Uruguay	Saudiarabien
+Robin	I	Frankrike	Norge	Senegal
+Robin	J	Argentina	Österrike	Algeriet
+Robin	K	Portugal	Colombia	Uzbekistan
+Robin	L	England	Kroatien	Ghana
 Niklas	A			
 Niklas	B			
 Niklas	C			
