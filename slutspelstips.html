@@ -516,6 +516,17 @@
       </ol>
     </section>
 
+    <section class="champion-board" aria-label="Topp 5 tippade skyttekungar">
+      <h2>Topp 5 tippade skyttekungar</h2>
+      <ol class="champion-list" id="scorerTopList">
+        <li>
+          <span class="champion-rank">1</span>
+          <span class="champion-name empty">Laddar...</span>
+          <span class="champion-votes">0 tips</span>
+        </li>
+      </ol>
+    </section>
+
     <section class="toolbar" aria-label="Filter">
       <input class="search" id="searchInput" type="search" placeholder="Sök deltagare, lag eller skyttekung">
       <div class="segmented" aria-label="Vy">
@@ -554,6 +565,7 @@
       filledCount: document.getElementById("filledCount"),
       championCount: document.getElementById("championCount"),
       championTopList: document.getElementById("championTopList"),
+      scorerTopList: document.getElementById("scorerTopList"),
       searchInput: document.getElementById("searchInput"),
       participantView: document.getElementById("participantView"),
       roundView: document.getElementById("roundView"),
@@ -620,39 +632,78 @@
       return state.participants.filter(matchesSearch);
     }
 
-    function getChampionRanking() {
+    function cleanText(value) {
+      return String(value || "")
+        .replace(/Ã©/g, "é")
+        .replace(/Ã«/g, "ë")
+        .replace(/Ã¡/g, "á")
+        .replace(/Ã¶/g, "ö")
+        .replace(/Ã¥/g, "å")
+        .replace(/Ã¤/g, "ä")
+        .trim();
+    }
+
+    function normalizeName(value) {
+      return cleanText(value)
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .replace(/\s+/g, " ");
+    }
+
+    function getRanking(valueIndex, aliases = {}) {
       const counts = new Map();
       state.participants.forEach(participant => {
-        const champion = participant.values[30]?.value;
-        if (!champion) return;
-        counts.set(champion, (counts.get(champion) || 0) + 1);
+        const rawValue = participant.values[valueIndex]?.value;
+        if (!rawValue) return;
+        const normalized = normalizeName(rawValue);
+        const displayName = aliases[normalized] || cleanText(rawValue);
+        counts.set(displayName, (counts.get(displayName) || 0) + 1);
       });
 
       return [...counts.entries()]
-        .map(([team, votes]) => ({ team, votes }))
-        .sort((a, b) => b.votes - a.votes || a.team.localeCompare(b.team, "sv"));
+        .map(([name, votes]) => ({ name, votes }))
+        .sort((a, b) => b.votes - a.votes || a.name.localeCompare(b.name, "sv"));
     }
 
-    function renderChampionTop() {
-      const topFive = getChampionRanking().slice(0, 5);
+    function getChampionRanking() {
+      return getRanking(30);
+    }
+
+    function getScorerRanking() {
+      return getRanking(32, {
+        "kylian mbappe": "Kylian Mbappé"
+      });
+    }
+
+    function renderTopList(listEl, ranking, emptyText) {
+      const topFive = ranking.slice(0, 5);
       if (!topFive.length) {
-        els.championTopList.innerHTML = `
+        listEl.innerHTML = `
           <li>
             <span class="champion-rank">-</span>
-            <span class="champion-name empty">Inga mästartips ifyllda</span>
+            <span class="champion-name empty">${escapeHtml(emptyText)}</span>
             <span class="champion-votes">0 tips</span>
           </li>
         `;
         return;
       }
 
-      els.championTopList.innerHTML = topFive.map((item, index) => `
+      listEl.innerHTML = topFive.map((item, index) => `
         <li>
           <span class="champion-rank">${index + 1}</span>
-          <span class="champion-name">${escapeHtml(item.team)}</span>
+          <span class="champion-name">${escapeHtml(item.name)}</span>
           <span class="champion-votes">${item.votes} ${item.votes === 1 ? "tips" : "tips"}</span>
         </li>
       `).join("");
+    }
+
+    function renderChampionTop() {
+      renderTopList(els.championTopList, getChampionRanking(), "Inga mästartips ifyllda");
+    }
+
+    function renderScorerTop() {
+      renderTopList(els.scorerTopList, getScorerRanking(), "Inga skyttekungar ifyllda");
     }
 
     function renderStageBlock(participant, stage) {
@@ -770,6 +821,7 @@
       els.championCount.textContent = champions.size;
       els.statusBadge.textContent = `${complete} av ${state.participants.length} tips kompletta`;
       renderChampionTop();
+      renderScorerTop();
     }
 
     function renderStageOptions() {
