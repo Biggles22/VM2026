@@ -142,18 +142,18 @@ Simon	I	Norge	Frankrike	Senegal
 Simon	J	Argentina	Algeriet	Österrike
 Simon	K	Portugal	Colombia	Uzbekistan
 Simon	L	Kroatien	England	Panama
-David	A			
-David	B			
-David	C			
-David	D			
-David	E			
-David	F			
-David	G			
-David	H			
-David	I			
-David	J			
-David	K			
-David	L			
+Monica och Göran	A	Mexiko	Sydkorea	Sydafrika
+Monica och Göran	B	Schweiz	Kanada	Bosnien och Hercegovina
+Monica och Göran	C	Brasilien	Marocko	Skottland
+Monica och Göran	D	Turkiet	USA	Paraguay
+Monica och Göran	E	Tyskland	Ecuador	Elfenbenskusten
+Monica och Göran	F	Nederländerna	Japan	Sverige
+Monica och Göran	G	Belgien	Egypten	Iran
+Monica och Göran	H	Spanien	Uruguay	Saudiarabien
+Monica och Göran	I	Frankrike	Norge	Senegal
+Monica och Göran	J	Argentina	Algeriet	Österrike
+Monica och Göran	K	Portugal	Colombia	DR Kongo
+Monica och Göran	L	England	Kroatien	Ghana
 Mathias	A	Mexiko	Sydkorea	Tjeckien
 Mathias	B	Schweiz	Bosnien och Hercegovina	Kanada
 Mathias	C	Brasilien	Marocko	Skottland
