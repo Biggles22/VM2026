@@ -1,96 +1,260 @@
 <!DOCTYPE html>
-<html lang="en" data-bs-theme="dark">
+<html lang="sv">
 
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Widget V3</title>
+  <title>VM 2026 Livecenter</title>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js"
     integrity="sha384-j1CDi7MgGQ12Z7Qab0qlWQ/Qqz24Gc6BM0thvEMVjHnfYGF0rmFCozFSxQBxwHKO"
     crossorigin="anonymous"></script>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css" rel="stylesheet"
     integrity="sha384-4Q6Gf2aSP4eDXB8Miphtr37CMZZQ5oXLH2yaXMJ2w8e2ZtHTl7GptT4jmndRuHDT" crossorigin="anonymous" />
   <script type="module" crossorigin src="https://widgets.api-sports.io/3.1.0/widgets.js"></script>
+  <style>
+    :root {
+      color: #172033;
+      background: #eef3f8;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        linear-gradient(135deg, rgba(0, 82, 147, 0.94), rgba(0, 142, 105, 0.86)),
+        radial-gradient(circle at 18% 0%, rgba(254, 203, 0, 0.42), transparent 34%),
+        #eef3f8;
+      color: #172033;
+    }
+
+    header {
+      color: #ffffff;
+      padding: 34px 18px 24px;
+    }
+
+    .hero {
+      width: min(1240px, 94%);
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 22px;
+      align-items: end;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2rem, 4vw, 3.7rem);
+      line-height: 1;
+      letter-spacing: 0;
+      font-weight: 800;
+    }
+
+    .lead {
+      margin: 14px 0 0;
+      max-width: 760px;
+      color: rgba(255, 255, 255, 0.92);
+      line-height: 1.65;
+      font-size: 16px;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 42px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.94);
+      color: #0f2c45;
+      font-size: 14px;
+      font-weight: 800;
+      box-shadow: 0 14px 34px rgba(15, 44, 69, 0.18);
+      white-space: nowrap;
+    }
+
+    main {
+      width: min(1240px, 94%);
+      margin: 0 auto;
+      padding: 0 0 42px;
+    }
+
+    .widget-grid {
+      display: grid;
+      grid-template-columns: minmax(220px, 0.75fr) minmax(320px, 1fr) minmax(360px, 1.15fr);
+      gap: 14px;
+      align-items: start;
+    }
+
+    .panel {
+      overflow: hidden;
+      border-radius: 8px;
+      background: #ffffff;
+      border: 1px solid rgba(15, 44, 69, 0.08);
+      box-shadow: 0 16px 38px rgba(15, 44, 69, 0.12);
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      min-height: 54px;
+      padding: 13px 15px;
+      border-bottom: 1px solid #e6edf5;
+      background: #f7fafc;
+    }
+
+    .panel-header h2 {
+      margin: 0;
+      color: #0f2c45;
+      font-size: 15px;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+
+    .panel-header span {
+      color: #657389;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .panel-body {
+      padding: 0;
+      min-height: 72vh;
+    }
+
+    .panel-body api-sports-widget {
+      --primary-font-size: 0.82rem;
+      --secondary-font-size: 0.8rem;
+      --button-font-size: 0.8rem;
+      --title-font-size: 0.92rem;
+      display: block;
+      height: 72vh;
+    }
+
+    body .modal-widget {
+      width: 90%;
+      max-width: 760px;
+    }
+
+    body .modal-widget-content {
+      padding: 0;
+      height: 68vh;
+    }
+
+    @media (max-width: 1100px) {
+      .hero,
+      .widget-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .status-pill {
+        justify-self: start;
+        white-space: normal;
+      }
+
+      .panel-body,
+      api-sports-widget {
+        min-height: 520px;
+        height: 62vh;
+      }
+    }
+
+    @media (max-width: 560px) {
+      header {
+        padding-top: 24px;
+      }
+
+      main,
+      .hero {
+        width: min(100% - 24px, 1240px);
+      }
+
+      .lead {
+        font-size: 15px;
+      }
+
+      .panel-header {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+    }
+  </style>
 </head>
 
-<body style="margin:0;">
-
-  <div class="content p-3">
-
-    <div class="row">
-      <div class="col-3">
-        <div id="leagues-list" class="card border-0 shadow-sm">
-          <div class="card-body p-0">
-            <api-sports-widget data-type="league"></api-sports-widget>
-          </div>
-        </div>
+<body>
+  <header>
+    <div class="hero">
+      <div>
+        <h1>VM 2026 livecenter</h1>
+        <p class="lead">Matcher, gruppställningar och turneringsdata samlat i en snabb översikt från API Sports.</p>
       </div>
-
-      <div class="col-4">
-        <div id="game-content" class="card border-0 shadow-sm">
-          <div class="card-body p-0">
-            <div id="games-list">
-              <api-sports-widget data-type="game" data-game-id="1489369"></api-sports-widget>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="col-5">
-        <div class="card border-0 shadow-sm">
-          <div class="card-body p-0">
-            <div id="standings-content">
-              <api-sports-widget data-type="standings"></api-sports-widget>
-            </div>
-          </div>
-        </div>   
-      </div>
-
+      <div class="status-pill">Uppdateras automatiskt</div>
     </div>
-  </div>
+  </header>
 
-  <!-- Config widget -->
+  <main>
+    <section class="widget-grid" aria-label="VM 2026 livecenter">
+      <article class="panel" id="leagues-list">
+        <div class="panel-header">
+          <h2>Turnering</h2>
+          <span>VM 2026</span>
+        </div>
+        <div class="panel-body">
+          <api-sports-widget data-type="league"></api-sports-widget>
+        </div>
+      </article>
+
+      <article class="panel" id="game-content">
+        <div class="panel-header">
+          <h2>Match</h2>
+          <span>Detaljer</span>
+        </div>
+        <div class="panel-body">
+          <api-sports-widget data-type="game" data-game-id="1489369"></api-sports-widget>
+        </div>
+      </article>
+
+      <article class="panel" id="standings-content">
+        <div class="panel-header">
+          <h2>Gruppställning</h2>
+          <span>Aktuell tabell</span>
+        </div>
+        <div class="panel-body">
+          <api-sports-widget data-type="standings"></api-sports-widget>
+        </div>
+      </article>
+    </section>
+  </main>
+
   <api-sports-widget
+    class="config-widget"
     data-type="config"
     data-key="170d2afb853fb860d9432d14d7eaaaa5"
     data-sport="football"
-    data-lang="en"
+    data-lang="sv"
     data-theme="white"
     data-show-errors="true"
     data-show-logos="true"
     data-refresh="15"
     data-player-injuries="true"
     data-team-squad="true"
-    data-team-statistics="true"     
-    data-player-statistics="true" 
+    data-team-statistics="true"
+    data-player-statistics="true"
     data-game-tab="statistics"
     data-standings="true"
     data-target-standings="true"
-    data-target-game="#game-content .card-body"
+    data-target-game="#game-content .panel-body"
     data-target-player="modal"
     data-target-team="modal"
     data-tab="results"
     data-league="1"
     data-season="2026"
   ></api-sports-widget>
-
-  <style type="text/css">
-    api-sports-widget {
-      --primary-font-size: 0.82rem;
-      --secondary-font-size: .8rem;
-      --button-font-size: .8rem;
-      --title-font-size: .9rem;
-      height: 80vh;
-    }
-    body .modal-widget {
-      width: 90%;
-      max-width: 700px;
-    }
-    body .modal-widget-content {
-      padding: 0;
-      height: 60vh;
-    }
-  </style>
 </body>
 
 </html>
