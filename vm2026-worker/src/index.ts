@@ -125,7 +125,7 @@ async function handleSend(request: Request, env: WorkerEnv): Promise<Response> {
 		body: body.body || "Ny uppdatering finns pa vm2026.info.",
 		url: body.url || "/",
 		icon: body.icon || "/2026_FIFA_World_Cup_emblem.svg.webp",
-		tag: body.tag || "vm2026",
+		tag: body.tag || `vm2026-${Date.now()}`,
 	};
 
 	webPush.setVapidDetails(

@@ -11,7 +11,7 @@ self.addEventListener("push", event => {
     title: "VM 2026",
     body: "Ny uppdatering finns pa vm2026.info.",
     url: "/",
-    tag: "vm2026"
+    tag: `vm2026-${Date.now()}`
   };
 
   let data = fallback;
@@ -24,6 +24,8 @@ self.addEventListener("push", event => {
   event.waitUntil(self.registration.showNotification(data.title, {
     body: data.body,
     tag: data.tag,
+    renotify: true,
+    requireInteraction: true,
     data: { url: data.url || "/" }
   }));
 });
@@ -34,7 +36,9 @@ self.addEventListener("message", event => {
   const payload = event.data.payload || {};
   event.waitUntil(self.registration.showNotification(payload.title || "VM 2026", {
     body: payload.body || "Lokal kontrollnotis fran service workern.",
-    tag: payload.tag || "vm2026-local-test",
+    tag: payload.tag || `vm2026-local-${Date.now()}`,
+    renotify: true,
+    requireInteraction: true,
     data: { url: payload.url || "/" }
   }));
 });

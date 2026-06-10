@@ -49,6 +49,9 @@
       lines.push(`SW registrerad: ${registration ? "ja" : "nej"}`);
       lines.push(`SW active: ${registration?.active?.state || "nej"}`);
       lines.push(`SW controller: ${navigator.serviceWorker.controller ? "ja" : "nej"}`);
+      if (registration && !navigator.serviceWorker.controller) {
+        lines.push("Atgard: ladda om sidan en gang sa service workern kontrollerar fliken.");
+      }
 
       const subscription = await registration?.pushManager?.getSubscription?.();
       lines.push(`Prenumeration: ${subscription ? "ja" : "nej"}`);
@@ -141,14 +144,18 @@
     const registration = await getRegistration();
     await registration.showNotification("VM 2026 lokal kontroll", {
       body: "Om du ser den har fungerar service worker-notiser.",
-      tag: "vm2026-local-test",
+      tag: `vm2026-local-${Date.now()}`,
+      renotify: true,
+      requireInteraction: true,
       data: { url: "/push.html" }
     });
 
     if ("Notification" in window && Notification.permission === "granted") {
       new Notification("VM 2026 direkt kontroll", {
         body: "Om du ser den har fungerar vanliga browser-notiser.",
-        tag: "vm2026-direct-test"
+        tag: `vm2026-direct-${Date.now()}`,
+        renotify: true,
+        requireInteraction: true
       });
     }
 
@@ -159,7 +166,8 @@
         payload: {
           title: "VM 2026 lokal kontroll",
           body: "Om du ser den har fungerar webblasaren och service workern.",
-          url: "/push.html"
+          url: "/push.html",
+          tag: `vm2026-message-${Date.now()}`
         }
       });
       return;
