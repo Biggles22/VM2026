@@ -40,7 +40,7 @@
 
     header {
       display: grid;
-      grid-template-columns: 1fr auto;
+      grid-template-columns: 1fr;
       gap: 24px;
       align-items: end;
       padding: 26px 0 22px;
@@ -63,25 +63,9 @@
       font-size: 1rem;
     }
 
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      width: fit-content;
-      min-height: 34px;
-      padding: 7px 12px;
-      border: 1px solid rgba(24, 116, 87, 0.18);
-      background: rgba(24, 116, 87, 0.1);
-      color: var(--green);
-      border-radius: 999px;
-      font-weight: 700;
-      font-size: 0.9rem;
-      white-space: nowrap;
-    }
-
     .summary {
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-columns: minmax(0, 1fr);
       gap: 14px;
       margin: 22px 0;
     }
@@ -381,25 +365,12 @@
         <h1>Gruppspelstips</h1>
         <p class="lead">Alla inlämnade gruppspelstips för A&A VM-tips 2026.</p>
       </div>
-      <div class="badge" id="statusBadge">Laddar tips</div>
     </header>
 
     <section class="summary" aria-label="Sammanfattning">
       <div class="metric">
         <span>Deltagare</span>
         <strong id="participantCount">0</strong>
-      </div>
-      <div class="metric">
-        <span>Grupper</span>
-        <strong id="groupCount">0</strong>
-      </div>
-      <div class="metric">
-        <span>Fyllda grupper</span>
-        <strong id="filledCount">0</strong>
-      </div>
-      <div class="metric">
-        <span>Tipsrader</span>
-        <strong id="rowCount">0</strong>
       </div>
     </section>
 
@@ -429,11 +400,7 @@
     };
 
     const els = {
-      statusBadge: document.getElementById("statusBadge"),
       participantCount: document.getElementById("participantCount"),
-      groupCount: document.getElementById("groupCount"),
-      filledCount: document.getElementById("filledCount"),
-      rowCount: document.getElementById("rowCount"),
       searchInput: document.getElementById("searchInput"),
       participantView: document.getElementById("participantView"),
       groupView: document.getElementById("groupView"),
@@ -524,12 +491,10 @@
         <div class="participant-grid">
           ${participants.map(participant => {
             const visibleGroups = GROUPS.filter(group => !state.group || group === state.group);
-            const filled = GROUPS.filter(group => isFilled(participant.predictions.get(group) || [])).length;
             return `
               <article class="participant">
                 <div class="participant-head">
                   <h2>${escapeHtml(participant.name)}</h2>
-                  <span class="${filled === GROUPS.length ? "complete" : "missing"}">${filled}/${GROUPS.length} grupper</span>
                 </div>
                 <div class="tips-list">
                   ${visibleGroups.map(group => {
@@ -591,12 +556,7 @@
     }
 
     function renderStats() {
-      const filledRows = state.rows.filter(row => isFilled(row.picks)).length;
       els.participantCount.textContent = state.participants.length;
-      els.groupCount.textContent = state.groups.length;
-      els.filledCount.textContent = filledRows;
-      els.rowCount.textContent = state.rows.length;
-      els.statusBadge.textContent = `${filledRows} av ${state.rows.length} rader ifyllda`;
     }
 
     function renderGroupOptions() {
@@ -625,7 +585,6 @@
         renderGroupOptions();
         render();
       } catch (error) {
-        els.statusBadge.textContent = "Kunde inte läsa tipsen";
         els.content.innerHTML = `<div class="notice">${escapeHtml(error.message)}</div>`;
       }
     }

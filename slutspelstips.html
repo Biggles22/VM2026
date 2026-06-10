@@ -81,7 +81,7 @@
 
     .summary {
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 14px;
       margin: 22px 0;
     }
@@ -495,7 +495,6 @@
         <span>Kompletta tips</span>
         <strong id="completeCount">0</strong>
       </div>
-      
       <div class="metric">
         <span>Mästare</span>
         <strong id="championCount">0</strong>
@@ -559,7 +558,6 @@
       statusBadge: document.getElementById("statusBadge"),
       participantCount: document.getElementById("participantCount"),
       completeCount: document.getElementById("completeCount"),
-      filledCount: document.getElementById("filledCount"),
       championCount: document.getElementById("championCount"),
       championTopList: document.getElementById("championTopList"),
       scorerTopList: document.getElementById("scorerTopList"),
@@ -755,14 +753,11 @@
       els.content.innerHTML = `
         <div class="participant-grid">
           ${participants.map(participant => {
-            const filled = filledValues(participant);
-            const total = participant.values.length;
             const stages = selectedStages();
             return `
               <article class="participant">
                 <div class="participant-head">
                   <h2>${escapeHtml(participant.name)}</h2>
-                 
                 </div>
                 ${stages.map(stage => stage.key === "extra" ? renderFinalPicks(participant) : renderStageBlock(participant, stage)).join("")}
               </article>
@@ -806,15 +801,11 @@
     }
 
     function renderStats() {
-      const totals = state.participants.map(filledValues);
-      const totalPossible = state.participants.reduce((sum, participant) => sum + participant.values.length, 0);
-      const totalFilled = totals.reduce((sum, value) => sum + value, 0);
       const complete = state.participants.filter(participant => filledValues(participant) === participant.values.length).length;
       const champions = new Set(state.participants.map(participant => participant.values[30]?.value).filter(Boolean));
 
       els.participantCount.textContent = state.participants.length;
       els.completeCount.textContent = complete;
-      els.filledCount.textContent = `${totalFilled}/${totalPossible}`;
       els.championCount.textContent = champions.size;
       els.statusBadge.textContent = `${complete} av ${state.participants.length} tips kompletta`;
       renderChampionTop();
