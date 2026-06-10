@@ -1,0 +1,36 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "vm2026-worker",
+	"main": "src/index.ts",
+	"compatibility_date": "2026-06-10",
+	"workers_dev": true,
+	"preview_urls": true,
+	"observability": {
+		"enabled": true
+	},
+	"upload_source_maps": true,
+	"compatibility_flags": [
+		"nodejs_compat"
+	],
+	"routes": [
+		{
+			"pattern": "vm2026.info/api/push*",
+			"zone_name": "vm2026.info"
+		}
+	],
+	"vars": {
+		"VAPID_SUBJECT": "mailto:admin@vm2026.info"
+	},
+
+	"kv_namespaces": [
+		{
+			"binding": "SUBSCRIPTIONS",
+			"id": "f06ffc6f31604c55971a78e7565fe915"
+		}
+	]
+
+	/**
+	 * Smart Placement
+	 */
+	// "placement": { "mode": "smart" }
+}
