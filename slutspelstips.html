@@ -495,10 +495,7 @@
         <span>Kompletta tips</span>
         <strong id="completeCount">0</strong>
       </div>
-      <div class="metric">
-        <span>Ifyllda val</span>
-        <strong id="filledCount">0</strong>
-      </div>
+      
       <div class="metric">
         <span>Mästare</span>
         <strong id="championCount">0</strong>
@@ -765,7 +762,7 @@
               <article class="participant">
                 <div class="participant-head">
                   <h2>${escapeHtml(participant.name)}</h2>
-                  <span class="${filled === total ? "complete" : "missing"}">${filled}/${total} val</span>
+                 
                 </div>
                 ${stages.map(stage => stage.key === "extra" ? renderFinalPicks(participant) : renderStageBlock(participant, stage)).join("")}
               </article>
