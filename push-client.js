@@ -79,7 +79,7 @@
 
   async function sendPush(event) {
     event.preventDefault();
-    await subscribe();
+    const subscription = await subscribe();
 
     const form = new FormData(sendForm);
     const token = form.get("token");
@@ -91,6 +91,7 @@
         "content-type": "application/json"
       },
       body: JSON.stringify({
+        subscription,
         title: form.get("title"),
         body: form.get("body"),
         url: form.get("url") || "/"

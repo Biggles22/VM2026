@@ -115,6 +115,11 @@ async function handleSend(request: Request, env: WorkerEnv): Promise<Response> {
 	assertVapid(env);
 
 	const body = await readJson(request);
+	const directSubscription = body.subscription;
+	if (directSubscription) {
+		validateSubscription(directSubscription);
+	}
+
 	const payload: PushPayload = {
 		title: body.title || "VM 2026",
 		body: body.body || "Ny uppdatering finns pa vm2026.info.",
@@ -130,15 +135,19 @@ async function handleSend(request: Request, env: WorkerEnv): Promise<Response> {
 	);
 
 	const subscriptions = await listSubscriptions(env);
+	const targets = uniqueSubscriptions(
+		directSubscription ? [{ id: "direct", subscription: directSubscription }] : [],
+		subscriptions,
+	);
 	const results = await Promise.all(
-		subscriptions.map(async (item) => {
+		targets.map(async (item) => {
 			try {
 				await webPush.sendNotification(item.subscription, JSON.stringify(payload));
 				return { id: item.id, ok: true, deleted: false };
 			} catch (error) {
 				const statusCode = statusFromError(error);
 				const shouldDelete = isExpiredSubscriptionStatus(statusCode);
-				if (shouldDelete) {
+				if (shouldDelete && item.id !== "direct") {
 					await env.SUBSCRIPTIONS.delete(item.id);
 				}
 				const message = error instanceof Error ? error.message : String(error);
@@ -277,4 +286,16 @@ function statusFromError(error: unknown): number | undefined {
 
 function isExpiredSubscriptionStatus(statusCode: number | undefined): boolean {
 	return statusCode === 400 || statusCode === 403 || statusCode === 404 || statusCode === 410;
+}
+
+function uniqueSubscriptions(
+	...groups: Array<Array<{ id: string; subscription: PushSubscriptionJson }>>
+): Array<{ id: string; subscription: PushSubscriptionJson }> {
+	const byEndpoint = new Map<string, { id: string; subscription: PushSubscriptionJson }>();
+	for (const item of groups.flat()) {
+		if (!byEndpoint.has(item.subscription.endpoint)) {
+			byEndpoint.set(item.subscription.endpoint, item);
+		}
+	}
+	return [...byEndpoint.values()];
 }
