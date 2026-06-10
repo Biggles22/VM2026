@@ -6,27 +6,30 @@
     <title>A&A VM tips 2026</title>
     <style>
         html,body{height:100%;margin:0}
-        body{display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,#667eea,#764ba2);font-family:Segoe UI, Tahoma, Geneva, Verdana, sans-serif;color:#fff}
-        .wrap{text-align:center;padding:28px 18px}
-        h1{font-size:48px;margin:0 0 24px}
-        .hero{position:relative;width:min(760px,100%);min-height:360px;margin:0 auto 8px;display:flex;align-items:center;justify-content:center}
-        .logo{width:340px;height:auto;flex:0 0 auto;filter:drop-shadow(0 18px 28px rgba(0,0,0,.18))}
-        .info-card{position:absolute;right:0;top:50%;transform:translateY(-50%);max-width:340px;padding:16px 18px;border-radius:14px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);box-shadow:0 10px 28px rgba(0,0,0,.12);text-align:left;backdrop-filter:blur(6px)}
+        body{display:flex;align-items:flex-start;justify-content:center;background:linear-gradient(180deg,#667eea,#764ba2);font-family:Segoe UI, Tahoma, Geneva, Verdana, sans-serif;color:#fff}
+        .wrap{width:min(1100px,100%);text-align:center;padding:20px 18px 28px}
+        .topbar{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;flex-wrap:wrap;margin-bottom:8px}
+        h1{font-size:42px;margin:0;text-align:left;letter-spacing:-.03em}
+        .hero{position:relative;width:min(760px,100%);min-height:320px;margin:0 auto 4px;display:flex;align-items:center;justify-content:center}
+        .logo{width:310px;height:auto;flex:0 0 auto;filter:drop-shadow(0 18px 28px rgba(0,0,0,.18))}
+        .info-card{position:absolute;right:0;top:50%;transform:translateY(-50%);max-width:320px;padding:14px 16px;border-radius:14px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);box-shadow:0 10px 28px rgba(0,0,0,.12);text-align:left;backdrop-filter:blur(6px)}
         .info-card h2{margin:0 0 10px;font-size:20px}
         .info-card ul{margin:0;padding-left:20px;line-height:1.7;font-size:16px}
-        .countdown{margin:28px auto 0;max-width:560px}
+        .countdown{margin:20px auto 0;max-width:560px}
         .countdown-title{margin:0 0 14px;font-size:20px;font-weight:700}
         .countdown-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
         .countdown-box{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.3);border-radius:8px;padding:12px 10px;box-shadow:0 10px 28px rgba(0,0,0,.16)}
         .countdown-number{display:block;font-size:34px;font-weight:800;line-height:1}
         .countdown-label{display:block;margin-top:6px;font-size:13px;text-transform:uppercase;letter-spacing:.08em;opacity:.86}
         .match-info{margin:14px 0 0;font-size:15px;opacity:.92}
-        @media (max-width:600px){h1{font-size:28px}.hero{min-height:0;display:flex;flex-direction:column;gap:14px}.logo{width:180px}.info-card{position:static;transform:none;max-width:100%;width:100%;padding:14px 16px}.countdown-grid{gap:8px}.countdown-box{padding:10px 6px}.countdown-number{font-size:26px}.countdown-label{font-size:11px}.match-info{font-size:13px}}
+        @media (max-width:600px){body{align-items:flex-start}.wrap{padding:18px 14px 24px}.topbar{justify-content:center}h1{font-size:28px}.hero{min-height:0;display:flex;flex-direction:column;gap:14px}.logo{width:180px}.info-card{position:static;transform:none;max-width:100%;width:100%;padding:14px 16px}.countdown{margin-top:16px}.countdown-grid{gap:8px}.countdown-box{padding:10px 6px}.countdown-number{font-size:26px}.countdown-label{font-size:11px}.match-info{font-size:13px}}
     </style>
 </head>
 <body>
     <div class="wrap">
-        <h1>A&A VM tips 2026</h1>
+        <div class="topbar">
+            <h1>A&A VM tips 2026</h1>
+        </div>
         <div class="hero">
             <img class="logo" src="2026_FIFA_World_Cup_emblem.svg.webp" alt="VM 2026 logga">
             <section class="info-card" aria-label="Tävlingsinformation">
