@@ -1,3 +1,11 @@
+self.addEventListener("install", event => {
+  event.waitUntil(self.skipWaiting());
+});
+
+self.addEventListener("activate", event => {
+  event.waitUntil(self.clients.claim());
+});
+
 self.addEventListener("push", event => {
   const fallback = {
     title: "VM 2026",
@@ -7,7 +15,12 @@ self.addEventListener("push", event => {
     tag: "vm2026"
   };
 
-  const data = event.data ? { ...fallback, ...event.data.json() } : fallback;
+  let data = fallback;
+  try {
+    data = event.data ? { ...fallback, ...event.data.json() } : fallback;
+  } catch (error) {
+    console.error("Push payload kunde inte lasas", error);
+  }
 
   event.waitUntil(self.registration.showNotification(data.title, {
     body: data.body,
@@ -15,6 +28,19 @@ self.addEventListener("push", event => {
     badge: data.icon,
     tag: data.tag,
     data: { url: data.url || "/" }
+  }));
+});
+
+self.addEventListener("message", event => {
+  if (event.data?.type !== "SHOW_TEST_NOTIFICATION") return;
+
+  const payload = event.data.payload || {};
+  event.waitUntil(self.registration.showNotification(payload.title || "VM 2026", {
+    body: payload.body || "Lokal kontrollnotis fran service workern.",
+    icon: payload.icon || "/2026_FIFA_World_Cup_emblem.svg.webp",
+    badge: payload.icon || "/2026_FIFA_World_Cup_emblem.svg.webp",
+    tag: payload.tag || "vm2026-local-test",
+    data: { url: payload.url || "/" }
   }));
 });
 

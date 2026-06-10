@@ -23,7 +23,9 @@
       throw new Error("Din webblasare stodjer inte web push.");
     }
 
-    return navigator.serviceWorker.register("/sw.js");
+    const registration = await navigator.serviceWorker.register("/sw.js");
+    await navigator.serviceWorker.ready;
+    return registration;
   }
 
   async function getPublicKey() {
@@ -103,6 +105,29 @@
     return result;
   }
 
+  async function showLocalCheckNotification() {
+    const registration = await getRegistration();
+    const worker = registration.active || navigator.serviceWorker.controller;
+    if (worker) {
+      worker.postMessage({
+        type: "SHOW_TEST_NOTIFICATION",
+        payload: {
+          title: "VM 2026 lokal kontroll",
+          body: "Om du ser den har fungerar webblasaren och service workern.",
+          url: "/push.html"
+        }
+      });
+      return;
+    }
+
+    await registration.showNotification("VM 2026 lokal kontroll", {
+      body: "Om du ser den har fungerar webblasarens notiser.",
+      icon: "/2026_FIFA_World_Cup_emblem.svg.webp",
+      tag: "vm2026-local-test",
+      data: { url: "/push.html" }
+    });
+  }
+
   enableButton?.addEventListener("click", async () => {
     setStatus("Aktiverar notiser...", "info");
     try {
@@ -131,7 +156,8 @@
         throw new Error(`Ingen notis skickades. Totalt: ${result.total || 0}. Misslyckade: ${result.failed || 0}.`);
       }
       const deletedText = result.deleted ? ` Rensade gamla: ${result.deleted}.` : "";
-      setStatus(`Skickat: ${result.sent}. Misslyckade: ${result.failed}.${deletedText}`, "success");
+      await showLocalCheckNotification();
+      setStatus(`Skickat: ${result.sent}. Misslyckade: ${result.failed}.${deletedText} Lokal kontrollnotis skickad.`, "success");
     } catch (error) {
       setStatus(error.message, "error");
     }
