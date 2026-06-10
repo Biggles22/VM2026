@@ -1,7 +1,9 @@
 (function () {
   const API_BASE = "https://vm2026-worker.anders-h-engstrom.workers.dev/api/push";
   const statusEl = document.getElementById("pushStatus");
+  const diagnosticsEl = document.getElementById("pushDiagnostics");
   const enableButton = document.getElementById("enablePush");
+  const localTestButton = document.getElementById("localPushTest");
   const disableButton = document.getElementById("disablePush");
   const sendForm = document.getElementById("sendPushForm");
 
@@ -9,6 +11,11 @@
     if (!statusEl) return;
     statusEl.textContent = message;
     statusEl.dataset.type = type || "info";
+  }
+
+  function setDiagnostics(lines) {
+    if (!diagnosticsEl) return;
+    diagnosticsEl.textContent = lines.filter(Boolean).join("\n");
   }
 
   function base64UrlToUint8Array(value) {
@@ -26,6 +33,31 @@
     const registration = await navigator.serviceWorker.register("/sw.js");
     await navigator.serviceWorker.ready;
     return registration;
+  }
+
+  async function getDiagnostics() {
+    const lines = [
+      `URL: ${location.href}`,
+      `Secure context: ${window.isSecureContext ? "ja" : "nej"}`,
+      `Notification permission: ${"Notification" in window ? Notification.permission : "saknas"}`,
+      `ServiceWorker: ${"serviceWorker" in navigator ? "ja" : "nej"}`,
+      `PushManager: ${"PushManager" in window ? "ja" : "nej"}`
+    ];
+
+    if ("serviceWorker" in navigator) {
+      const registration = await navigator.serviceWorker.getRegistration("/");
+      lines.push(`SW registrerad: ${registration ? "ja" : "nej"}`);
+      lines.push(`SW active: ${registration?.active?.state || "nej"}`);
+      lines.push(`SW controller: ${navigator.serviceWorker.controller ? "ja" : "nej"}`);
+
+      const subscription = await registration?.pushManager?.getSubscription?.();
+      lines.push(`Prenumeration: ${subscription ? "ja" : "nej"}`);
+      if (subscription) {
+        lines.push(`Endpoint: ${new URL(subscription.endpoint).host}`);
+      }
+    }
+
+    return lines;
   }
 
   async function getPublicKey() {
@@ -107,6 +139,19 @@
 
   async function showLocalCheckNotification() {
     const registration = await getRegistration();
+    await registration.showNotification("VM 2026 lokal kontroll", {
+      body: "Om du ser den har fungerar service worker-notiser.",
+      tag: "vm2026-local-test",
+      data: { url: "/push.html" }
+    });
+
+    if ("Notification" in window && Notification.permission === "granted") {
+      new Notification("VM 2026 direkt kontroll", {
+        body: "Om du ser den har fungerar vanliga browser-notiser.",
+        tag: "vm2026-direct-test"
+      });
+    }
+
     const worker = registration.active || navigator.serviceWorker.controller;
     if (worker) {
       worker.postMessage({
@@ -119,21 +164,31 @@
       });
       return;
     }
-
-    await registration.showNotification("VM 2026 lokal kontroll", {
-      body: "Om du ser den har fungerar webblasarens notiser.",
-      icon: "/2026_FIFA_World_Cup_emblem.svg.webp",
-      tag: "vm2026-local-test",
-      data: { url: "/push.html" }
-    });
   }
 
   enableButton?.addEventListener("click", async () => {
     setStatus("Aktiverar notiser...", "info");
     try {
       await subscribe();
+      setDiagnostics(await getDiagnostics());
       setStatus("Notiser ar aktiverade for den har enheten.", "success");
     } catch (error) {
+      setStatus(error.message, "error");
+    }
+  });
+
+  localTestButton?.addEventListener("click", async () => {
+    setStatus("Testar lokal notis...", "info");
+    try {
+      const permission = await Notification.requestPermission();
+      if (permission !== "granted") {
+        throw new Error(`Notisbehorighet ar ${permission}.`);
+      }
+      await showLocalCheckNotification();
+      setDiagnostics(await getDiagnostics());
+      setStatus("Lokal notis begard. Se diagnostiken nedan.", "success");
+    } catch (error) {
+      setDiagnostics(await getDiagnostics().catch(() => []));
       setStatus(error.message, "error");
     }
   });
@@ -142,6 +197,7 @@
     setStatus("Stanger av notiser...", "info");
     try {
       await unsubscribe();
+      setDiagnostics(await getDiagnostics());
       setStatus("Notiser ar avstangda for den har enheten.", "success");
     } catch (error) {
       setStatus(error.message, "error");
@@ -157,6 +213,7 @@
       }
       const deletedText = result.deleted ? ` Rensade gamla: ${result.deleted}.` : "";
       await showLocalCheckNotification();
+      setDiagnostics(await getDiagnostics());
       setStatus(`Skickat: ${result.sent}. Misslyckade: ${result.failed}.${deletedText} Lokal kontrollnotis skickad.`, "success");
     } catch (error) {
       setStatus(error.message, "error");

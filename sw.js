@@ -11,7 +11,6 @@ self.addEventListener("push", event => {
     title: "VM 2026",
     body: "Ny uppdatering finns pa vm2026.info.",
     url: "/",
-    icon: "/2026_FIFA_World_Cup_emblem.svg.webp",
     tag: "vm2026"
   };
 
@@ -24,8 +23,6 @@ self.addEventListener("push", event => {
 
   event.waitUntil(self.registration.showNotification(data.title, {
     body: data.body,
-    icon: data.icon,
-    badge: data.icon,
     tag: data.tag,
     data: { url: data.url || "/" }
   }));
@@ -37,8 +34,6 @@ self.addEventListener("message", event => {
   const payload = event.data.payload || {};
   event.waitUntil(self.registration.showNotification(payload.title || "VM 2026", {
     body: payload.body || "Lokal kontrollnotis fran service workern.",
-    icon: payload.icon || "/2026_FIFA_World_Cup_emblem.svg.webp",
-    badge: payload.icon || "/2026_FIFA_World_Cup_emblem.svg.webp",
     tag: payload.tag || "vm2026-local-test",
     data: { url: payload.url || "/" }
   }));
