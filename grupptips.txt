@@ -226,3 +226,27 @@ Philip	I	Frankrike	Norge	Senegal
 Philip	J	Argentina	Österrike	Algeriet
 Philip	K	Portugal	Colombia	DR Kongo
 Philip	L	England	Kroatien	Ghana
+David	A	Mexiko	Tjeckien	Sydkorea
+David	B	Bosnien och Hercegovina	Schweiz	Qatar
+David	C	Brasilien	Marocko	Skottland
+David	D	USA	Paraguay	Turkiet
+David	E	Tyskland	Ecuador	Elfenbenskusten
+David	F	Nederländerna	Sverige	Japan
+David	G	Belgien	Egypten	Nya Zeeland
+David	H	Spanien	Uruguay	Saudiarabien
+David	I	Frankrike	Norge	Senegal
+David	J	Argentina	Österrike	Algeriet
+David	K	Portugal	Colombia	DR Kongo
+David	L	Kroatien	England	Ghana
+Tobias	A	Mexiko	Sydkorea	Tjeckien
+Tobias	B	Schweiz	Bosnien och Hercegovina	Qatar
+Tobias	C	Brasilien	Marocko	Skottland
+Tobias	D	Turkiet	USA	Paraguay
+Tobias	E	Tyskland	Ecuador	Elfenbenskusten
+Tobias	F	Japan	Nederländerna	Sverige
+Tobias	G	Belgien	Egypten	Iran
+Tobias	H	Spanien	Uruguay	Saudiarabien
+Tobias	I	Frankrike	Norge	Senegal
+Tobias	J	Argentina	Österrike	Algeriet
+Tobias	K	Portugal	Colombia	Uzbekistan
+Tobias	L	Kroatien	England	Ghana

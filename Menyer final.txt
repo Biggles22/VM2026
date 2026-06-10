@@ -1,8 +1,8 @@
-Gruppspelstips
-Slutspelstips
-Gruppspelspoäng
-Gruppresultat
-Matcher
+Gruppspelstips  grupptips.html
+Slutspelstips   slutspelstips.html
+Gruppspelspoäng   poangstallning_ny.html
+Gruppresultat     fifa2026-standings.html
+Matcher           fifa2026-matcher-plus.html
 Poängställning
 Skytteligaledare
 Regler
