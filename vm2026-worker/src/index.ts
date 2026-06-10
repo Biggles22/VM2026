@@ -134,15 +134,16 @@ async function handleSend(request: Request, env: WorkerEnv): Promise<Response> {
 		subscriptions.map(async (item) => {
 			try {
 				await webPush.sendNotification(item.subscription, JSON.stringify(payload));
-				return { id: item.id, ok: true };
+				return { id: item.id, ok: true, deleted: false };
 			} catch (error) {
 				const statusCode = statusFromError(error);
-				if (statusCode === 404 || statusCode === 410) {
+				const shouldDelete = isExpiredSubscriptionStatus(statusCode);
+				if (shouldDelete) {
 					await env.SUBSCRIPTIONS.delete(item.id);
 				}
 				const message = error instanceof Error ? error.message : String(error);
 				console.warn("Push failed", item.id, statusCode, message);
-				return { id: item.id, ok: false, statusCode };
+				return { id: item.id, ok: false, statusCode, deleted: shouldDelete };
 			}
 		}),
 	);
@@ -151,6 +152,7 @@ async function handleSend(request: Request, env: WorkerEnv): Promise<Response> {
 		ok: true,
 		sent: results.filter((result) => result.ok).length,
 		failed: results.filter((result) => !result.ok).length,
+		deleted: results.filter((result) => result.deleted).length,
 		total: results.length,
 	});
 }
@@ -271,4 +273,8 @@ function statusFromError(error: unknown): number | undefined {
 		if (typeof candidate.status === "number") return candidate.status;
 	}
 	return undefined;
+}
+
+function isExpiredSubscriptionStatus(statusCode: number | undefined): boolean {
+	return statusCode === 400 || statusCode === 403 || statusCode === 404 || statusCode === 410;
 }

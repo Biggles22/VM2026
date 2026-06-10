@@ -129,7 +129,8 @@
       if (!result.sent) {
         throw new Error(`Ingen notis skickades. Totalt: ${result.total || 0}. Misslyckade: ${result.failed || 0}.`);
       }
-      setStatus(`Skickat: ${result.sent}. Misslyckade: ${result.failed}.`, "success");
+      const deletedText = result.deleted ? ` Rensade gamla: ${result.deleted}.` : "";
+      setStatus(`Skickat: ${result.sent}. Misslyckade: ${result.failed}.${deletedText}`, "success");
     } catch (error) {
       setStatus(error.message, "error");
     }
