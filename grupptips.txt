@@ -94,18 +94,18 @@ Robin	I	Frankrike	Norge	Senegal
 Robin	J	Argentina	Österrike	Algeriet
 Robin	K	Portugal	Colombia	Uzbekistan
 Robin	L	England	Kroatien	Ghana
-Niklas	A			
-Niklas	B			
-Niklas	C			
-Niklas	D			
-Niklas	E			
-Niklas	F			
-Niklas	G			
-Niklas	H			
-Niklas	I			
-Niklas	J			
-Niklas	K			
-Niklas	L			
+Niklas	A	Mexiko	Sydkorea	Tjeckien
+Niklas	B	Schweiz	Kanada	Bosnien och Hercegovina
+Niklas	C	Brasilien	Marocko	Skottland
+Niklas	D	USA	Paraguay	Turkiet
+Niklas	E	Tyskland	Ecuador	Elfenbenskusten
+Niklas	F	Nederländerna	Japan	Sverige
+Niklas	G	Belgien	Egypten	Iran
+Niklas	H	Spanien	Uruguay	Saudiarabien
+Niklas	I	Frankrike	Senegal	Norge
+Niklas	J	Argentina	Österrike	Algeriet
+Niklas	K	Portugal	Colombia	DR Kongo
+Niklas	L	England	Kroatien	Ghana
 Anna N	A	Sydkorea	Tjeckien	Mexiko
 Anna N	B	Schweiz	Bosnien och Hercegovina	Qatar
 Anna N	C	Brasilien	Skottland	Marocko
@@ -226,4 +226,3 @@ Philip	I	Frankrike	Norge	Senegal
 Philip	J	Argentina	Österrike	Algeriet
 Philip	K	Portugal	Colombia	DR Kongo
 Philip	L	England	Kroatien	Ghana
-
