@@ -178,18 +178,18 @@ Jacob	I	Frankrike	Norge	Senegal
 Jacob	J	Argentina	Österrike	Algeriet
 Jacob	K	Colombia	Portugal	Uzbekistan
 Jacob	L	England	Kroatien	Ghana
-Frida	A			
-Frida	B			
-Frida	C			
-Frida	D			
-Frida	E			
-Frida	F			
-Frida	G			
-Frida	H			
-Frida	I			
-Frida	J			
-Frida	K			
-Frida	L			
+Frida	A	Mexiko	Sydkorea	Tjeckien
+Frida	B	Schweiz	Kanada	Bosnien och Hercegovina
+Frida	C	Marocko	Brasilien	Skottland
+Frida	D	USA	Australien	Turkiet
+Frida	E	Tyskland	Elfenbenskusten	Ecuador
+Frida	F	Nederländerna	Japan	Sverige
+Frida	G	Belgien	Iran	Egypten
+Frida	H	Spanien	Uruguay	Saudiarabien
+Frida	I	Frankrike	Norge	Senegal
+Frida	J	Argentina	Österrike	Algeriet
+Frida	K	Colombia	Portugal	DR Kongo
+Frida	L	Kroatien	England	Ghana
 Susi	A	Mexiko	Sydkorea	Tjeckien
 Susi	B	Schweiz	Bosnien och Hercegovina	Kanada
 Susi	C	Brasilien	Marocko	Skottland
@@ -202,15 +202,28 @@ Susi	I	Frankrike	Senegal	Norge
 Susi	J	Argentina	Österrike	Algeriet
 Susi	K	Colombia	Portugal	Uzbekistan
 Susi	L	Kroatien	England	Ghana
-Marcus	A			
-Marcus	B			
-Marcus	C			
-Marcus	D			
-Marcus	E			
-Marcus	F			
-Marcus	G			
-Marcus	H			
-Marcus	I			
-Marcus	J			
-Marcus	K			
-Marcus	L			
+Marcus	A	Mexiko	Sydkorea	Sydafrika
+Marcus	B	Schweiz	Kanada	Bosnien och Hercegovina
+Marcus	C	Brasilien	Marocko	Skottland
+Marcus	D	USA	Turkiet	Paraguay
+Marcus	E	Tyskland	Ecuador	Elfenbenskusten
+Marcus	F	Nederländerna	Japan	Sverige
+Marcus	G	Belgien	Egypten	Iran
+Marcus	H	Spanien	Uruguay	Saudiarabien
+Marcus	I	Frankrike	Senegal	Norge
+Marcus	J	Argentina	Österrike	Algeriet
+Marcus	K	Portugal	Colombia	Uzbekistan
+Marcus	L	England	Kroatien	Ghana
+Philip	A	Mexiko	Sydkorea	Tjeckien
+Philip	B	Schweiz	Kanada	Bosnien och Hercegovina
+Philip	C	Brasilien	Marocko	Skottland
+Philip	D	USA	Turkiet	Paraguay
+Philip	E	Tyskland	Ecuador	Elfenbenskusten
+Philip	F	Nederländerna	Japan	Sverige
+Philip	G	Belgien	Egypten	Iran
+Philip	H	Spanien	Uruguay	Saudiarabien
+Philip	I	Frankrike	Norge	Senegal
+Philip	J	Argentina	Österrike	Algeriet
+Philip	K	Portugal	Colombia	DR Kongo
+Philip	L	England	Kroatien	Ghana
+
