@@ -42,6 +42,11 @@
 
     const registration = await getRegistration();
     const publicKey = await getPublicKey();
+    const existing = await registration.pushManager.getSubscription();
+    if (existing) {
+      await existing.unsubscribe();
+    }
+
     const subscription = await registration.pushManager.subscribe({
       userVisibleOnly: true,
       applicationServerKey: base64UrlToUint8Array(publicKey)
@@ -74,6 +79,8 @@
 
   async function sendPush(event) {
     event.preventDefault();
+    await subscribe();
+
     const form = new FormData(sendForm);
     const token = form.get("token");
 
@@ -116,9 +123,12 @@
   });
 
   sendForm?.addEventListener("submit", async event => {
-    setStatus("Skickar notis...", "info");
+    setStatus("Aktiverar den har enheten och skickar testnotis...", "info");
     try {
       const result = await sendPush(event);
+      if (!result.sent) {
+        throw new Error(`Ingen notis skickades. Totalt: ${result.total || 0}. Misslyckade: ${result.failed || 0}.`);
+      }
       setStatus(`Skickat: ${result.sent}. Misslyckade: ${result.failed}.`, "success");
     } catch (error) {
       setStatus(error.message, "error");
