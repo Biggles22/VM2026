@@ -143,11 +143,6 @@
       <div id="statusText" style="padding:18px 24px; font-size:1rem; color:#122547;">Laddar tips och aktuell ställning...</div>
     </section>
 
-    <section class="card" id="currentStandingsCard">
-      <h2 style="margin:0;padding:24px 24px 0 24px;color:#0f2a4d;">Aktuell gruppställning</h2>
-      <div id="currentStandings" style="padding:0 24px 24px;"></div>
-    </section>
-
     <section class="card" id="tipsCard">
       <h2 style="margin:0;padding:24px 24px 0 24px;color:#0f2a4d;">Allas tips och poäng</h2>
       <div id="tipsTable" style="padding:0 24px 24px;"></div>
@@ -286,34 +281,6 @@
       return { participants: Object.values(participants), groups: groups.sort() };
     }
 
-    function formatGroupStandings(actualGroups) {
-      const rows = actualGroups.map(group => {
-        const [first, second, third] = group.teams;
-        return `
-          <tr>
-            <td>${group.group}</td>
-            <td>${first}</td>
-            <td>${second}</td>
-            <td>${third}</td>
-          </tr>
-        `;
-      }).join("");
-
-      return `
-        <table>
-          <thead>
-            <tr>
-              <th>Grupp</th>
-              <th>1:a</th>
-              <th>2:a</th>
-              <th>3:a</th>
-            </tr>
-          </thead>
-          <tbody>${rows}</tbody>
-        </table>
-      `;
-    }
-
     function renderTips(participants, actualGroups) {
       const groupMap = Object.fromEntries(actualGroups.map(g => [g.group, g.teams.map(canonicalTeamName)]));
 
@@ -383,7 +350,6 @@
     async function loadData() {
       const statusText = document.getElementById("statusText");
       const footerStatus = document.getElementById("footerStatus");
-      const standingsContainer = document.getElementById("currentStandings");
       const tipsTable = document.getElementById("tipsTable");
 
       try {
@@ -404,7 +370,6 @@
         const standings = standingsData.response[0]?.league?.standings || [];
         const actualGroups = buildGroupObject(standings);
 
-        standingsContainer.innerHTML = formatGroupStandings(actualGroups);
         tipsTable.innerHTML = renderTips(participants, actualGroups);
         const successMessage = `Uppdaterat från grupptips. ${participants.length} deltagare och ${actualGroups.length} grupper jämförda.`;
         statusText.textContent = successMessage;
@@ -414,7 +379,6 @@
         const errorMessage = `Fel vid inläsning: ${error.message}`;
         statusText.textContent = errorMessage;
         footerStatus.textContent = formatStatusText(errorMessage);
-        standingsContainer.innerHTML = `<div class="error">Kunde inte läsa aktuell ställning.</div>`;
         tipsTable.innerHTML = `<div class="error">Kunde inte läsa in tipsen.</div>`;
       }
     }
