@@ -9,7 +9,11 @@
         body{display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,#667eea,#764ba2);font-family:Segoe UI, Tahoma, Geneva, Verdana, sans-serif;color:#fff}
         .wrap{text-align:center;padding:28px 18px}
         h1{font-size:48px;margin:0 0 24px}
-        .logo{width:320px;height:auto}
+        .hero{display:flex;align-items:center;justify-content:center;gap:26px;flex-wrap:wrap}
+        .logo{width:320px;height:auto;flex:0 0 auto}
+        .info-card{max-width:340px;padding:16px 18px;border-radius:14px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);box-shadow:0 10px 28px rgba(0,0,0,.12);text-align:left;flex:1 1 280px}
+        .info-card h2{margin:0 0 10px;font-size:20px}
+        .info-card ul{margin:0;padding-left:20px;line-height:1.7;font-size:16px}
         .countdown{margin:28px auto 0;max-width:560px}
         .countdown-title{margin:0 0 14px;font-size:20px;font-weight:700}
         .countdown-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
@@ -17,13 +21,24 @@
         .countdown-number{display:block;font-size:34px;font-weight:800;line-height:1}
         .countdown-label{display:block;margin-top:6px;font-size:13px;text-transform:uppercase;letter-spacing:.08em;opacity:.86}
         .match-info{margin:14px 0 0;font-size:15px;opacity:.92}
-        @media (max-width:600px){h1{font-size:28px}.logo{width:180px}.countdown-grid{gap:8px}.countdown-box{padding:10px 6px}.countdown-number{font-size:26px}.countdown-label{font-size:11px}.match-info{font-size:13px}}
+        @media (max-width:600px){h1{font-size:28px}.logo{width:180px}.hero{gap:14px}.info-card{max-width:100%;padding:14px 16px}.countdown-grid{gap:8px}.countdown-box{padding:10px 6px}.countdown-number{font-size:26px}.countdown-label{font-size:11px}.match-info{font-size:13px}}
     </style>
 </head>
 <body>
     <div class="wrap">
         <h1>A&A VM tips 2026</h1>
-        <img class="logo" src="2026_FIFA_World_Cup_emblem.svg.webp" alt="VM 2026 logga">
+        <div class="hero">
+            <img class="logo" src="2026_FIFA_World_Cup_emblem.svg.webp" alt="VM 2026 logga">
+            <section class="info-card" aria-label="Tävlingsinformation">
+                <h2>Inför spelet</h2>
+                <ul>
+                    <li>21 tippare</li>
+                    <li>Pott: 6 300 kr</li>
+                    <li>1:a pris: 5 040 kr</li>
+                    <li>2:a pris: 1 260 kr</li>
+                </ul>
+            </section>
+        </div>
         <section class="countdown" aria-label="Nedräkning till första matchen">
             <p class="countdown-title" id="countdownTitle">Nedräkning till första matchen</p>
             <div class="countdown-grid">
