@@ -112,6 +112,39 @@
             padding: 10px 12px;
             border-radius: 10px;
         }
+        .squad-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 18px;
+        }
+        .squad-team h3 {
+            margin: 0 0 10px;
+            font-size: 18px;
+        }
+        .squad-list {
+            display: grid;
+            gap: 8px;
+        }
+        .squad-player {
+            display: grid;
+            grid-template-columns: 42px 1fr auto;
+            gap: 10px;
+            align-items: center;
+            background: #f8fafc;
+            padding: 9px 11px;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+            font-size: 14px;
+        }
+        .squad-number {
+            color: #0f172a;
+            font-weight: 800;
+        }
+        .squad-position {
+            color: #64748b;
+            font-size: 12px;
+            font-weight: 700;
+        }
         .odds-toolbar {
             display: flex;
             align-items: center;
@@ -137,7 +170,8 @@
             display: none;
         }
         @media (max-width: 720px) {
-            .info-grid {
+            .info-grid,
+            .squad-grid {
                 grid-template-columns: 1fr;
             }
         }
@@ -155,6 +189,7 @@
 
         <div id="matchInfo" class="section loading">Hämtar matchinformation...</div>
         <div id="lineups" class="section"></div>
+        <div id="squads" class="section"></div>
         <div id="headtohead" class="section"></div>
         <div id="odds" class="section"></div>
     </div>
@@ -196,6 +231,16 @@
                 throw new Error(`API-fel ${response.status}: ${response.statusText} ${text}`);
             }
             return response.json();
+        }
+
+        function escapeHtml(value) {
+            return String(value ?? "").replace(/[&<>"']/g, char => ({
+                "&": "&amp;",
+                "<": "&lt;",
+                ">": "&gt;",
+                '"': "&quot;",
+                "'": "&#039;"
+            }[char]));
         }
 
         function renderMatchSummary(match) {
@@ -240,6 +285,56 @@
                     `;
                 }).join('')}
             `;
+        }
+
+        function translatePosition(position) {
+            const normalized = String(position || "").toLowerCase();
+            const translations = {
+                goalkeeper: "M\u00e5lvakt",
+                defender: "F\u00f6rsvarare",
+                midfielder: "Mittf\u00e4ltare",
+                attacker: "Anfallare"
+            };
+
+            return translations[normalized] || position || "Position saknas";
+        }
+
+        function renderSquads(squads) {
+            const availableSquads = squads.filter(squad => (squad.players || []).length);
+
+            if (!availableSquads.length) {
+                return `<h2>Trupper</h2><div class="error">Inga trupper tillg&auml;ngliga f&ouml;r lagen i denna match.</div>`;
+            }
+
+            return `
+                <h2>Trupper</h2>
+                <div class="squad-grid">
+                    ${availableSquads.map(squad => `
+                        <div class="squad-team">
+                            <h3>${escapeHtml(squad.teamName)}</h3>
+                            <div class="squad-list">
+                                ${squad.players.map(player => `
+                                    <div class="squad-player">
+                                        <span class="squad-number">${escapeHtml(player.number ?? "-")}</span>
+                                        <strong>${escapeHtml(player.name)}</strong>
+                                        <span class="squad-position">${escapeHtml(translatePosition(player.position))}</span>
+                                    </div>
+                                `).join("")}
+                            </div>
+                        </div>
+                    `).join("")}
+                </div>
+            `;
+        }
+
+        async function loadSquad(teamId, teamName) {
+            const data = await apiFootball(`players/squads?team=${teamId}`);
+            const squad = data.response[0] || {};
+
+            return {
+                teamName,
+                players: squad.players || []
+            };
         }
 
         function renderOdds(oddsResponse) {
@@ -355,6 +450,7 @@
             const statusBox = document.getElementById('status');
             const matchInfoBox = document.getElementById('matchInfo');
             const lineupsBox = document.getElementById('lineups');
+            const squadsBox = document.getElementById('squads');
             const oddsBox = document.getElementById('odds');
             const headtoheadBox = document.getElementById('headtohead');
 
@@ -385,6 +481,19 @@
                 matchInfoBox.innerHTML = renderMatchSummary(match);
 
                 lineupsBox.innerHTML = renderLineups(lineupsData.response || []);
+                squadsBox.innerHTML = `<h2>Trupper</h2><div class="loading">H&auml;mtar trupper...</div>`;
+
+                try {
+                    const squads = await Promise.all([
+                        loadSquad(match.teams.home.id, match.teams.home.name),
+                        loadSquad(match.teams.away.id, match.teams.away.name)
+                    ]);
+                    squadsBox.innerHTML = renderSquads(squads);
+                } catch (squadError) {
+                    console.warn('Trupper saknas:', squadError);
+                    squadsBox.innerHTML = `<h2>Trupper</h2><div class="error">Kan inte h&auml;mta trupper f&ouml;r denna match.</div>`;
+                }
+
                 oddsBox.innerHTML = renderOdds(oddsData.response || []);
                 setupBookmakerSelect();
                 statusBox.textContent = `Visar detaljer för ${match.teams.home.name} vs ${match.teams.away.name}.`;
@@ -406,6 +515,7 @@
                 matchInfoBox.className = 'section error';
                 matchInfoBox.innerHTML = `Kunde inte hämta matchdetaljer. ${error.message}`;
                 lineupsBox.innerHTML = '';
+                squadsBox.innerHTML = '';
                 oddsBox.innerHTML = '';
                 headtoheadBox.innerHTML = '';
                 statusBox.textContent = 'Fel vid hämtning av matchdetaljer.';
