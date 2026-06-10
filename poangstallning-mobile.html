@@ -3,201 +3,567 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Poängställning — Mobil - VM 2026</title>
+  <title>Poängställning - Mobil - VM 2026</title>
   <style>
-    :root{--bg:#f5f9ff;--card:#fff;--accent:#1f4e78;--muted:#6b7c91}
-    *{box-sizing:border-box}
-    body{margin:0;background:var(--bg);font-family:system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;color:#122547}
-    .wrap{max-width:760px;margin:0 auto;padding:14px}
-    header{display:flex;align-items:center;gap:12px;margin-bottom:10px}
-    header h1{font-size:18px;margin:0;color:var(--accent)}
-    .card{background:var(--card);border-radius:12px;padding:12px;margin-bottom:10px;box-shadow:0 6px 18px rgba(10,30,80,0.06);border:1px solid rgba(18,37,71,0.06);}
-    .row{display:flex;align-items:center;gap:10px}
-    .rank{width:44px;height:44px;border-radius:8px;background:linear-gradient(180deg,#fff,#f0f6ff);display:inline-flex;align-items:center;justify-content:center;font-weight:700;color:var(--accent);border:1px solid rgba(31,78,120,0.06)}
-    .name{font-weight:700;flex:1}
-    article.card{cursor:pointer}
-    .meta{font-size:13px;color:var(--muted);display:none;gap:8px;flex-wrap:wrap;margin-top:6px}
-    article.card.expanded .meta{display:flex}
-    .pill{background:#f1f7ff;padding:6px 8px;border-radius:999px;font-weight:600;color:var(--accent);font-size:13px;border:1px solid rgba(31,78,120,0.04)}
-    .paid{color:#207a4f;font-weight:700}
-    .notpaid{color:#cc3a44;font-weight:700}
-    .legend{font-size:13px;color:var(--muted);margin:8px 0 16px}
-    .controls{display:flex;gap:8px;margin-bottom:8px}
-    .btn{background:var(--accent);color:#fff;padding:8px 10px;border-radius:8px;border:none;font-weight:700;font-size:13px}
-    @media(min-width:760px){.wrap{padding:22px}header h1{font-size:22px}}
+    :root {
+      color: #122547;
+      --bg: #eef4fb;
+      --card: #ffffff;
+      --accent: #1f4e78;
+      --accent-2: #3e7cc8;
+      --muted: #5a6d85;
+      --border: rgba(18, 37, 71, 0.09);
+      --shadow: 0 18px 40px rgba(18, 37, 71, 0.09);
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: radial-gradient(circle at top, #dce8ff 0%, #eef4fb 50%, #ffffff 100%);
+    }
+
+    .page {
+      width: min(760px, 100%);
+      margin: 0 auto;
+      padding: 18px 14px 28px;
+    }
+
+    header {
+      text-align: center;
+      padding: 12px 8px 6px;
+      margin-bottom: 14px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(1.7rem, 6vw, 2.4rem);
+      letter-spacing: -0.04em;
+      color: #0f2a4d;
+    }
+
+    p.lead {
+      margin: 12px auto 0;
+      max-width: 640px;
+      color: #42526a;
+      font-size: 0.98rem;
+      line-height: 1.65;
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: 18px;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .stack > .card + .card {
+      margin-top: 12px;
+    }
+
+    .section-title {
+      margin: 0;
+      padding: 18px 18px 0;
+      color: #0f2a4d;
+      font-size: 1.05rem;
+    }
+
+    .section-body {
+      padding: 14px 18px 18px;
+    }
+
+    .status {
+      font-size: 0.98rem;
+      color: #122547;
+      line-height: 1.6;
+    }
+
+    .error {
+      color: #9d2c35;
+      font-weight: 700;
+      background: #fff3f4;
+      border: 1px solid rgba(204, 58, 68, 0.18);
+      border-radius: 14px;
+      padding: 14px 16px;
+    }
+
+    .grid {
+      display: grid;
+      gap: 12px;
+    }
+
+    .group-card {
+      background: linear-gradient(180deg, #ffffff 0%, #f7fbff 100%);
+      border: 1px solid rgba(31, 78, 120, 0.08);
+      border-radius: 16px;
+      padding: 14px;
+    }
+
+    .group-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .group-name {
+      font-size: 1rem;
+      font-weight: 800;
+      color: var(--accent);
+    }
+
+    .group-teams {
+      display: grid;
+      gap: 8px;
+      font-size: 0.95rem;
+      color: #243750;
+    }
+
+    .team-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 9px 10px;
+      border-radius: 12px;
+      background: rgba(31, 78, 120, 0.05);
+    }
+
+    .team-label {
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .participants {
+      display: grid;
+      gap: 10px;
+    }
+
+    article.participant {
+      cursor: pointer;
+      padding: 14px;
+      border: 1px solid rgba(18, 37, 71, 0.08);
+      border-radius: 16px;
+      background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+      box-shadow: 0 10px 24px rgba(18, 37, 71, 0.05);
+    }
+
+    .participant-top {
+      display: grid;
+      grid-template-columns: 44px 1fr auto;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .rank {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      color: var(--accent);
+      background: linear-gradient(180deg, #ffffff, #e9f1ff);
+      border: 1px solid rgba(31, 78, 120, 0.1);
+    }
+
+    .participant-name {
+      font-weight: 800;
+      font-size: 1rem;
+      color: #102743;
+      line-height: 1.2;
+    }
+
+    .participant-points {
+      text-align: right;
+      font-weight: 800;
+      color: var(--accent);
+      white-space: nowrap;
+    }
+
+    .participant-subline {
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 0.88rem;
+      display: block;
+    }
+
+    .participant-meta {
+      margin-top: 10px;
+      display: none;
+      gap: 8px;
+      flex-wrap: wrap;
+      color: #31465e;
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+
+    article.participant.expanded .participant-meta {
+      display: flex;
+    }
+
+    .badge {
+      background: rgba(31, 78, 120, 0.08);
+      border: 1px solid rgba(31, 78, 120, 0.08);
+      color: var(--accent);
+      border-radius: 999px;
+      padding: 5px 9px;
+      font-size: 0.82rem;
+      font-weight: 700;
+    }
+
+    .fineprint {
+      margin-top: 14px;
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.6;
+    }
+
+    ul.rules {
+      margin: 8px 0 0;
+      padding-left: 20px;
+    }
+
+    ul.rules li + li {
+      margin-top: 6px;
+    }
+
+    a {
+      color: var(--accent);
+    }
+
+    @media (min-width: 760px) {
+      .page {
+        padding: 28px 18px 36px;
+      }
+
+      header {
+        padding: 20px 8px 10px;
+        margin-bottom: 18px;
+      }
+
+      .participant-top {
+        grid-template-columns: 52px 1fr auto;
+      }
+
+      .rank {
+        width: 52px;
+        height: 52px;
+      }
+    }
   </style>
 </head>
 <body>
-  <main class="wrap">
+  <main class="page">
     <header>
-      <h1>Poängställning — Mobil</h1>
-      <div style="margin-left:auto;color:var(--muted);font-size:13px">Uppdaterad</div>
+      <h1>Poängställning - Mobil</h1>
+      <p class="lead"> Här visas aktuell gruppställning och deltagarnas poäng i ett format som är lätt att läsa på telefon.</p>
     </header>
 
-    <div class="legend">Visning per deltagare — tryck för att se detaljer. Kolumner: Gruppspel / Slutspel / Totalt / Diff / Betalat</div>
+    <div class="stack">
+      <section class="card" id="statusCard" aria-live="polite">
+        <h2 class="section-title">Status</h2>
+        <div class="section-body status" id="statusText">Laddar tips och aktuell ställning...</div>
+      </section>
 
-    <section class="card" aria-label="Deltagare">
-      <article class="card">
-        <div class="row">
-          <div class="rank">1</div>
-          <div class="name">Anders E</div>
-          <div class="pill paid">Ja</div>
+      <section class="card">
+        <h2 class="section-title">Aktuell gruppställning</h2>
+        <div class="section-body" id="currentStandings"></div>
+      </section>
+
+      <section class="card">
+        <h2 class="section-title">Allas tips och poäng</h2>
+        <div class="section-body">
+          <div class="participants" id="tipsTable"></div>
+          <div class="fineprint">Tryck på en deltagare för att se förklaringen till poängen.</div>
         </div>
-        <div class="meta"><span>Gruppspel: 16</span><span>Slutspel: 0</span><span>Totalt: 16</span><span>Diff: 0</span></div>
-      </article>
+      </section>
 
-      <article class="card">
-        <div class="row">
-          <div class="rank">2</div>
-          <div class="name">Carl</div>
-          <div class="pill paid">Ja</div>
+      <section class="card">
+        <h2 class="section-title">Poängsystem</h2>
+        <div class="section-body fineprint">
+          <p style="margin-top:0;">Poängen som används här är hämtade från <a href="Anders_vm_tips.html">regler</a>:</p>
+          <ul class="rules">
+            <li><strong>Rätt gruppvinnare:</strong> 5 p</li>
+            <li><strong>Rätt grupptvåa:</strong> 3 p</li>
+          </ul>
+          <p>Filen uppdateras automatiskt när aktuell gruppställning hämtas från FIFAs hemsida.</p>
         </div>
-        <div class="meta"><span>Gruppspel: 8</span><span>Slutspel: 0</span><span>Totalt: 8</span><span>Diff: 0</span></div>
-      </article>
-
-      <article class="card">
-        <div class="row">
-          <div class="rank">3</div>
-          <div class="name">Anneli</div>
-          <div class="pill notpaid">Nej</div>
-        </div>
-        <div class="meta"><span>Gruppspel: 0</span><span>Slutspel: 0</span><span>Totalt: 0</span><span>Diff: 0</span></div>
-      </article>
-
-      <article class="card">
-        <div class="row">
-          <div class="rank">4</div>
-          <div class="name">Emelie</div>
-          <div class="pill notpaid">Nej</div>
-        </div>
-        <div class="meta"><span>Gruppspel: 0</span><span>Slutspel: 0</span><span>Totalt: 0</span><span>Diff: 0</span></div>
-      </article>
-
-      <article class="card">
-        <div class="row">
-          <div class="rank">5</div>
-          <div class="name">Andreas</div>
-          <div class="pill notpaid">Nej</div>
-        </div>
-        <div class="meta"><span>Gruppspel: 0</span><span>Slutspel: 0</span><span>Totalt: 0</span><span>Diff: 0</span></div>
-      </article>
-
-      <article class="card">
-        <div class="row">
-          <div class="rank">6</div>
-          <div class="name">Anders F</div>
-          <div class="pill notpaid">Nej</div>
-        </div>
-        <div class="meta"><span>Gruppspel: 0</span><span>Slutspel: 0</span><span>Totalt: 0</span><span>Diff: 0</span></div>
-      </article>
-
-      <article class="card">
-        <div class="row">
-          <div class="rank">7</div>
-          <div class="name">Elton</div>
-          <div class="pill notpaid">Nej</div>
-        </div>
-        <div class="meta"><span>Gruppspel: 0</span><span>Slutspel: 0</span><span>Totalt: 0</span><span>Diff: 0</span></div>
-      </article>
-
-      <article class="card">
-        <div class="row">
-          <div class="rank">8</div>
-          <div class="name">Robin</div>
-          <div class="pill notpaid">Nej</div>
-        </div>
-        <div class="meta"><span>Gruppspel: 0</span><span>Slutspel: 0</span><span>Totalt: 0</span><span>Diff: 0</span></div>
-      </article>
-
-      <article class="card">
-        <div class="row">
-          <div class="rank">9</div>
-          <div class="name">Niklas</div>
-          <div class="pill notpaid">Nej</div>
-        </div>
-        <div class="meta"><span>Gruppspel: 0</span><span>Slutspel: 0</span><span>Totalt: 0</span><span>Diff: 0</span></div>
-      </article>
-
-      <article class="card">
-        <div class="row">
-          <div class="rank">10</div>
-          <div class="name">Anna N</div>
-          <div class="pill notpaid">Nej</div>
-        </div>
-        <div class="meta"><span>Gruppspel: 0</span><span>Slutspel: 0</span><span>Totalt: 0</span><span>Diff: 0</span></div>
-      </article>
-
-      <article class="card">
-        <div class="row">
-          <div class="rank">11</div>
-          <div class="name">Anna M</div>
-          <div class="pill notpaid">Nej</div>
-        </div>
-        <div class="meta"><span>Gruppspel: 0</span><span>Slutspel: 0</span><span>Totalt: 0</span><span>Diff: 0</span></div>
-      </article>
-
-      <article class="card">
-        <div class="row">
-          <div class="rank">12</div>
-          <div class="name">Simon</div>
-          <div class="pill notpaid">Nej</div>
-        </div>
-        <div class="meta"><span>Gruppspel: 0</span><span>Slutspel: 0</span><span>Totalt: 0</span><span>Diff: 0</span></div>
-      </article>
-
-      <article class="card">
-        <div class="row">
-          <div class="rank">13</div>
-          <div class="name">David</div>
-          <div class="pill notpaid">Nej</div>
-        </div>
-        <div class="meta"><span>Gruppspel: 0</span><span>Slutspel: 0</span><span>Totalt: 0</span><span>Diff: 0</span></div>
-      </article>
-
-      <article class="card">
-        <div class="row">
-          <div class="rank">14</div>
-          <div class="name">Mathias</div>
-          <div class="pill notpaid">Nej</div>
-        </div>
-        <div class="meta"><span>Gruppspel: 0</span><span>Slutspel: 0</span><span>Totalt: 0</span><span>Diff: 0</span></div>
-      </article>
-
-      <article class="card">
-        <div class="row">
-          <div class="rank">15</div>
-          <div class="name">Jacob</div>
-          <div class="pill notpaid">Nej</div>
-        </div>
-        <div class="meta"><span>Gruppspel: 0</span><span>Slutspel: 0</span><span>Totalt: 0</span><span>Diff: 0</span></div>
-      </article>
-
-      <article class="card">
-        <div class="row">
-          <div class="rank">16</div>
-          <div class="name">Frida</div>
-          <div class="pill notpaid">Nej</div>
-        </div>
-        <div class="meta"><span>Gruppspel: 0</span><span>Slutspel: 0</span><span>Totalt: 0</span><span>Diff: 0</span></div>
-      </article>
-
-    </section>
-
-    <p style="color:var(--muted);font-size:13px">Vill du att jag uppdaterar navigeringslänkarna så denna mobilversion öppnas från menyn?</p>
+      </section>
+    </div>
   </main>
+
   <script>
-    (function(){
-      var cards = document.querySelectorAll('section[aria-label="Deltagare"] article.card');
-      if(!cards || !cards.length) return;
-      cards.forEach(function(card){
-        card.setAttribute('role','button');
-        card.setAttribute('aria-expanded','false');
-        card.addEventListener('click', function(){
-          var expanded = card.classList.toggle('expanded');
+    const API_KEY = "170d2afb853fb860d9432d14d7eaaaa5";
+    const BASE_URL = "https://v3.football.api-sports.io";
+    const LEAGUE = 1;
+    const SEASON = 2026;
+
+    const TEAM_NAME_ALIASES = {
+      "algeriet": "algeria",
+      "algeria": "algeria",
+      "argentina": "argentina",
+      "osterrike": "austria",
+      "austria": "austria",
+      "australien": "australia",
+      "australia": "australia",
+      "belgien": "belgium",
+      "belgium": "belgium",
+      "bosnien och hercegovina": "bosnia and herzegovina",
+      "bosninen och hercegovinia": "bosnia and herzegovina",
+      "bosnia herzegovina": "bosnia and herzegovina",
+      "bosnia and herzegovina": "bosnia and herzegovina",
+      "bosnia & herzegovina": "bosnia and herzegovina",
+      "brasilien": "brazil",
+      "brazil": "brazil",
+      "colombia": "colombia",
+      "ecuador": "ecuador",
+      "egypten": "egypt",
+      "egypt": "egypt",
+      "elfenbenskusten": "ivory coast",
+      "ivory coast": "ivory coast",
+      "cote d ivoire": "ivory coast",
+      "england": "england",
+      "frankrike": "france",
+      "france": "france",
+      "ghana": "ghana",
+      "iran": "iran",
+      "japan": "japan",
+      "kanada": "canada",
+      "canada": "canada",
+      "kap verde": "cape verde",
+      "cape verde": "cape verde",
+      "cape verde island": "cape verde",
+      "cape verde islands": "cape verde",
+      "kroatien": "croatia",
+      "croatia": "croatia",
+      "marocko": "morocco",
+      "morocco": "morocco",
+      "mexiko": "mexico",
+      "mexico": "mexico",
+      "nederlanderna": "netherlands",
+      "netherlands": "netherlands",
+      "norge": "norway",
+      "norway": "norway",
+      "panama": "panama",
+      "paraguay": "paraguay",
+      "portugal": "portugal",
+      "qatar": "qatar",
+      "saudiarabien": "saudi arabia",
+      "saudi arabia": "saudi arabia",
+      "schweiz": "switzerland",
+      "switzerland": "switzerland",
+      "senegal": "senegal",
+      "skottland": "scotland",
+      "scotland": "scotland",
+      "spanien": "spain",
+      "spain": "spain",
+      "sverige": "sweden",
+      "sweden": "sweden",
+      "sydkorea": "south korea",
+      "south korea": "south korea",
+      "tjeckien": "czechia",
+      "czechia": "czechia",
+      "czech republic": "czechia",
+      "tunisien": "tunisia",
+      "tunisia": "tunisia",
+      "turkiet": "turkey",
+      "turkey": "turkey",
+      "tyskland": "germany",
+      "germany": "germany",
+      "uruguay": "uruguay",
+      "usa": "usa",
+      "united states": "usa",
+      "uzbekistan": "uzbekistan"
+    };
+
+    function normalizeName(value) {
+      return String(value || "")
+        .trim()
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9]+/g, " ")
+        .trim();
+    }
+
+    function canonicalTeamName(value) {
+      const normalized = normalizeName(value);
+      return TEAM_NAME_ALIASES[normalized] || normalized;
+    }
+
+    function parseTips(text) {
+      const lines = text.split(/\r?\n/).filter(line => line.trim().length > 0);
+      const participants = {};
+      const groups = [];
+
+      for (const line of lines) {
+        const parts = line.split(/\t+/).map(x => x.trim());
+        if (parts.length < 2) continue;
+        const [name, group, first = "", second = "", third = ""] = parts;
+        if (!name || !group) continue;
+        if (!participants[name]) {
+          participants[name] = { name, predictions: {} };
+        }
+        participants[name].predictions[group.toUpperCase()] = [first, second, third];
+        if (!groups.includes(group.toUpperCase())) groups.push(group.toUpperCase());
+      }
+
+      return { participants: Object.values(participants), groups: groups.sort() };
+    }
+
+    function buildGroupObject(standings) {
+      const actualGroups = [];
+      for (const group of standings) {
+        const rawGroupName = group[0]?.group || "";
+        if (!/^(?:Group|Grupp)?\s*[A-L]$/i.test(rawGroupName.trim())) continue;
+
+        const groupName = rawGroupName.replace(/^(Group|Grupp)\s*/i, "") || "?";
+        actualGroups.push({
+          group: groupName,
+          teams: [group[0]?.team?.name || "", group[1]?.team?.name || "", group[2]?.team?.name || ""]
+        });
+      }
+
+      actualGroups.sort((a, b) => a.group.localeCompare(b.group, "sv"));
+      return actualGroups;
+    }
+
+    function formatGroupStandings(actualGroups) {
+      if (!actualGroups.length) {
+        return '<div class="error">Inga gruppresultat kunde visas.</div>';
+      }
+
+      return `
+        <div class="grid">
+          ${actualGroups.map(group => {
+            const [first, second, third] = group.teams;
+            return `
+              <article class="group-card">
+                <div class="group-head">
+                  <div class="group-name">Grupp ${group.group}</div>
+                  <div class="badge">Top 3</div>
+                </div>
+                <div class="group-teams">
+                  <div class="team-row"><span class="team-label">1:a</span><span>${first || "-"}</span></div>
+                  <div class="team-row"><span class="team-label">2:a</span><span>${second || "-"}</span></div>
+                  <div class="team-row"><span class="team-label">3:a</span><span>${third || "-"}</span></div>
+                </div>
+              </article>
+            `;
+          }).join("")}
+        </div>
+      `;
+    }
+
+    function renderTips(participants, actualGroups) {
+      const groupMap = Object.fromEntries(actualGroups.map(g => [g.group, g.teams.map(canonicalTeamName)]));
+
+      const rows = participants.map(participant => {
+        let points = 0;
+        const details = [];
+        for (const [group, prediction] of Object.entries(participant.predictions)) {
+          const actual = groupMap[group] || ["", "", ""];
+          const [p1, p2] = prediction.map(canonicalTeamName);
+          if (p1 && p1 === actual[0]) {
+            points += 5;
+            details.push(`${group} 1:a korrekt`);
+          }
+          if (p2 && p2 === actual[1]) {
+            points += 3;
+            details.push(`${group} 2:a korrekt`);
+          }
+        }
+        return { ...participant, points, details: details.join(", ") };
+      });
+
+      rows.sort((a, b) => b.points - a.points || a.name.localeCompare(b.name, "sv"));
+
+      if (!rows.length) {
+        return '<div class="error">Inga deltagare hittades i grupptips.txt.</div>';
+      }
+
+      return rows.map((participant, index) => {
+        const detailsText = participant.details || "Inga rätta topp-2-tips ännu.";
+
+        return `
+          <article class="participant" role="button" aria-expanded="false" tabindex="0">
+            <div class="participant-top">
+              <div class="rank">${index + 1}</div>
+              <div>
+                <div class="participant-name">${participant.name}</div>
+                <div class="participant-subline">
+                  ${participant.details ? "Tryck för detaljer" : "Poänguppdatering väntar"}
+                </div>
+              </div>
+              <div class="participant-points">${participant.points} p</div>
+            </div>
+            <div class="participant-meta">
+              <span class="badge">${detailsText}</span>
+            </div>
+          </article>
+        `;
+      }).join("");
+    }
+
+    function wireParticipantCards() {
+      const cards = document.querySelectorAll('article.participant');
+      cards.forEach(card => {
+        const toggle = () => {
+          const expanded = card.classList.toggle('expanded');
           card.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+        };
+
+        card.addEventListener('click', toggle);
+        card.addEventListener('keydown', event => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            toggle();
+          }
         });
       });
-    })();
+    }
+
+    async function loadData() {
+      const statusText = document.getElementById("statusText");
+      const standingsContainer = document.getElementById("currentStandings");
+      const tipsTable = document.getElementById("tipsTable");
+
+      try {
+        const [tipsResponse, standingsResponse] = await Promise.all([
+          fetch("grupptips.txt"),
+          fetch(`${BASE_URL}/standings?league=${LEAGUE}&season=${SEASON}`, {
+            headers: { "x-apisports-key": API_KEY }
+          })
+        ]);
+
+        if (!tipsResponse.ok) throw new Error("Kunde inte läsa grupptips.txt");
+        if (!standingsResponse.ok) throw new Error("Kunde inte läsa aktuella standings från API");
+
+        const tipsText = await tipsResponse.text();
+        const standingsData = await standingsResponse.json();
+
+        const { participants } = parseTips(tipsText);
+        const standings = standingsData.response[0]?.league?.standings || [];
+        const actualGroups = buildGroupObject(standings);
+
+        standingsContainer.innerHTML = formatGroupStandings(actualGroups);
+        tipsTable.innerHTML = renderTips(participants, actualGroups);
+        statusText.textContent = `Uppdaterat från grupptips. ${participants.length} deltagare och ${actualGroups.length} grupper jämförda.`;
+        wireParticipantCards();
+      } catch (error) {
+        console.error(error);
+        statusText.textContent = `Fel vid inläsning: ${error.message}`;
+        standingsContainer.innerHTML = `<div class="error">Kunde inte läsa aktuell ställning.</div>`;
+        tipsTable.innerHTML = `<div class="error">Kunde inte läsa in tipsen.</div>`;
+      }
+    }
+
+    loadData();
   </script>
 </body>
 </html>

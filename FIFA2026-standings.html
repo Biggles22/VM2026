@@ -84,6 +84,16 @@
             border: 1px solid #e2e8f0;
             color: #475569;
         }
+
+        .footer-status {
+            margin-top: 18px;
+            padding: 14px 16px;
+            border-radius: 12px;
+            background: #e2e8f0;
+            color: #0f172a;
+            font-size: 14px;
+            line-height: 1.6;
+        }
         @media (max-width: 720px) {
             th, td {
                 padding: 8px 10px;
@@ -103,6 +113,7 @@
             <div class="loading">Hämtar gruppställningar...</div>
         </div>
         <div id="bestThirds"></div>
+        <div class="footer-status" id="footerStatus">Senast uppdaterad: väntar på inläsning.</div>
     </div>
 
     <script>
@@ -214,6 +225,16 @@
             const bestThirdsContainer = document.getElementById("bestThirds");
             const container = document.getElementById("standings");
             const statusBox = document.getElementById("status");
+            const footerStatus = document.getElementById("footerStatus");
+
+            function formatStatusText(message) {
+                const updatedAt = new Date().toLocaleString("sv-SE", {
+                    dateStyle: "short",
+                    timeStyle: "short"
+                });
+
+                return `${message} Senast uppdaterad: ${updatedAt}.`;
+            }
 
             try {
                 const data = await apiFootball(`standings?league=${LEAGUE}&season=${SEASON}`);
@@ -242,11 +263,15 @@
 
                 container.innerHTML = groups.map(renderGroup).join("");
                 bestThirdsContainer.innerHTML = renderBestThirds(sortedThirds);
-                statusBox.textContent = `Visa ${groups.length} grupper för FIFA World Cup 2026.`;
+                const successMessage = `Visar ${groups.length} grupper för FIFA World Cup 2026.`;
+                statusBox.textContent = successMessage;
+                footerStatus.textContent = formatStatusText(successMessage);
             } catch (error) {
                 console.error(error);
                 container.innerHTML = `<div class="error">Kunde inte hämta gruppställningar. Kontrollera API-nyckeln och att tjänsten är tillgänglig.</div>`;
-                statusBox.textContent = "Fel vid hämtning av gruppställningar.";
+                const errorMessage = "Fel vid hämtning av gruppställningar.";
+                statusBox.textContent = errorMessage;
+                footerStatus.textContent = formatStatusText(errorMessage);
             }
         }
 

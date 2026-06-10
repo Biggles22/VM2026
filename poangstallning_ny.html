@@ -110,6 +110,17 @@
       line-height: 1.7;
     }
 
+    .footer-status {
+      margin-top: 18px;
+      padding: 18px 24px;
+      border-radius: 18px;
+      background: #e8f1fb;
+      border: 1px solid rgba(31, 78, 120, 0.12);
+      color: #0f2a4d;
+      font-weight: 700;
+      line-height: 1.6;
+    }
+
     @media (max-width: 740px) {
       th, td {
         padding: 14px 12px;
@@ -153,6 +164,8 @@
         <p>Filen uppdateras automatiskt när aktuell gruppställning hämtas från FIFAS hemsida.</p>
       </div>
     </section>
+
+    <section class="footer-status" id="footerStatus">Senast uppdaterad: väntar på inläsning.</section>
   </main>
   <script>
     const API_KEY = "170d2afb853fb860d9432d14d7eaaaa5";
@@ -358,8 +371,18 @@
       return actualGroups;
     }
 
+    function formatStatusText(message) {
+      const updatedAt = new Date().toLocaleString("sv-SE", {
+        dateStyle: "short",
+        timeStyle: "short"
+      });
+
+      return `${message} Senast uppdaterad: ${updatedAt}.`;
+    }
+
     async function loadData() {
       const statusText = document.getElementById("statusText");
+      const footerStatus = document.getElementById("footerStatus");
       const standingsContainer = document.getElementById("currentStandings");
       const tipsTable = document.getElementById("tipsTable");
 
@@ -383,10 +406,14 @@
 
         standingsContainer.innerHTML = formatGroupStandings(actualGroups);
         tipsTable.innerHTML = renderTips(participants, actualGroups);
-        statusText.textContent = `Uppdaterat från grupptips. ${participants.length} deltagare och ${actualGroups.length} grupper jämförda.`;
+        const successMessage = `Uppdaterat från grupptips. ${participants.length} deltagare och ${actualGroups.length} grupper jämförda.`;
+        statusText.textContent = successMessage;
+        footerStatus.textContent = formatStatusText(successMessage);
       } catch (error) {
         console.error(error);
-        statusText.textContent = `Fel vid inläsning: ${error.message}`;
+        const errorMessage = `Fel vid inläsning: ${error.message}`;
+        statusText.textContent = errorMessage;
+        footerStatus.textContent = formatStatusText(errorMessage);
         standingsContainer.innerHTML = `<div class="error">Kunde inte läsa aktuell ställning.</div>`;
         tipsTable.innerHTML = `<div class="error">Kunde inte läsa in tipsen.</div>`;
       }
