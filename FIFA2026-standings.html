@@ -146,7 +146,11 @@
         function buildComputedGroups(standings, fixtures) {
             const groups = standings.filter(isRealGroup).map(group => {
                 const rows = group.map((team, index) => ({
-                    ...team,
+                    team: team.team,
+                    group: team.group,
+                    form: team.form,
+                    status: team.status,
+                    description: team.description,
                     seedRank: Number(team.rank) || index + 1,
                     rank: index + 1,
                     points: 0,
@@ -157,7 +161,10 @@
                         draw: 0,
                         lose: 0,
                         goals: { for: 0, against: 0 }
-                    }
+                    },
+                    home: team.home,
+                    away: team.away,
+                    update: team.update
                 }));
                 return rows;
             });
@@ -194,7 +201,10 @@
             return groups.map(group => group
                 .slice()
                 .sort(sortGroupRows)
-                .map((team, index) => ({ ...team, rank: index + 1 })));
+                .map((team, index) => {
+                    team.rank = index + 1;
+                    return team;
+                }));
         }
 
         function applyResult(team, goalsFor, goalsAgainst) {
@@ -317,13 +327,47 @@
             }
 
             try {
-                const [standingsData, fixturesData] = await Promise.all([
-                    apiFootball(`standings?league=${LEAGUE}&season=${SEASON}`),
-                    apiFootball(`fixtures?league=${LEAGUE}&season=${SEASON}`)
-                ]);
+                const standingsData = await apiFootball(`standings?league=${LEAGUE}&season=${SEASON}`);
                 const standings = standingsData.response[0]?.league?.standings || [];
-                const fixtures = fixturesData.response || [];
-                const groups = buildComputedGroups(standings, fixtures);
+                let fixtures = [];
+                let groups = standings.filter(isRealGroup);
+                let usedComputedResults = false;
+
+                if (groups.length === 0) {
+                    container.innerHTML = `<div class="error">Inga gruppstÃ¤llningar hittades fÃ¶r VM 2026.</div>`;
+                    statusBox.textContent = "Ingen data hittad.";
+                    return;
+                }
+
+                const initialThirdPlaceTeams = groups
+                    .map(group => group.find(team => String(team.rank) === "3"))
+                    .filter(Boolean);
+                const initialSortedThirds = initialThirdPlaceTeams
+                    .slice()
+                    .sort((a, b) => {
+                        const pointsDiff = (b.points ?? 0) - (a.points ?? 0);
+                        if (pointsDiff !== 0) return pointsDiff;
+                        const goalDiff = (b.goalsDiff ?? 0) - (a.goalsDiff ?? 0);
+                        if (goalDiff !== 0) return goalDiff;
+                        return (b.all?.goals?.for ?? 0) - (a.all?.goals?.for ?? 0);
+                    });
+                const initialMessage = `Visar ${groups.length} grupper fÃ¶r FIFA World Cup 2026. RÃ¤knar in spelade matcher...`;
+                container.innerHTML = groups.map(renderGroup).join("");
+                bestThirdsContainer.innerHTML = renderBestThirds(initialSortedThirds);
+                statusBox.textContent = initialMessage;
+                footerStatus.textContent = formatStatusText(initialMessage);
+
+                try {
+                    const fixturesData = await apiFootball(`fixtures?league=${LEAGUE}&season=${SEASON}`);
+                    fixtures = fixturesData.response || [];
+                    const computedGroups = buildComputedGroups(standings, fixtures);
+                    if (computedGroups.length) {
+                        groups = computedGroups;
+                        usedComputedResults = true;
+                    }
+                } catch (fixturesError) {
+                    console.warn("Kunde inte räkna tabell från matcher, använder API-standings.", fixturesError);
+                }
 
                 if (groups.length === 0) {
                     container.innerHTML = `<div class="error">Inga gruppställningar hittades för VM 2026.</div>`;
@@ -351,7 +395,9 @@
                     FINISHED_STATUSES.has(match.fixture?.status?.short) &&
                     /^Group Stage\b/i.test(match.league?.round || "")
                 ).length;
-                const successMessage = `Visar ${groups.length} grupper och ${finishedMatches} spelade gruppmatcher för FIFA World Cup 2026.`;
+                const successMessage = usedComputedResults
+                    ? `Visar ${groups.length} grupper och ${finishedMatches} spelade gruppmatcher för FIFA World Cup 2026.`
+                    : `Visar ${groups.length} grupper för FIFA World Cup 2026. Matchresultat kunde inte räknas in.`;
                 statusBox.textContent = successMessage;
                 footerStatus.textContent = formatStatusText(successMessage);
             } catch (error) {
