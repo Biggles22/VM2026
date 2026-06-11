@@ -138,9 +138,18 @@
             return response.json();
         }
 
+        function getGroupLetter(groupName) {
+            const match = String(groupName || "").match(/(?:Group|Grupp)\s*([A-L])\b/i);
+            return match ? match[1].toUpperCase() : "";
+        }
+
+        function formatGroupName(groupName, fallbackIndex) {
+            const groupLetter = getGroupLetter(groupName);
+            return groupLetter ? `Group ${groupLetter}` : `Grupp ${String.fromCharCode(65 + fallbackIndex)}`;
+        }
+
         function isRealGroup(groupData) {
-            const groupName = groupData[0]?.group;
-            return typeof groupName === "string" && /^(?:Group|Grupp)?\s*[A-L]$/i.test(groupName.trim());
+            return Boolean(getGroupLetter(groupData[0]?.group));
         }
 
         function buildComputedGroups(standings, fixtures) {
@@ -272,7 +281,7 @@
         }
 
         function renderGroup(groupData, index) {
-            const groupName = groupData[0]?.group || `Grupp ${String.fromCharCode(65 + index)}`;
+            const groupName = formatGroupName(groupData[0]?.group, index);
             const rows = groupData.map(team => {
                 const stats = team.all || {};
                 return `

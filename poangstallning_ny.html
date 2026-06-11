@@ -262,6 +262,11 @@
       return TEAM_NAME_ALIASES[normalized] || normalized;
     }
 
+    function getGroupLetter(groupName) {
+      const match = String(groupName || "").match(/(?:Group|Grupp)\s*([A-L])\b/i);
+      return match ? match[1].toUpperCase() : "";
+    }
+
     function parseTips(text) {
       const lines = text.split(/\r?\n/).filter(line => line.trim().length > 0);
       const participants = {};
@@ -330,9 +335,9 @@
 
       for (const group of standings) {
         const rawGroupName = group[0]?.group || "";
-        if (!/^(?:Group|Grupp)?\s*[A-L]$/i.test(rawGroupName.trim())) continue;
+        const groupName = getGroupLetter(rawGroupName);
+        if (!groupName) continue;
 
-        const groupName = rawGroupName.replace(/^(Group|Grupp)\s*/i, "") || "?";
         const teams = group.map((team, index) => ({
           id: team.team?.id,
           name: team.team?.name || "",
