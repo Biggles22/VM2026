@@ -261,18 +261,13 @@
   <main class="page">
     <header>
       <h1>Poängställning - Mobil</h1>
-      <p class="lead"> Här visas aktuell gruppställning och deltagarnas poäng i ett format som är lätt att läsa på telefon.</p>
+      <p class="lead"> Här visas deltagarnas poäng i ett format som är lätt att läsa på telefon.</p>
     </header>
 
     <div class="stack">
       <section class="card" id="statusCard" aria-live="polite">
         <h2 class="section-title">Status</h2>
         <div class="section-body status" id="statusText">Laddar tips och aktuell ställning...</div>
-      </section>
-
-      <section class="card">
-        <h2 class="section-title">Aktuell gruppställning</h2>
-        <div class="section-body" id="currentStandings"></div>
       </section>
 
       <section class="card">
@@ -291,7 +286,7 @@
             <li><strong>Rätt gruppvinnare:</strong> 5 p</li>
             <li><strong>Rätt grupptvåa:</strong> 3 p</li>
           </ul>
-          <p>Filen uppdateras automatiskt när aktuell gruppställning hämtas från FIFAs hemsida.</p>
+          <p>Filen uppdateras automatiskt när aktuella matchresultat hämtas från API-Football.</p>
         </div>
       </section>
     </div>
@@ -610,7 +605,6 @@
 
     async function loadData() {
       const statusText = document.getElementById("statusText");
-      const standingsContainer = document.getElementById("currentStandings");
       const tipsTable = document.getElementById("tipsTable");
 
       try {
@@ -637,7 +631,6 @@
         const fixtures = fixturesData.response || [];
         const actualGroups = buildGroupsFromStandingsAndFixtures(standings, fixtures);
 
-        standingsContainer.innerHTML = formatGroupStandings(actualGroups);
         tipsTable.innerHTML = renderTips(participants, actualGroups);
         const finishedMatches = fixtures.filter(match =>
           FINISHED_STATUSES.has(match.fixture?.status?.short) &&
@@ -648,7 +641,6 @@
       } catch (error) {
         console.error(error);
         statusText.textContent = `Fel vid inläsning: ${error.message}`;
-        standingsContainer.innerHTML = `<div class="error">Kunde inte läsa aktuell ställning.</div>`;
         tipsTable.innerHTML = `<div class="error">Kunde inte läsa in tipsen.</div>`;
       }
     }
