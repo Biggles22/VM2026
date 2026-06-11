@@ -1,5 +1,6 @@
 (function () {
-  const API_BASE = "https://vm2026-worker.anders-h-engstrom.workers.dev/api/push";
+  const WORKER_API_BASE = "https://vm2026-worker.anders-h-engstrom.workers.dev/api/push";
+  const API_BASE = WORKER_API_BASE;
   const statusEl = document.getElementById("pushStatus");
   const diagnosticsEl = document.getElementById("pushDiagnostics");
   const enableButton = document.getElementById("enablePush");
@@ -71,6 +72,16 @@
     return data.publicKey;
   }
 
+  async function removeServerSubscription(subscription) {
+    if (!subscription) return;
+
+    await fetch(`${API_BASE}/subscribe`, {
+      method: "DELETE",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ subscription })
+    }).catch(() => {});
+  }
+
   async function subscribe() {
     const permission = await Notification.requestPermission();
     if (permission !== "granted") {
@@ -81,6 +92,7 @@
     const publicKey = await getPublicKey();
     const existing = await registration.pushManager.getSubscription();
     if (existing) {
+      await removeServerSubscription(existing);
       await existing.unsubscribe();
     }
 
@@ -105,12 +117,7 @@
 
     if (!subscription) return;
 
-    await fetch(`${API_BASE}/subscribe`, {
-      method: "DELETE",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ subscription })
-    });
-
+    await removeServerSubscription(subscription);
     await subscription.unsubscribe();
   }
 

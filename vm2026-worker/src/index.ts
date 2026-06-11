@@ -147,12 +147,13 @@ async function handleSend(request: Request, env: WorkerEnv): Promise<Response> {
 			} catch (error) {
 				const statusCode = statusFromError(error);
 				const shouldDelete = isExpiredSubscriptionStatus(statusCode);
-				if (shouldDelete && item.id !== "direct") {
+				const deleted = shouldDelete && item.id !== "direct";
+				if (deleted) {
 					await env.SUBSCRIPTIONS.delete(item.id);
 				}
 				const message = error instanceof Error ? error.message : String(error);
 				console.warn("Push failed", item.id, statusCode, message);
-				return { id: item.id, ok: false, statusCode, deleted: shouldDelete };
+				return { id: item.id, ok: false, statusCode, deleted };
 			}
 		}),
 	);
