@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>VM 2026 Notiser</title>
+  <title>VM 2026 Notisadmin</title>
   <style>
     :root {
       color: #172033;
@@ -158,8 +158,8 @@
 <body>
   <header>
     <div class="hero">
-      <h1>VM 2026-notiser</h1>
-      <p class="lead">Aktivera web push f&ouml;r att kunna f&aring; snabba uppdateringar fr&aring;n VM-tipset.</p>
+      <h1>VM 2026-notisadmin</h1>
+      <p class="lead">Skicka notiser till prenumeranter.</p>
     </div>
   </header>
 
@@ -167,8 +167,49 @@
     <p class="status" id="pushStatus">Redo.</p>
 
     <section class="panel">
-      <h2>Notiser p&aring; den h&auml;r enheten</h2>
-      <p>Webbl&auml;saren fr&aring;gar om till&aring;telse. Du kan st&auml;nga av igen n&auml;r du vill.</p>
+      <h2>Admin-token</h2>
+      <label>
+        Token
+        <input id="adminPushToken" name="token" type="password" autocomplete="off" required>
+      </label>
+    </section>
+
+    <section class="panel">
+      <h2>Skicka po&auml;ngnotis</h2>
+      <p>Skickar en f&auml;rdig notis om att po&auml;ngst&auml;llningen &auml;r uppdaterad.</p>
+      <form id="scorePushForm">
+        <input name="title" type="hidden" value="VM 2026: po&auml;ngst&auml;llningen &auml;r uppdaterad">
+        <input name="body" type="hidden" value="Po&auml;ngst&auml;llningen &auml;r uppdaterad.">
+        <input name="url" type="hidden" value="https://vm2026.info/poangstallning_ny.html">
+        <div class="actions">
+          <button type="submit">Skicka po&auml;ngnotis</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="panel">
+      <h2>Skicka egen notis</h2>
+      <form id="sendPushForm">
+        <label>
+          Rubrik
+          <input name="title" type="text" value="VM 2026" required>
+        </label>
+        <label>
+          Meddelande
+          <textarea name="body" required>Ny uppdatering finns p&aring; vm2026.info.</textarea>
+        </label>
+        <label>
+          L&auml;nk
+          <input name="url" type="url" value="https://vm2026.info/">
+        </label>
+        <div class="actions">
+          <button type="submit">Skicka egen notis</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="panel">
+      <h2>Kontroll av den h&auml;r enheten</h2>
       <div class="actions">
         <button id="enablePush" type="button">Aktivera notiser</button>
         <button class="secondary" id="localPushTest" type="button">Testa lokal notis</button>
@@ -176,7 +217,6 @@
       </div>
       <pre class="diagnostics" id="pushDiagnostics">Diagnostik visas h&auml;r efter test.</pre>
     </section>
-
   </main>
 
   <script src="push-client.js"></script>

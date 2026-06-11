@@ -7,6 +7,9 @@
   const localTestButton = document.getElementById("localPushTest");
   const disableButton = document.getElementById("disablePush");
   const sendForm = document.getElementById("sendPushForm");
+  const scoreForm = document.getElementById("scorePushForm");
+  const adminTokenInput = document.getElementById("adminPushToken");
+  const ADMIN_TOKEN_STORAGE_KEY = "vm2026_push_admin_token";
 
   function setStatus(message, type) {
     if (!statusEl) return;
@@ -121,12 +124,31 @@
     await subscription.unsubscribe();
   }
 
-  async function sendPush(event) {
-    event.preventDefault();
-    const subscription = await subscribe();
+  function setupAdminToken() {
+    if (!adminTokenInput) return;
 
-    const form = new FormData(sendForm);
-    const token = form.get("token");
+    adminTokenInput.value = localStorage.getItem(ADMIN_TOKEN_STORAGE_KEY) || "";
+    adminTokenInput.addEventListener("input", () => {
+      localStorage.setItem(ADMIN_TOKEN_STORAGE_KEY, adminTokenInput.value.trim());
+    });
+  }
+
+  function getAdminToken(form) {
+    const formToken = form ? new FormData(form).get("token") : "";
+    const token = adminTokenInput?.value || formToken || localStorage.getItem(ADMIN_TOKEN_STORAGE_KEY) || "";
+    return String(token).trim();
+  }
+
+  async function sendBroadcast(event) {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const token = getAdminToken(form);
+    if (!token) {
+      throw new Error("Admin-token saknas.");
+    }
+
+    localStorage.setItem(ADMIN_TOKEN_STORAGE_KEY, token);
+    const formData = new FormData(form);
 
     const response = await fetch(`${API_BASE}/send`, {
       method: "POST",
@@ -135,10 +157,9 @@
         "content-type": "application/json"
       },
       body: JSON.stringify({
-        subscription,
-        title: form.get("title"),
-        body: form.get("body"),
-        url: form.get("url") || "/"
+        title: formData.get("title"),
+        body: formData.get("body"),
+        url: formData.get("url") || "/"
       })
     });
 
@@ -219,19 +240,28 @@
     }
   });
 
-  sendForm?.addEventListener("submit", async event => {
-    setStatus("Aktiverar den har enheten och skickar testnotis...", "info");
+  async function handleBroadcastSubmit(event, message) {
+    setStatus(message, "info");
     try {
-      const result = await sendPush(event);
+      const result = await sendBroadcast(event);
       if (!result.sent) {
         throw new Error(`Ingen notis skickades. Totalt: ${result.total || 0}. Misslyckade: ${result.failed || 0}.`);
       }
       const deletedText = result.deleted ? ` Rensade gamla: ${result.deleted}.` : "";
-      await showLocalCheckNotification();
       setDiagnostics(await getDiagnostics());
-      setStatus(`Skickat: ${result.sent}. Misslyckade: ${result.failed}.${deletedText} Lokal kontrollnotis skickad.`, "success");
+      setStatus(`Skickat: ${result.sent}. Misslyckade: ${result.failed}.${deletedText}`, "success");
     } catch (error) {
       setStatus(error.message, "error");
     }
+  }
+
+  setupAdminToken();
+
+  sendForm?.addEventListener("submit", event => {
+    handleBroadcastSubmit(event, "Skickar egen notis...");
+  });
+
+  scoreForm?.addEventListener("submit", event => {
+    handleBroadcastSubmit(event, "Skickar poangnotis...");
   });
 }());
