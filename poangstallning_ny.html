@@ -121,6 +121,62 @@
       line-height: 1.6;
     }
 
+    .admin-actions {
+      display: grid;
+      gap: 12px;
+      padding: 20px 24px 24px;
+    }
+
+    .admin-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .admin-row input {
+      flex: 1 1 260px;
+      min-height: 42px;
+      border: 1px solid rgba(18, 37, 71, 0.18);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font: inherit;
+    }
+
+    .admin-row button {
+      min-height: 42px;
+      border: 0;
+      border-radius: 8px;
+      padding: 10px 14px;
+      background: #1f4e78;
+      color: #ffffff;
+      cursor: pointer;
+      font: inherit;
+      font-weight: 800;
+    }
+
+    .admin-row button:disabled {
+      cursor: not-allowed;
+      opacity: 0.58;
+    }
+
+    .admin-status {
+      margin: 0;
+      color: #42526a;
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+
+    .admin-status[data-type="success"] {
+      color: #207a4f;
+      font-weight: 700;
+    }
+
+    .admin-status[data-type="error"] {
+      color: #cc3a44;
+      font-weight: 700;
+    }
+
     @media (max-width: 740px) {
       th, td {
         padding: 14px 12px;
@@ -160,12 +216,25 @@
     </section>
 
     <section class="footer-status" id="footerStatus">Senast uppdaterad: väntar på inläsning.</section>
+    <section class="card" id="notifyCard">
+      <h2 style="margin:0;padding:24px 24px 0 24px;color:#0f2a4d;">Skicka notis</h2>
+      <div class="admin-actions">
+        <div class="admin-row">
+          <input id="pushAdminToken" type="password" autocomplete="off" placeholder="Admin-token">
+          <button id="sendScorePush" type="button" disabled>Skicka po&auml;ngnotis</button>
+        </div>
+        <p class="admin-status" id="scorePushStatus">Ladda po&auml;ngst&auml;llningen innan notis skickas.</p>
+      </div>
+    </section>
   </main>
   <script>
+    const PUSH_API_BASE = "https://vm2026-worker.anders-h-engstrom.workers.dev/api/push";
+    const PUSH_TOKEN_STORAGE_KEY = "vm2026_push_admin_token";
     const API_KEY = "170d2afb853fb860d9432d14d7eaaaa5";
     const BASE_URL = "https://v3.football.api-sports.io";
     const LEAGUE = 1;
     const SEASON = 2026;
+    let latestScoreSummary = "";
 
     const TEAM_NAME_ALIASES = {
       "algeriet": "algeria",
@@ -371,17 +440,84 @@
 
         tipsTable.innerHTML = renderTips(participants, actualGroups);
         const successMessage = `Uppdaterat från grupptips. ${participants.length} deltagare och ${actualGroups.length} grupper jämförda.`;
+        latestScoreSummary = `Po\u00e4ngst\u00e4llningen \u00e4r uppdaterad. ${participants.length} deltagare och ${actualGroups.length} grupper j\u00e4mf\u00f6rda.`;
         statusText.textContent = successMessage;
         footerStatus.textContent = formatStatusText(successMessage);
+        updateScorePushAvailability();
       } catch (error) {
         console.error(error);
         const errorMessage = `Fel vid inläsning: ${error.message}`;
+        latestScoreSummary = "";
         statusText.textContent = errorMessage;
         footerStatus.textContent = formatStatusText(errorMessage);
         tipsTable.innerHTML = `<div class="error">Kunde inte läsa in tipsen.</div>`;
       }
     }
 
+    function setScorePushStatus(message, type) {
+      const status = document.getElementById("scorePushStatus");
+      if (!status) return;
+      status.textContent = message;
+      status.dataset.type = type || "info";
+    }
+
+    function updateScorePushAvailability() {
+      const button = document.getElementById("sendScorePush");
+      if (!button) return;
+      button.disabled = !latestScoreSummary;
+    }
+
+    function setupScorePushAdmin() {
+      const tokenInput = document.getElementById("pushAdminToken");
+      const button = document.getElementById("sendScorePush");
+      if (!tokenInput || !button) return;
+
+      tokenInput.value = localStorage.getItem(PUSH_TOKEN_STORAGE_KEY) || "";
+      tokenInput.addEventListener("input", () => {
+        localStorage.setItem(PUSH_TOKEN_STORAGE_KEY, tokenInput.value.trim());
+      });
+
+      button.addEventListener("click", async () => {
+        const token = tokenInput.value.trim();
+        if (!token) {
+          setScorePushStatus("Fyll i admin-token forst.", "error");
+          tokenInput.focus();
+          return;
+        }
+
+        button.disabled = true;
+        setScorePushStatus("Skickar po\u00e4ngnotis...", "info");
+
+        try {
+          localStorage.setItem(PUSH_TOKEN_STORAGE_KEY, token);
+          const response = await fetch(`${PUSH_API_BASE}/send`, {
+            method: "POST",
+            headers: {
+              "authorization": `Bearer ${token}`,
+              "content-type": "application/json"
+            },
+            body: JSON.stringify({
+              title: "VM 2026: po\u00e4ngst\u00e4llningen \u00e4r uppdaterad",
+              body: latestScoreSummary || "Po\u00e4ngst\u00e4llningen \u00e4r uppdaterad.",
+              url: "https://vm2026.info/poangstallning_ny.html",
+              tag: `vm2026-score-${Date.now()}`
+            })
+          });
+
+          const result = await response.json().catch(() => ({}));
+          if (!response.ok) throw new Error(result.error || "Kunde inte skicka notisen.");
+
+          const deletedText = result.deleted ? ` Rensade gamla: ${result.deleted}.` : "";
+          setScorePushStatus(`Skickat: ${result.sent || 0}. Misslyckade: ${result.failed || 0}.${deletedText}`, "success");
+        } catch (error) {
+          setScorePushStatus(error.message, "error");
+        } finally {
+          updateScorePushAvailability();
+        }
+      });
+    }
+
+    setupScorePushAdmin();
     loadData();
   </script>
 </body>
