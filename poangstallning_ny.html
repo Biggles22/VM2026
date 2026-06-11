@@ -135,7 +135,7 @@
 <body>
   <main class="page">
     <header>
-      <p class="lead">Här visas nuvarande poängställning för VM 2026-grundspelstipset. Alla tips jämförs med den aktuella tabellen från FIFA2026 gruppresultat.</p>
+      <p class="lead">Här visas nuvarande poängställning för VM 2026-grundspelstipset. Alla tips jämförs med en aktuell grupptabell som räknas fram från spelade matcher.</p>
     </header>
 
     <section class="card" id="statusCard">
@@ -155,7 +155,7 @@
           <li><strong>Rätt gruppvinnare:</strong> 5 p</li>
           <li><strong>Rätt grupptvåa:</strong> 3 p</li>
         </ul>
-        <p>Filen uppdateras automatiskt när aktuell gruppställning hämtas från FIFAS hemsida.</p>
+        <p>Filen uppdateras automatiskt när aktuella matchresultat hämtas från API-Football.</p>
       </div>
     </section>
 
@@ -166,6 +166,7 @@
     const BASE_URL = "https://v3.football.api-sports.io";
     const LEAGUE = 1;
     const SEASON = 2026;
+    const FINISHED_STATUSES = new Set(["FT", "AET", "PEN"]);
 
     const TEAM_NAME_ALIASES = {
       "algeriet": "algeria",
@@ -236,6 +237,7 @@
       "tunisien": "tunisia",
       "tunisia": "tunisia",
       "turkiet": "turkey",
+      "turkiye": "turkey",
       "turkey": "turkey",
       "tyskland": "germany",
       "germany": "germany",
@@ -321,20 +323,94 @@
       `;
     }
 
-    function buildGroupObject(standings) {
-      const actualGroups = [];
+    function buildGroupsFromStandingsAndFixtures(standings, fixtures) {
+      const groupsByName = new Map();
+      const groupByTeamId = new Map();
+      const groupByTeamName = new Map();
+
       for (const group of standings) {
         const rawGroupName = group[0]?.group || "";
         if (!/^(?:Group|Grupp)?\s*[A-L]$/i.test(rawGroupName.trim())) continue;
 
         const groupName = rawGroupName.replace(/^(Group|Grupp)\s*/i, "") || "?";
-        actualGroups.push({
-          group: groupName,
-          teams: [group[0]?.team?.name || "", group[1]?.team?.name || "", group[2]?.team?.name || ""]
+        const teams = group.map((team, index) => ({
+          id: team.team?.id,
+          name: team.team?.name || "",
+          seedRank: Number(team.rank) || index + 1,
+          played: 0,
+          win: 0,
+          draw: 0,
+          lose: 0,
+          goalsFor: 0,
+          goalsAgainst: 0,
+          goalsDiff: 0,
+          points: 0
+        }));
+
+        groupsByName.set(groupName, teams);
+        teams.forEach(team => {
+          if (team.id !== undefined && team.id !== null) groupByTeamId.set(String(team.id), groupName);
+          groupByTeamName.set(canonicalTeamName(team.name), groupName);
         });
       }
+
+      for (const match of fixtures) {
+        const status = match.fixture?.status?.short;
+        const homeGoals = match.goals?.home;
+        const awayGoals = match.goals?.away;
+        if (!FINISHED_STATUSES.has(status) || homeGoals == null || awayGoals == null) continue;
+        if (!/^Group Stage\b/i.test(match.league?.round || "")) continue;
+
+        const homeGroup = groupByTeamId.get(String(match.teams?.home?.id)) || groupByTeamName.get(canonicalTeamName(match.teams?.home?.name));
+        const awayGroup = groupByTeamId.get(String(match.teams?.away?.id)) || groupByTeamName.get(canonicalTeamName(match.teams?.away?.name));
+        if (!homeGroup || homeGroup !== awayGroup) continue;
+
+        const teams = groupsByName.get(homeGroup);
+        const home = teams.find(team => String(team.id) === String(match.teams?.home?.id)) ||
+          teams.find(team => canonicalTeamName(team.name) === canonicalTeamName(match.teams?.home?.name));
+        const away = teams.find(team => String(team.id) === String(match.teams?.away?.id)) ||
+          teams.find(team => canonicalTeamName(team.name) === canonicalTeamName(match.teams?.away?.name));
+        if (!home || !away) continue;
+
+        applyMatchResult(home, Number(homeGoals), Number(awayGoals));
+        applyMatchResult(away, Number(awayGoals), Number(homeGoals));
+      }
+
+      const actualGroups = Array.from(groupsByName, ([group, teams]) => ({
+        group,
+        teams: teams
+          .slice()
+          .sort(sortGroupTable)
+          .map(team => team.name)
+      }));
+
       actualGroups.sort((a, b) => a.group.localeCompare(b.group, "sv"));
       return actualGroups;
+    }
+
+    function applyMatchResult(team, goalsFor, goalsAgainst) {
+      team.played += 1;
+      team.goalsFor += goalsFor;
+      team.goalsAgainst += goalsAgainst;
+      team.goalsDiff = team.goalsFor - team.goalsAgainst;
+
+      if (goalsFor > goalsAgainst) {
+        team.win += 1;
+        team.points += 3;
+      } else if (goalsFor === goalsAgainst) {
+        team.draw += 1;
+        team.points += 1;
+      } else {
+        team.lose += 1;
+      }
+    }
+
+    function sortGroupTable(a, b) {
+      return b.points - a.points ||
+        b.goalsDiff - a.goalsDiff ||
+        b.goalsFor - a.goalsFor ||
+        a.seedRank - b.seedRank ||
+        a.name.localeCompare(b.name, "sv");
     }
 
     function formatStatusText(message) {
@@ -352,25 +428,35 @@
       const tipsTable = document.getElementById("tipsTable");
 
       try {
-        const [tipsResponse, standingsResponse] = await Promise.all([
+        const [tipsResponse, standingsResponse, fixturesResponse] = await Promise.all([
           fetch("grupptips.txt"),
           fetch(`${BASE_URL}/standings?league=${LEAGUE}&season=${SEASON}`, {
+            headers: { "x-apisports-key": API_KEY }
+          }),
+          fetch(`${BASE_URL}/fixtures?league=${LEAGUE}&season=${SEASON}`, {
             headers: { "x-apisports-key": API_KEY }
           })
         ]);
 
         if (!tipsResponse.ok) throw new Error("Kunde inte läsa grupptips.txt");
-        if (!standingsResponse.ok) throw new Error("Kunde inte läsa aktuella standings från API");
+        if (!standingsResponse.ok) throw new Error("Kunde inte läsa gruppindelningen från API");
+        if (!fixturesResponse.ok) throw new Error("Kunde inte läsa aktuella matcher från API");
 
         const tipsText = await tipsResponse.text();
         const standingsData = await standingsResponse.json();
+        const fixturesData = await fixturesResponse.json();
 
         const { participants } = parseTips(tipsText);
         const standings = standingsData.response[0]?.league?.standings || [];
-        const actualGroups = buildGroupObject(standings);
+        const fixtures = fixturesData.response || [];
+        const actualGroups = buildGroupsFromStandingsAndFixtures(standings, fixtures);
 
         tipsTable.innerHTML = renderTips(participants, actualGroups);
-        const successMessage = `Uppdaterat från grupptips. ${participants.length} deltagare och ${actualGroups.length} grupper jämförda.`;
+        const finishedMatches = fixtures.filter(match =>
+          FINISHED_STATUSES.has(match.fixture?.status?.short) &&
+          /^Group Stage\b/i.test(match.league?.round || "")
+        ).length;
+        const successMessage = `Uppdaterat från grupptips och ${finishedMatches} spelade gruppmatcher. ${participants.length} deltagare och ${actualGroups.length} grupper jämförda.`;
         statusText.textContent = successMessage;
         footerStatus.textContent = formatStatusText(successMessage);
       } catch (error) {
