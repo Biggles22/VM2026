@@ -74,4 +74,35 @@ describe("VM2026 push worker", () => {
 			messages: [expect.objectContaining({ author: "Anders", text: "Hej chatten" })],
 		});
 	});
+
+	it("counts active visitors after a presence ping", async () => {
+		const request = new IncomingRequest("https://vm2026.info/api/presence", {
+			method: "POST",
+			body: JSON.stringify({ id: "test-session-1", path: "/tips8.html" }),
+			headers: { "content-type": "application/json" },
+		});
+		const ctx = createExecutionContext();
+
+		const response = await worker.fetch(request, env, ctx);
+		await waitOnExecutionContext(ctx);
+		const data = (await response.json()) as { ok: boolean; active: number };
+
+		expect(response.status).toBe(200);
+		expect(data.ok).toBe(true);
+		expect(data.active).toBeGreaterThanOrEqual(1);
+	});
+
+	it("rejects invalid presence ids", async () => {
+		const request = new IncomingRequest("https://vm2026.info/api/presence", {
+			method: "POST",
+			body: JSON.stringify({ id: "../bad", path: "/tips8.html" }),
+			headers: { "content-type": "application/json" },
+		});
+		const ctx = createExecutionContext();
+
+		const response = await worker.fetch(request, env, ctx);
+		await waitOnExecutionContext(ctx);
+
+		expect(response.status).toBe(400);
+	});
 });

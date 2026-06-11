@@ -28,6 +28,11 @@ type ChatMessage = {
 	createdAt: string;
 };
 
+type PresenceRecord = {
+	path: string;
+	updatedAt: string;
+};
+
 type RequestBody = {
 	subscription?: PushSubscriptionJson;
 	title?: string;
@@ -37,6 +42,8 @@ type RequestBody = {
 	tag?: string;
 	author?: string;
 	text?: string;
+	id?: string;
+	path?: string;
 };
 
 type WorkerEnv = Env & {
@@ -89,6 +96,14 @@ export default {
 
 			if (url.pathname.endsWith("/chat/messages") && request.method === "DELETE") {
 				return handleChatClear(request, workerEnv);
+			}
+
+			if (url.pathname.endsWith("/presence") && request.method === "GET") {
+				return await handlePresenceCount(request, workerEnv);
+			}
+
+			if (url.pathname.endsWith("/presence") && request.method === "POST") {
+				return await handlePresencePing(request, workerEnv);
 			}
 
 			return json(request, { error: "Not found" }, 404);
@@ -231,6 +246,47 @@ async function handleChatClear(request: Request, env: WorkerEnv): Promise<Respon
 	await Promise.all(keys.map((key) => chatKv(env).delete(key)));
 
 	return json(request, { ok: true, deleted: keys.length });
+}
+
+async function handlePresencePing(request: Request, env: WorkerEnv): Promise<Response> {
+	assertKv(env);
+
+	const body = await readJson(request);
+	const id = cleanPresenceId(body.id || "");
+	if (!id) {
+		throw new HttpError("Saknar giltigt sessions-id.", 400);
+	}
+
+	const record: PresenceRecord = {
+		path: cleanText(body.path || "/", 120),
+		updatedAt: new Date().toISOString(),
+	};
+
+	await env.SUBSCRIPTIONS.put(`presence:${id}`, JSON.stringify(record), {
+		expirationTtl: 75,
+	});
+
+	return handlePresenceCount(request, env);
+}
+
+async function handlePresenceCount(request: Request, env: WorkerEnv): Promise<Response> {
+	assertKv(env);
+
+	const active = await countPresence(env);
+	return json(request, { ok: true, active });
+}
+
+async function countPresence(env: WorkerEnv): Promise<number> {
+	let active = 0;
+	let cursor: string | undefined;
+
+	do {
+		const page = await env.SUBSCRIPTIONS.list({ prefix: "presence:", cursor });
+		active += page.keys.length;
+		cursor = page.list_complete ? undefined : page.cursor;
+	} while (cursor);
+
+	return active;
 }
 
 async function listChatMessages(env: WorkerEnv): Promise<ChatMessage[]> {
@@ -395,6 +451,11 @@ function isExpiredSubscriptionStatus(statusCode: number | undefined): boolean {
 
 function cleanText(value: string, maxLength: number): string {
 	return value.replace(/\s+/g, " ").trim().slice(0, maxLength);
+}
+
+function cleanPresenceId(value: string): string {
+	const id = value.trim();
+	return /^[a-zA-Z0-9-]{8,80}$/.test(id) ? id : "";
 }
 
 function uniqueSubscriptions(
