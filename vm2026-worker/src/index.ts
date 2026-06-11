@@ -21,6 +21,13 @@ type PushPayload = {
 	tag: string;
 };
 
+type ChatMessage = {
+	id: string;
+	author: string;
+	text: string;
+	createdAt: string;
+};
+
 type RequestBody = {
 	subscription?: PushSubscriptionJson;
 	title?: string;
@@ -28,10 +35,13 @@ type RequestBody = {
 	url?: string;
 	icon?: string;
 	tag?: string;
+	author?: string;
+	text?: string;
 };
 
 type WorkerEnv = Env & {
 	SUBSCRIPTIONS: KVNamespace;
+	CHAT_MESSAGES?: KVNamespace;
 	VAPID_PUBLIC_KEY?: string;
 	VAPID_PRIVATE_KEY?: string;
 	VAPID_SUBJECT?: string;
@@ -67,6 +77,18 @@ export default {
 
 			if (url.pathname.endsWith("/send") && request.method === "POST") {
 				return handleSend(request, workerEnv);
+			}
+
+			if (url.pathname.endsWith("/chat/messages") && request.method === "GET") {
+				return handleChatList(request, workerEnv);
+			}
+
+			if (url.pathname.endsWith("/chat/messages") && request.method === "POST") {
+				return handleChatPost(request, workerEnv);
+			}
+
+			if (url.pathname.endsWith("/chat/messages") && request.method === "DELETE") {
+				return handleChatClear(request, workerEnv);
 			}
 
 			return json(request, { error: "Not found" }, 404);
@@ -167,6 +189,78 @@ async function handleSend(request: Request, env: WorkerEnv): Promise<Response> {
 	});
 }
 
+async function handleChatList(request: Request, env: WorkerEnv): Promise<Response> {
+	assertChatKv(env);
+
+	const messages = await listChatMessages(env);
+	return json(request, { ok: true, messages });
+}
+
+async function handleChatPost(request: Request, env: WorkerEnv): Promise<Response> {
+	assertChatKv(env);
+
+	const body = await readJson(request);
+	const author = cleanText(body.author || "Anonym", 32);
+	const text = cleanText(body.text || "", 800);
+	if (!text) {
+		throw new HttpError("Meddelandet ar tomt.", 400);
+	}
+
+	const now = new Date();
+	const message: ChatMessage = {
+		id: crypto.randomUUID(),
+		author: author || "Anonym",
+		text,
+		createdAt: now.toISOString(),
+	};
+	const key = `chat:message:${now.getTime().toString().padStart(13, "0")}:${message.id}`;
+
+	await chatKv(env).put(key, JSON.stringify(message), {
+		expirationTtl: 60 * 60 * 24 * 90,
+	});
+	await trimChatMessages(env);
+
+	return json(request, { ok: true, message }, 201);
+}
+
+async function handleChatClear(request: Request, env: WorkerEnv): Promise<Response> {
+	assertChatKv(env);
+	assertAdmin(request, env);
+
+	const keys = await listChatKeys(env, 1000);
+	await Promise.all(keys.map((key) => chatKv(env).delete(key)));
+
+	return json(request, { ok: true, deleted: keys.length });
+}
+
+async function listChatMessages(env: WorkerEnv): Promise<ChatMessage[]> {
+	const keys = await listChatKeys(env, 200);
+	const messages = await Promise.all(keys.map((key) => chatKv(env).get<ChatMessage>(key, "json")));
+	return messages
+		.filter((message): message is ChatMessage => Boolean(message?.id && message.text && message.createdAt))
+		.sort((a, b) => a.createdAt.localeCompare(b.createdAt))
+		.slice(-100);
+}
+
+async function listChatKeys(env: WorkerEnv, limit: number): Promise<string[]> {
+	const keys: string[] = [];
+	let cursor: string | undefined;
+
+	do {
+		const page = await chatKv(env).list({ prefix: "chat:message:", cursor, limit: Math.min(limit, 1000) });
+		keys.push(...page.keys.map((key) => key.name));
+		cursor = page.list_complete || keys.length >= limit ? undefined : page.cursor;
+	} while (cursor);
+
+	return keys.sort();
+}
+
+async function trimChatMessages(env: WorkerEnv): Promise<void> {
+	const keys = await listChatKeys(env, 500);
+	const staleKeys = keys.slice(0, Math.max(0, keys.length - 200));
+	await Promise.all(staleKeys.map((key) => chatKv(env).delete(key)));
+}
+
 async function listSubscriptions(env: WorkerEnv): Promise<Array<{ id: string; subscription: PushSubscriptionJson }>> {
 	const items: Array<{ id: string; subscription: PushSubscriptionJson }> = [];
 	let cursor: string | undefined;
@@ -216,6 +310,16 @@ function assertKv(env: WorkerEnv): void {
 	if (!env.SUBSCRIPTIONS) {
 		throw new Error("KV-binding SUBSCRIPTIONS saknas.");
 	}
+}
+
+function assertChatKv(env: WorkerEnv): void {
+	if (!chatKv(env)) {
+		throw new Error("KV-binding for chat saknas.");
+	}
+}
+
+function chatKv(env: WorkerEnv): KVNamespace {
+	return env.CHAT_MESSAGES || env.SUBSCRIPTIONS;
 }
 
 function assertVapid(env: WorkerEnv): asserts env is WorkerEnv & {
@@ -287,6 +391,10 @@ function statusFromError(error: unknown): number | undefined {
 
 function isExpiredSubscriptionStatus(statusCode: number | undefined): boolean {
 	return statusCode === 400 || statusCode === 403 || statusCode === 404 || statusCode === 410;
+}
+
+function cleanText(value: string, maxLength: number): string {
+	return value.replace(/\s+/g, " ").trim().slice(0, maxLength);
 }
 
 function uniqueSubscriptions(

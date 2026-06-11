@@ -47,4 +47,31 @@ describe("VM2026 push worker", () => {
 		expect(response.status).toBe(204);
 		expect(response.headers.get("access-control-allow-origin")).toBe("https://vm2026.info");
 	});
+
+	it("stores and lists chat messages", async () => {
+		const postRequest = new IncomingRequest("https://vm2026.info/api/chat/messages", {
+			method: "POST",
+			body: JSON.stringify({ author: "Anders", text: "Hej chatten" }),
+			headers: { "content-type": "application/json" },
+		});
+		const ctx = createExecutionContext();
+
+		const postResponse = await worker.fetch(postRequest, env, ctx);
+		await waitOnExecutionContext(ctx);
+
+		expect(postResponse.status).toBe(201);
+		await expect(postResponse.json()).resolves.toMatchObject({
+			ok: true,
+			message: { author: "Anders", text: "Hej chatten" },
+		});
+
+		const listRequest = new IncomingRequest("https://vm2026.info/api/chat/messages");
+		const listResponse = await worker.fetch(listRequest, env, createExecutionContext());
+
+		expect(listResponse.status).toBe(200);
+		await expect(listResponse.json()).resolves.toMatchObject({
+			ok: true,
+			messages: [expect.objectContaining({ author: "Anders", text: "Hej chatten" })],
+		});
+	});
 });

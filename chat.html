@@ -208,7 +208,7 @@
   <main class="chat-page">
     <header>
       <h1>VM-chat</h1>
-      <div class="status" id="status">Sparar lokalt i den här webbläsaren.</div>
+      <div class="status" id="status">Ansluter till chatten...</div>
     </header>
 
     <section class="messages" id="messages" aria-live="polite"></section>
@@ -224,12 +224,13 @@
           <textarea id="messageInput" name="message" maxlength="800" placeholder="Skriv ett meddelande..."></textarea>
         </div>
         <button class="send" type="submit">Skicka</button>
-        <button class="clear" id="clearButton" type="button">Rensa</button>
+        <button class="clear" id="clearButton" type="button">Uppdatera</button>
       </div>
     </form>
   </main>
 
   <script>
+    const CHAT_API_BASE = "https://vm2026-worker.anders-h-engstrom.workers.dev/api/chat";
     const STORAGE_KEY = "vm2026-chat-messages";
     const NAME_KEY = "vm2026-chat-name";
     const messagesEl = document.getElementById("messages");
@@ -239,10 +240,11 @@
     const messageInput = document.getElementById("messageInput");
     const clearButton = document.getElementById("clearButton");
 
-    let messages = loadMessages();
+    let messages = [];
+    let usingLocalFallback = false;
 
     nameInput.value = localStorage.getItem(NAME_KEY) || "";
-    renderMessages();
+    loadRemoteMessages();
 
     form.addEventListener("submit", event => {
       event.preventDefault();
@@ -252,26 +254,65 @@
       if (!text) return;
 
       localStorage.setItem(NAME_KEY, author);
-      messages.push({
-        id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
-        author,
-        text,
-        createdAt: new Date().toISOString()
-      });
-
-      saveMessages();
-      messageInput.value = "";
-      renderMessages(true);
+      sendMessage(author, text);
     });
 
     clearButton.addEventListener("click", () => {
-      if (!messages.length) return;
-      const confirmed = window.confirm("Rensa alla lokala chatmeddelanden?");
-      if (!confirmed) return;
-      messages = [];
-      saveMessages();
-      renderMessages();
+      loadRemoteMessages();
     });
+
+    window.setInterval(loadRemoteMessages, 12000);
+
+    async function loadRemoteMessages() {
+      try {
+        const response = await fetch(`${CHAT_API_BASE}/messages`, {
+          headers: { "accept": "application/json" },
+          cache: "no-store"
+        });
+        if (!response.ok) throw new Error("Kunde inte hämta chatten.");
+        const data = await response.json();
+        messages = Array.isArray(data.messages) ? data.messages : [];
+        usingLocalFallback = false;
+        saveMessages();
+        renderMessages();
+      } catch (error) {
+        messages = loadMessages();
+        usingLocalFallback = true;
+        renderMessages();
+      }
+    }
+
+    async function sendMessage(author, text) {
+      const localMessage = {
+        id: makeId(),
+        author,
+        text,
+        createdAt: new Date().toISOString()
+      };
+
+      messageInput.disabled = true;
+      try {
+        const response = await fetch(`${CHAT_API_BASE}/messages`, {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ author, text })
+        });
+        if (!response.ok) throw new Error("Kunde inte skicka meddelandet.");
+        const data = await response.json();
+        messages.push(data.message || localMessage);
+        usingLocalFallback = false;
+      } catch (error) {
+        messages.push(localMessage);
+        usingLocalFallback = true;
+      } finally {
+        saveMessages();
+        messageInput.value = "";
+        messageInput.disabled = false;
+        messageInput.focus();
+        renderMessages(true);
+        if (!usingLocalFallback) loadRemoteMessages();
+      }
+    }
 
     function loadMessages() {
       try {
@@ -289,7 +330,9 @@
     function renderMessages(scrollToBottom = false) {
       if (!messages.length) {
         messagesEl.innerHTML = '<div class="empty">Inga meddelanden än. Starta snacket inför nästa match.</div>';
-        statusEl.textContent = "Sparar lokalt i den här webbläsaren.";
+        statusEl.textContent = usingLocalFallback
+          ? "Offline-läge: visar lokalt sparade meddelanden."
+          : "Gemensam chat via Cloudflare Worker.";
         return;
       }
 
@@ -307,7 +350,9 @@
         `;
       }).join("");
 
-      statusEl.textContent = `${messages.length} meddelanden sparade lokalt.`;
+      statusEl.textContent = usingLocalFallback
+        ? `${messages.length} lokala meddelanden. Workern kunde inte nås.`
+        : `${messages.length} meddelanden i gemensam chat.`;
       if (scrollToBottom) {
         messagesEl.scrollTop = messagesEl.scrollHeight;
       }
@@ -327,6 +372,11 @@
         .replace(/>/g, "&gt;")
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#039;");
+    }
+
+    function makeId() {
+      if (crypto.randomUUID) return crypto.randomUUID();
+      return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
     }
   </script>
 </body>
