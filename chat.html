@@ -271,7 +271,7 @@
         });
         if (!response.ok) throw new Error("Kunde inte hämta chatten.");
         const data = await response.json();
-        messages = Array.isArray(data.messages) ? data.messages : [];
+        messages = mergeMessages(messages, Array.isArray(data.messages) ? data.messages : []);
         usingLocalFallback = false;
         saveMessages();
         renderMessages();
@@ -299,10 +299,10 @@
         });
         if (!response.ok) throw new Error("Kunde inte skicka meddelandet.");
         const data = await response.json();
-        messages.push(data.message || localMessage);
+        messages = mergeMessages(messages, [data.message || localMessage]);
         usingLocalFallback = false;
       } catch (error) {
-        messages.push(localMessage);
+        messages = mergeMessages(messages, [localMessage]);
         usingLocalFallback = true;
       } finally {
         saveMessages();
@@ -310,7 +310,6 @@
         messageInput.disabled = false;
         messageInput.focus();
         renderMessages(true);
-        if (!usingLocalFallback) loadRemoteMessages();
       }
     }
 
@@ -325,6 +324,18 @@
 
     function saveMessages() {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(messages.slice(-200)));
+    }
+
+    function mergeMessages(currentMessages, incomingMessages) {
+      const byId = new Map();
+      [...currentMessages, ...incomingMessages].forEach(message => {
+        if (!message || !message.id || !message.text) return;
+        byId.set(message.id, message);
+      });
+
+      return [...byId.values()]
+        .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
+        .slice(-200);
     }
 
     function renderMessages(scrollToBottom = false) {
