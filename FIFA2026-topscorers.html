@@ -207,7 +207,9 @@
         }
 
         function addGoalEvent(entries, fixtureId, event) {
-            if (event.type !== "Goal" || ["Missed Penalty", "Own Goal", "Cancelled goal"].includes(event.detail)) return;
+            const detail = String(event.detail || "");
+            const ignoredGoalDetails = ["Missed Penalty", "Own Goal", "Cancelled goal", "Penalty Shootout"];
+            if (event.type !== "Goal" || ignoredGoalDetails.includes(detail) || detail.toLowerCase().includes("shootout")) return;
 
             const player = event.player || {};
             const team = event.team || {};
