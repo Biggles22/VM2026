@@ -163,10 +163,11 @@
                     name: team.name || "-"
                 },
                 statistics: [{
-                    games: { scoringMatches: 0 },
+                    games: { scoringMatches: 0, minutes: 0 },
                     goals: { total: 0, assists: 0 },
                     penalties: { total: 0 },
-                    fixtureIds: new Set()
+                    fixtureIds: new Set(),
+                    minutesFixtureIds: new Set()
                 }]
             };
         }
@@ -178,46 +179,94 @@
             );
         }
 
+        async function mapWithConcurrency(items, limit, worker) {
+            const queue = [...items];
+            const workers = Array.from({ length: Math.min(limit, queue.length) }, async () => {
+                while (queue.length) {
+                    const item = queue.shift();
+                    await worker(item);
+                }
+            });
+            await Promise.all(workers);
+        }
+
+        function addPlayerMinutes(entries, fixtureId, team, player, playerStats) {
+            if (!player?.name) return;
+
+            const key = personKey(player, team);
+            if (!entries.has(key)) {
+                entries.set(key, createPlayerEntry(player, team));
+            }
+
+            const stats = entries.get(key).statistics[0];
+            if (stats.minutesFixtureIds.has(fixtureId)) return;
+
+            const minutes = Number(playerStats.games?.minutes ?? 0);
+            stats.games.minutes += Number.isFinite(minutes) ? minutes : 0;
+            stats.minutesFixtureIds.add(fixtureId);
+        }
+
+        function addGoalEvent(entries, fixtureId, event) {
+            if (event.type !== "Goal" || ["Missed Penalty", "Own Goal", "Cancelled goal"].includes(event.detail)) return;
+
+            const player = event.player || {};
+            const team = event.team || {};
+            if (!player.name) return;
+
+            const key = personKey(player, team);
+            if (!entries.has(key)) {
+                entries.set(key, createPlayerEntry(player, team));
+            }
+
+            const stats = entries.get(key).statistics[0];
+            stats.goals.total += 1;
+            stats.fixtureIds.add(fixtureId);
+            stats.games.scoringMatches = stats.fixtureIds.size;
+            if (event.detail === "Penalty") {
+                stats.penalties.total += 1;
+            }
+
+            const assist = event.assist || {};
+            if (assist.name) {
+                const assistKey = personKey(assist, team);
+                if (!entries.has(assistKey)) {
+                    entries.set(assistKey, createPlayerEntry(assist, team));
+                }
+                const assistStats = entries.get(assistKey).statistics[0];
+                assistStats.goals.assists += 1;
+            }
+        }
+
+        async function addFixturePlayerStatistics(entries, match) {
+            const data = await apiFootball(`fixtures/players?fixture=${match.fixture.id}`);
+            (data.response || []).forEach(teamStats => {
+                const team = teamStats.team || {};
+                (teamStats.players || []).forEach(item => {
+                    addPlayerMinutes(entries, match.fixture.id, team, item.player || {}, item.statistics?.[0] || {});
+                });
+            });
+        }
+
+        async function addFixtureEvents(entries, match) {
+            const data = await apiFootball(`fixtures/events?fixture=${match.fixture.id}`);
+            (data.response || []).forEach(event => {
+                addGoalEvent(entries, match.fixture.id, event);
+            });
+        }
+
         async function loadTopscorersFromEvents(fixtures) {
             const entries = new Map();
 
-            await Promise.all(fixtures.map(async match => {
+            await mapWithConcurrency(fixtures, 4, async match => {
                 try {
-                    const data = await apiFootball(`fixtures/events?fixture=${match.fixture.id}`);
-                    (data.response || []).forEach(event => {
-                        if (event.type !== "Goal" || ["Missed Penalty", "Own Goal", "Cancelled goal"].includes(event.detail)) return;
-
-                        const player = event.player || {};
-                        const team = event.team || {};
-                        if (!player.name) return;
-
-                        const key = personKey(player, team);
-                        if (!entries.has(key)) {
-                            entries.set(key, createPlayerEntry(player, team));
-                        }
-
-                        const stats = entries.get(key).statistics[0];
-                        stats.goals.total += 1;
-                        stats.fixtureIds.add(match.fixture.id);
-                        stats.games.scoringMatches = stats.fixtureIds.size;
-                        if (event.detail === "Penalty") {
-                            stats.penalties.total += 1;
-                        }
-
-                        const assist = event.assist || {};
-                        if (assist.name) {
-                            const assistKey = personKey(assist, team);
-                            if (!entries.has(assistKey)) {
-                                entries.set(assistKey, createPlayerEntry(assist, team));
-                            }
-                            const assistStats = entries.get(assistKey).statistics[0];
-                            assistStats.goals.assists += 1;
-                        }
-                    });
+                    await Promise.all([
+                        addFixturePlayerStatistics(entries, match),
+                        addFixtureEvents(entries, match)
+                    ]);
                 } catch (error) {
                     console.warn(`Kunde inte hämta mål-events för match ${match.fixture.id}:`, error);
                 }
-            }));
+            });
 
             return Array.from(entries.values()).filter(item =>
                 (item.statistics?.[0]?.goals?.total ?? 0) > 0
@@ -226,8 +275,12 @@
                 const bStats = b.statistics?.[0] || {};
                 const goalDiff = (bStats.goals?.total ?? 0) - (aStats.goals?.total ?? 0);
                 if (goalDiff) return goalDiff;
-                const penaltyDiff = (bStats.penalties?.total ?? 0) - (aStats.penalties?.total ?? 0);
-                if (penaltyDiff) return penaltyDiff;
+                const assistDiff = (bStats.goals?.assists ?? 0) - (aStats.goals?.assists ?? 0);
+                if (assistDiff) return assistDiff;
+                const aMinutes = aStats.games?.minutes ?? Number.MAX_SAFE_INTEGER;
+                const bMinutes = bStats.games?.minutes ?? Number.MAX_SAFE_INTEGER;
+                const minutesDiff = aMinutes - bMinutes;
+                if (minutesDiff) return minutesDiff;
                 return (a.player?.name || "").localeCompare(b.player?.name || "", "sv");
             });
         }
@@ -240,7 +293,7 @@
                 const goals = statistics.goals?.total ?? 0;
                 const assists = statistics.goals?.assists ?? 0;
                 const penalties = statistics.penalties?.total ?? 0;
-                const matches = statistics.games?.scoringMatches ?? 0;
+                const minutes = statistics.games?.minutes ?? 0;
                 const nationality = player.nationality || "-";
                 return `
                     <tr>
@@ -252,7 +305,7 @@
                         <td>${goals}</td>
                         <td>${assists}</td>
                         <td>${penalties}</td>
-                        <td>${matches}</td>
+                        <td>${minutes}</td>
                     </tr>
                 `;
             }).join("");
@@ -266,7 +319,7 @@
                             <th>Mål</th>
                             <th>Assist</th>
                             <th>Straffmål</th>
-                            <th>Målmatcher</th>
+                            <th>Minuter</th>
                         </tr>
                     </thead>
                     <tbody>${rows}</tbody>
