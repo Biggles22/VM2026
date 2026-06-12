@@ -123,6 +123,7 @@
         const LEAGUE = 1;
         const SEASON = 2026;
         const MAX_PLAYERS = 20;
+        const FINISHED_STATUSES = new Set(["FT", "AET", "PEN"]);
 
         async function apiFootball(endpoint) {
             const response = await fetch(`${BASE_URL}/${endpoint}`, {
@@ -135,6 +136,116 @@
                 throw new Error(`API-fel ${response.status}: ${response.statusText} ${text}`);
             }
             return response.json();
+        }
+
+        function escapeHtml(value) {
+            return String(value ?? "").replace(/[&<>"']/g, char => ({
+                "&": "&amp;",
+                "<": "&lt;",
+                ">": "&gt;",
+                '"': "&quot;",
+                "'": "&#039;"
+            }[char]));
+        }
+
+        function playerKey(player, team) {
+            return String(player.id || `${player.name || ""}-${team.id || team.name || ""}`).toLowerCase();
+        }
+
+        function createTopscorerEntry(player, team) {
+            return {
+                player: {
+                    id: player.id,
+                    name: player.name || "-"
+                },
+                team: {
+                    id: team.id,
+                    name: team.name || "-"
+                },
+                statistics: [{
+                    games: { appearences: 0 },
+                    goals: { total: 0, assists: 0 },
+                    penalties: { total: 0 }
+                }]
+            };
+        }
+
+        async function loadFinishedFixtures() {
+            const data = await apiFootball(`fixtures?league=${LEAGUE}&season=${SEASON}`);
+            return (data.response || []).filter(match =>
+                FINISHED_STATUSES.has(match.fixture?.status?.short)
+            );
+        }
+
+        async function loadGoalEventsByPlayer(fixtures) {
+            const entries = new Map();
+
+            await Promise.all(fixtures.map(async match => {
+                try {
+                    const data = await apiFootball(`fixtures/events?fixture=${match.fixture.id}`);
+                    (data.response || []).forEach(event => {
+                        if (event.type !== "Goal" || event.detail === "Missed Penalty") return;
+
+                        const player = event.player || {};
+                        const team = event.team || {};
+                        if (!player.name) return;
+
+                        const key = playerKey(player, team);
+                        if (!entries.has(key)) {
+                            entries.set(key, createTopscorerEntry(player, team));
+                        }
+
+                        const stats = entries.get(key).statistics[0];
+                        stats.goals.total += 1;
+                        if (event.detail === "Penalty") {
+                            stats.penalties.total += 1;
+                        }
+                    });
+                } catch (error) {
+                    console.warn(`Kunde inte hämta mål-events för match ${match.fixture.id}:`, error);
+                }
+            }));
+
+            return entries;
+        }
+
+        function mergeTopscorersWithEvents(players, eventEntries) {
+            const merged = new Map();
+
+            players.forEach(item => {
+                const player = item.player || {};
+                const team = item.team || {};
+                merged.set(playerKey(player, team), item);
+            });
+
+            eventEntries.forEach((eventEntry, key) => {
+                if (!merged.has(key)) {
+                    merged.set(key, eventEntry);
+                    return;
+                }
+
+                const existingStats = merged.get(key).statistics?.[0] || {};
+                const eventStats = eventEntry.statistics[0];
+                const apiGoals = existingStats.goals?.total ?? 0;
+
+                if (eventStats.goals.total > apiGoals) {
+                    existingStats.goals = existingStats.goals || {};
+                    existingStats.penalties = existingStats.penalties || {};
+                    existingStats.goals.total = eventStats.goals.total;
+                    existingStats.penalties.total = Math.max(
+                        existingStats.penalties.total ?? 0,
+                        eventStats.penalties.total
+                    );
+                }
+            });
+
+            return Array.from(merged.values()).sort((a, b) => {
+                const aStats = a.statistics?.[0] || {};
+                const bStats = b.statistics?.[0] || {};
+                const goalDiff = (bStats.goals?.total ?? 0) - (aStats.goals?.total ?? 0);
+                if (goalDiff) return goalDiff;
+                return (a.player?.name || "").localeCompare(b.player?.name || "", "sv");
+            });
         }
 
         function renderTopscorers(players) {
@@ -151,8 +262,8 @@
                     <tr>
                         <td class="rank">${index + 1}</td>
                         <td>
-                            <div class="player-name">${player.name || "-"}</div>
-                            <div class="player-team">${team.name || "-"} | ${nationality}</div>
+                            <div class="player-name">${escapeHtml(player.name || "-")}</div>
+                            <div class="player-team">${escapeHtml(team.name || "-")} | ${escapeHtml(nationality)}</div>
                         </td>
                         <td>${goals}</td>
                         <td>${assists}</td>
@@ -183,8 +294,12 @@
             const container = document.getElementById("topscorers");
             const status = document.getElementById("status");
             try {
-                const data = await apiFootball(`players/topscorers?league=${LEAGUE}&season=${SEASON}`);
-                const players = data.response || [];
+                const [topscorersData, fixtures] = await Promise.all([
+                    apiFootball(`players/topscorers?league=${LEAGUE}&season=${SEASON}`),
+                    loadFinishedFixtures()
+                ]);
+                const eventEntries = await loadGoalEventsByPlayer(fixtures);
+                const players = mergeTopscorersWithEvents(topscorersData.response || [], eventEntries);
                 if (players.length === 0) {
                     container.innerHTML = `<div class="error">Inga topplista-data hittades.</div>`;
                     status.textContent = "Inga toppskyttar hittades.";
