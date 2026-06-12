@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VM 2026 - Mobilstart</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #1f2937;
+            background: linear-gradient(180deg, #3b82f6 0%, #9333ea 100%);
+        }
+
+        .page {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.92);
+            border-radius: 24px;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18);
+            margin-bottom: 18px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo img {
+            width: 44px;
+            height: auto;
+            border-radius: 12px;
+        }
+
+        .logo-text {
+            font-size: 18px;
+            font-weight: 700;
+            color: #111827;
+        }
+
+        .status {
+            font-size: 13px;
+            color: #6b7280;
+        }
+
+        .hero {
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255,255,255,0.35);
+            backdrop-filter: blur(18px);
+            border-radius: 28px;
+            padding: 24px;
+            margin-bottom: 22px;
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
+        }
+
+        .hero h1 {
+            font-size: 32px;
+            margin-bottom: 12px;
+            color: white;
+            line-height: 1.1;
+        }
+
+        .hero p {
+            color: rgba(255, 255, 255, 0.92);
+            font-size: 16px;
+            line-height: 1.65;
+            margin-bottom: 18px;
+        }
+
+        .hero-image {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            margin-top: 10px;
+        }
+
+        .hero-image img {
+            width: 180px;
+            max-width: 100%;
+            border-radius: 22px;
+            box-shadow: 0 24px 60px rgba(0,0,0,0.25);
+        }
+
+        .buttons {
+            display: grid;
+            gap: 14px;
+        }
+
+        .button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px 20px;
+            border-radius: 999px;
+            font-weight: 700;
+            font-size: 15px;
+            text-decoration: none;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .button-primary {
+            background: white;
+            color: #3b82f6;
+            box-shadow: 0 10px 25px rgba(59, 130, 246, 0.18);
+        }
+
+        .button-secondary {
+            background: rgba(255, 255, 255, 0.18);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.35);
+        }
+
+        .button:hover {
+            transform: translateY(-2px);
+        }
+
+        .nav-links {
+            display: grid;
+            gap: 14px;
+        }
+
+        .nav-item {
+            background: rgba(255, 255, 255, 0.22);
+            border: 1px solid rgba(255,255,255,0.24);
+            border-radius: 20px;
+            padding: 16px 18px;
+            color: white;
+            text-decoration: none;
+            font-size: 16px;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-item span {
+            opacity: 0.9;
+        }
+
+        .footer-note {
+            margin-top: auto;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.75);
+            font-size: 14px;
+            padding: 20px 10px 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <header class="topbar">
+            <div class="logo">
+                <img src="2026_FIFA_World_Cup_emblem.svg.webp" alt="VM 2026 Logo">
+                <div>
+                    <div class="logo-text">VM 2026</div>
+                    <div class="status">Mobilstart</div>
+                </div>
+            </div>
+            <div class="status">Logga in</div>
+        </header>
+
+        <section class="hero">
+            <h1>Din mobilstart för VM 2026</h1>
+            <p>En snabb och modern ingångssida för mobil med tydlig navigering till Spelschema, Regler och Topplista.</p>
+            <div class="hero-image">
+                <img src="2026_FIFA_World_Cup_emblem.svg.webp" alt="VM 2026">
+            </div>
+        </section>
+
+        <div class="buttons">
+            <a href="Spelschema.html" class="button button-primary">Spelschema</a>
+            <a href="Anders_vm_tips.html" class="button button-secondary">Regler</a>
+            <a href="Ledartabell.html" class="button button-secondary" target="contentFrame">Poängstatus</a>
+        </div>
+
+
+        <div class="footer-note">
+            Tips: öppna sidan på telefon för bästa upplevelse.
+        </div>
+    </div>
+</body>
+</html>

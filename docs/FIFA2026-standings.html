@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VM 2026 Gruppresultat</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 0;
+            background: #f7f9fc;
+            color: #1d1d1d;
+        }
+        header {
+            background: #005293;
+            color: #ffffff;
+            padding: 24px 16px;
+            text-align: center;
+        }
+        header h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+        .container {
+            max-width: 980px;
+            margin: 24px auto;
+            padding: 0 16px 40px;
+        }
+        .status-box {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 10px 14px;
+            border-radius: 10px;
+            background: #e2e8f0;
+            color: #0f172a;
+            font-size: 14px;
+        }
+        .group {
+            background: #ffffff;
+            border-radius: 14px;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.06);
+            padding: 18px 20px;
+            border: 1px solid rgba(0,0,0,0.04);
+            margin-bottom: 20px;
+        }
+        .group h2 {
+            margin-top: 0;
+            font-size: 20px;
+            color: #0f172a;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 14px;
+        }
+        th, td {
+            padding: 10px 12px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 14px;
+        }
+        th {
+            background: #f1f5f9;
+            font-weight: 700;
+        }
+        td.rank {
+            width: 40px;
+            font-weight: 700;
+        }
+        td.team {
+            min-width: 180px;
+        }
+        .error {
+            background: #fee2e2;
+            border: 1px solid #fecaca;
+            color: #991b1b;
+            padding: 16px;
+            border-radius: 12px;
+        }
+        .loading {
+            padding: 18px;
+            border-radius: 12px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            color: #475569;
+        }
+
+        .footer-status {
+            margin-top: 18px;
+            padding: 14px 16px;
+            border-radius: 12px;
+            background: #e2e8f0;
+            color: #0f172a;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        @media (max-width: 720px) {
+            th, td {
+                padding: 8px 10px;
+                font-size: 13px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>VM 2026 Gruppställningar</h1>
+        <p class="status-box" id="status">Laddar gruppställningar från api-football...</p>
+    </header>
+
+    <div class="container">
+        <div id="standings">
+            <div class="loading">Hämtar gruppställningar...</div>
+        </div>
+        <div id="bestThirds"></div>
+        <div class="footer-status" id="footerStatus">Senast uppdaterad: väntar på inläsning.</div>
+    </div>
+
+    <script>
+        const API_KEY = "170d2afb853fb860d9432d14d7eaaaa5"; // ⚠️ Byt ut mot din API-nyckel från api-football.com
+        const BASE_URL = "https://v3.football.api-sports.io";
+        const LEAGUE = 1;
+        const SEASON = 2026;
+        const FINISHED_STATUSES = new Set(["FT", "AET", "PEN"]);
+
+        async function apiFootball(endpoint) {
+            const response = await fetch(`${BASE_URL}/${endpoint}`, {
+                headers: {
+                    "x-apisports-key": API_KEY
+                }
+            });
+
+            if (!response.ok) {
+                const text = await response.text();
+                throw new Error(`API-fel ${response.status}: ${response.statusText} ${text}`);
+            }
+
+            return response.json();
+        }
+
+        function getGroupLetter(groupName) {
+            const match = String(groupName || "").match(/(?:Group|Grupp)\s*([A-L])\b/i);
+            return match ? match[1].toUpperCase() : "";
+        }
+
+        function formatGroupName(groupName, fallbackIndex) {
+            const groupLetter = getGroupLetter(groupName);
+            return groupLetter ? `Group ${groupLetter}` : `Grupp ${String.fromCharCode(65 + fallbackIndex)}`;
+        }
+
+        function isRealGroup(groupData) {
+            return Boolean(getGroupLetter(groupData[0]?.group));
+        }
+
+        function buildComputedGroups(standings, fixtures) {
+            const groups = standings.filter(isRealGroup).map(group => {
+                const rows = group.map((team, index) => ({
+                    team: team.team,
+                    group: team.group,
+                    form: team.form,
+                    status: team.status,
+                    description: team.description,
+                    seedRank: Number(team.rank) || index + 1,
+                    rank: index + 1,
+                    points: 0,
+                    goalsDiff: 0,
+                    all: {
+                        played: 0,
+                        win: 0,
+                        draw: 0,
+                        lose: 0,
+                        goals: { for: 0, against: 0 }
+                    },
+                    home: team.home,
+                    away: team.away,
+                    update: team.update
+                }));
+                return rows;
+            });
+
+            const groupByTeamId = new Map();
+            groups.forEach((group, groupIndex) => {
+                group.forEach(team => {
+                    if (team.team?.id !== undefined && team.team?.id !== null) {
+                        groupByTeamId.set(String(team.team.id), groupIndex);
+                    }
+                });
+            });
+
+            fixtures.forEach(match => {
+                const status = match.fixture?.status?.short;
+                const homeGoals = match.goals?.home;
+                const awayGoals = match.goals?.away;
+                if (!FINISHED_STATUSES.has(status) || homeGoals == null || awayGoals == null) return;
+                if (!/^Group Stage\b/i.test(match.league?.round || "")) return;
+
+                const homeGroupIndex = groupByTeamId.get(String(match.teams?.home?.id));
+                const awayGroupIndex = groupByTeamId.get(String(match.teams?.away?.id));
+                if (homeGroupIndex === undefined || homeGroupIndex !== awayGroupIndex) return;
+
+                const group = groups[homeGroupIndex];
+                const home = group.find(team => String(team.team?.id) === String(match.teams?.home?.id));
+                const away = group.find(team => String(team.team?.id) === String(match.teams?.away?.id));
+                if (!home || !away) return;
+
+                applyResult(home, Number(homeGoals), Number(awayGoals));
+                applyResult(away, Number(awayGoals), Number(homeGoals));
+            });
+
+            return groups.map(group => group
+                .slice()
+                .sort(sortGroupRows)
+                .map((team, index) => {
+                    team.rank = index + 1;
+                    return team;
+                }));
+        }
+
+        function applyResult(team, goalsFor, goalsAgainst) {
+            team.all.played += 1;
+            team.all.goals.for += goalsFor;
+            team.all.goals.against += goalsAgainst;
+            team.goalsDiff = team.all.goals.for - team.all.goals.against;
+
+            if (goalsFor > goalsAgainst) {
+                team.all.win += 1;
+                team.points += 3;
+            } else if (goalsFor === goalsAgainst) {
+                team.all.draw += 1;
+                team.points += 1;
+            } else {
+                team.all.lose += 1;
+            }
+        }
+
+        function sortGroupRows(a, b) {
+            return (b.points ?? 0) - (a.points ?? 0) ||
+                (b.goalsDiff ?? 0) - (a.goalsDiff ?? 0) ||
+                (b.all?.goals?.for ?? 0) - (a.all?.goals?.for ?? 0) ||
+                a.seedRank - b.seedRank ||
+                a.team.name.localeCompare(b.team.name, "sv");
+        }
+
+        function renderBestThirds(teams) {
+            const rows = teams.map((team, index) => {
+                const stats = team.all || {};
+                return `
+                    <tr>
+                        <td class="rank">${index + 1}</td>
+                        <td class="team">${team.team.name}</td>
+                        <td>${stats.played ?? 0}</td>
+                        <td>${stats.win ?? 0}</td>
+                        <td>${stats.draw ?? 0}</td>
+                        <td>${stats.lose ?? 0}</td>
+                        <td>${team.goalsDiff ?? 0}</td>
+                        <td>${team.points ?? 0}</td>
+                    </tr>
+                `;
+            }).join("");
+
+            return `
+                <section class="group">
+                    <h2>Bäst placerade treor i alla grupper</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Lag</th>
+                                <th>Sp</th>
+                                <th>V</th>
+                                <th>O</th>
+                                <th>F</th>
+                                <th>MS</th>
+                                <th>P</th>
+                            </tr>
+                        </thead>
+                        <tbody>${rows}</tbody>
+                    </table>
+                </section>
+            `;
+        }
+
+        function renderGroup(groupData, index) {
+            const groupName = formatGroupName(groupData[0]?.group, index);
+            const rows = groupData.map(team => {
+                const stats = team.all || {};
+                return `
+                    <tr>
+                        <td class="rank">${team.rank}</td>
+                        <td class="team">${team.team.name}</td>
+                        <td>${stats.played ?? 0}</td>
+                        <td>${stats.win ?? 0}</td>
+                        <td>${stats.draw ?? 0}</td>
+                        <td>${stats.lose ?? 0}</td>
+                        <td>${team.goalsDiff ?? 0}</td>
+                        <td>${team.points ?? 0}</td>
+                    </tr>
+                `;
+            }).join("");
+
+            return `
+                <section class="group">
+                    <h2>${groupName}</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Lag</th>
+                                <th>Sp</th>
+                                <th>V</th>
+                                <th>O</th>
+                                <th>F</th>
+                                <th>MS</th>
+                                <th>P</th>
+                            </tr>
+                        </thead>
+                        <tbody>${rows}</tbody>
+                    </table>
+                </section>
+            `;
+        }
+
+        async function loadStandings() {
+            const bestThirdsContainer = document.getElementById("bestThirds");
+            const container = document.getElementById("standings");
+            const statusBox = document.getElementById("status");
+            const footerStatus = document.getElementById("footerStatus");
+
+            function formatStatusText(message) {
+                const updatedAt = new Date().toLocaleString("sv-SE", {
+                    dateStyle: "short",
+                    timeStyle: "short"
+                });
+
+                return `${message} Senast uppdaterad: ${updatedAt}.`;
+            }
+
+            try {
+                const standingsData = await apiFootball(`standings?league=${LEAGUE}&season=${SEASON}`);
+                const standings = standingsData.response[0]?.league?.standings || [];
+                let fixtures = [];
+                let groups = standings.filter(isRealGroup);
+                let usedComputedResults = false;
+
+                if (groups.length === 0) {
+                    container.innerHTML = `<div class="error">Inga gruppstÃ¤llningar hittades fÃ¶r VM 2026.</div>`;
+                    statusBox.textContent = "Ingen data hittad.";
+                    return;
+                }
+
+                const initialThirdPlaceTeams = groups
+                    .map(group => group.find(team => String(team.rank) === "3"))
+                    .filter(Boolean);
+                const initialSortedThirds = initialThirdPlaceTeams
+                    .slice()
+                    .sort((a, b) => {
+                        const pointsDiff = (b.points ?? 0) - (a.points ?? 0);
+                        if (pointsDiff !== 0) return pointsDiff;
+                        const goalDiff = (b.goalsDiff ?? 0) - (a.goalsDiff ?? 0);
+                        if (goalDiff !== 0) return goalDiff;
+                        return (b.all?.goals?.for ?? 0) - (a.all?.goals?.for ?? 0);
+                    });
+                const initialMessage = `Visar ${groups.length} grupper fÃ¶r FIFA World Cup 2026. RÃ¤knar in spelade matcher...`;
+                container.innerHTML = groups.map(renderGroup).join("");
+                bestThirdsContainer.innerHTML = renderBestThirds(initialSortedThirds);
+                statusBox.textContent = initialMessage;
+                footerStatus.textContent = formatStatusText(initialMessage);
+
+                try {
+                    const fixturesData = await apiFootball(`fixtures?league=${LEAGUE}&season=${SEASON}`);
+                    fixtures = fixturesData.response || [];
+                    const computedGroups = buildComputedGroups(standings, fixtures);
+                    if (computedGroups.length) {
+                        groups = computedGroups;
+                        usedComputedResults = true;
+                    }
+                } catch (fixturesError) {
+                    console.warn("Kunde inte räkna tabell från matcher, använder API-standings.", fixturesError);
+                }
+
+                if (groups.length === 0) {
+                    container.innerHTML = `<div class="error">Inga gruppställningar hittades för VM 2026.</div>`;
+                    statusBox.textContent = "Ingen data hittad.";
+                    return;
+                }
+
+                const thirdPlaceTeams = groups
+                    .map(group => group.find(team => String(team.rank) === "3"))
+                    .filter(Boolean);
+
+                const sortedThirds = thirdPlaceTeams
+                    .slice()
+                    .sort((a, b) => {
+                        const pointsDiff = (b.points ?? 0) - (a.points ?? 0);
+                        if (pointsDiff !== 0) return pointsDiff;
+                        const goalDiff = (b.goalsDiff ?? 0) - (a.goalsDiff ?? 0);
+                        if (goalDiff !== 0) return goalDiff;
+                        return (b.all?.goals?.for ?? 0) - (a.all?.goals?.for ?? 0);
+                    });
+
+                container.innerHTML = groups.map(renderGroup).join("");
+                bestThirdsContainer.innerHTML = renderBestThirds(sortedThirds);
+                const finishedMatches = fixtures.filter(match =>
+                    FINISHED_STATUSES.has(match.fixture?.status?.short) &&
+                    /^Group Stage\b/i.test(match.league?.round || "")
+                ).length;
+                const successMessage = usedComputedResults
+                    ? `Visar ${groups.length} grupper och ${finishedMatches} spelade gruppmatcher för FIFA World Cup 2026.`
+                    : `Visar ${groups.length} grupper för FIFA World Cup 2026. Matchresultat kunde inte räknas in.`;
+                statusBox.textContent = successMessage;
+                footerStatus.textContent = formatStatusText(successMessage);
+            } catch (error) {
+                console.error(error);
+                container.innerHTML = `<div class="error">Kunde inte hämta gruppställningar. Kontrollera API-nyckeln och att tjänsten är tillgänglig.</div>`;
+                const errorMessage = "Fel vid hämtning av gruppställningar.";
+                statusBox.textContent = errorMessage;
+                footerStatus.textContent = formatStatusText(errorMessage);
+            }
+        }
+
+        loadStandings();
+    </script>
+</body>
+</html>

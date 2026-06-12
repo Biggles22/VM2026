@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Poängställning - VM 2026</title>
+  <style>
+    :root {
+      color: #122547;
+      background: #eef4fb;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: radial-gradient(circle at top, #dce8ff 0%, #eef4fb 50%, #ffffff 100%);
+    }
+
+    .page {
+      width: min(1180px, 96%);
+      margin: 0 auto;
+      padding: 32px 0 48px;
+    }
+
+    header {
+      text-align: center;
+      padding: 24px 20px 10px;
+      margin-bottom: 24px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2rem, 3vw, 2.8rem);
+      letter-spacing: -0.04em;
+      color: #0f2a4d;
+    }
+
+    p.lead {
+      margin: 16px auto 0;
+      max-width: 760px;
+      color: #42526a;
+      font-size: 1rem;
+      line-height: 1.7;
+    }
+
+    .card {
+      overflow-x: auto;
+      background: #ffffff;
+      border-radius: 24px;
+      border: 1px solid rgba(18, 37, 71, 0.08);
+      box-shadow: 0 24px 60px rgba(18, 37, 71, 0.08);
+    }
+
+    table {
+      width: 100%;
+      min-width: 820px;
+      border-collapse: collapse;
+    }
+
+    thead {
+      background: linear-gradient(90deg, #1f4e78, #3e7cc8);
+      color: #ffffff;
+    }
+
+    th, td {
+      padding: 16px 18px;
+      text-align: left;
+      font-size: 0.95rem;
+      border-bottom: 1px solid rgba(18, 37, 71, 0.08);
+      vertical-align: middle;
+    }
+
+    th {
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+    }
+
+    tbody tr:nth-child(even) {
+      background: rgba(31, 78, 120, 0.04);
+    }
+
+    tbody tr:hover {
+      background: rgba(31, 78, 120, 0.08);
+    }
+
+    .rank {
+      font-weight: 700;
+      color: #1f4e78;
+      width: 80px;
+    }
+
+    .status-yes {
+      color: #207a4f;
+      font-weight: 700;
+    }
+
+    .status-no {
+      color: #cc3a44;
+      font-weight: 700;
+    }
+
+    .notes {
+      margin-top: 18px;
+      color: #4d657f;
+      font-size: 0.95rem;
+      line-height: 1.7;
+    }
+
+    @media (max-width: 740px) {
+      th, td {
+        padding: 14px 12px;
+      }
+
+      .page {
+        padding: 24px 0 32px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header>
+      <h1>Poängställning</h1>
+      <p class="lead">Här visas nuvarande poängställning för VM 2026-tippet. Kolumnerna visar placering, spelare, poäng i gruppspel och slutspel, totalpoäng, utslagsdiff samt betalningsstatus.</p>
+    </header>
+
+    <section class="card">
+      <table>
+        <thead>
+          <tr>
+            <th>Placering</th>
+            <th>Deltagare</th>
+            <th>Gruppspel</th>
+            <th>Slutspel</th>
+            <th>Totalt</th>
+            <th>Utslagsdiff</th>
+            <th>Betalat?</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td class="rank">1</td><td>Anders E</td><td>0</td><td>0</td><td>0</td><td>0</td><td class="status-yes">Ja</td></tr>
+          <tr><td class="rank">2</td><td>Carl</td><td>0</td><td>0</td><td>0</td><td>0</td><td class="status-yes">Ja</td></tr>
+          <tr><td class="rank">3</td><td>Anneli</td><td>0</td><td>0</td><td>0</td><td>0</td><td class="status-yes">Ja</td></tr>
+          <tr><td class="rank">4</td><td>Emelie</td><td>0</td><td>0</td><td>0</td><td>0</td><td class="status-yes">Ja</td></tr>
+          <tr><td class="rank">5</td><td>Andreas</td><td>0</td><td>0</td><td>0</td><td>0</td><td class="status-yes">Ja</td></tr>
+          <tr><td class="rank">6</td><td>Anders F</td><td>0</td><td>0</td><td>0</td><td>0</td><td class="status-yes">Ja</td></tr>
+          <tr><td class="rank">7</td><td>Elton</td><td>0</td><td>0</td><td>0</td><td>0</td><td class="status-yes">Ja</td></tr>
+          <tr><td class="rank">8</td><td>Robin</td><td>0</td><td>0</td><td>0</td><td>0</td><td class="status-yes">Ja</td></tr>
+          <tr><td class="rank">9</td><td>Niklas</td><td>0</td><td>0</td><td>0</td><td>0</td><td class="status-yes">Ja</td></tr>
+          <tr><td class="rank">10</td><td>Anna N</td><td>0</td><td>0</td><td>0</td><td>0</td><td class="status-yes">Ja</td></tr>
+          <tr><td class="rank">11</td><td>Anna M</td><td>0</td><td>0</td><td>0</td><td>0</td><td class="status-yes">Ja</td></tr>
+          <tr><td class="rank">12</td><td>Simon</td><td>0</td><td>0</td><td>0</td><td>0</td><td class="status-yes">Ja</td></tr>
+          <tr><td class="rank">13</td><td>Monica och Göran</td><td>0</td><td>0</td><td>0</td><td>0</td><td class="status-yes">Ja</td></tr>
+          <tr><td class="rank">14</td><td>Mathias</td><td>0</td><td>0</td><td>0</td><td>0</td><td class="status-yes">Ja</td></tr>
+          <tr><td class="rank">15</td><td>Jacob</td><td>0</td><td>0</td><td>0</td><td>0</td><td class="status-yes">Ja</td></tr>
+          <tr><td class="rank">16</td><td>Frida</td><td>0</td><td>0</td><td>0</td><td>0</td><td class="status-yes">Ja</td></tr>
+          <tr><td class="rank">17</td><td>Susi</td><td>0</td><td>0</td><td>0</td><td>0</td><td class="status-yes">Ja</td></tr>
+          <tr><td class="rank">18</td><td>Marcus</td><td>0</td><td>0</td><td>0</td><td>0</td><td class="status-yes">Ja</td></tr>
+          <tr><td class="rank">19</td><td>Philip</td><td>0</td><td>0</td><td>0</td><td>0</td><td class="status-yes">Ja</td></tr>
+          <tr><td class="rank">20</td><td>David</td><td>0</td><td>0</td><td>0</td><td>0</td><td class="status-yes">Ja</td></tr>
+          <tr><td class="rank">21</td><td>Tobias</td><td>0</td><td>0</td><td>0</td><td>0</td><td class="status-yes">Ja</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+  </main>
+</body>
+</html>

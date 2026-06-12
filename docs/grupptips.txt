@@ -1,0 +1,252 @@
+Anders E	A	Mexiko	Sydkorea	Tjeckien
+Anders E	B	Kanada	Schweiz	Qatar
+Anders E	C	Brasilien	Marocko	Skottland
+Anders E	D	USA	Paraguay	Australien
+Anders E	E	Tyskland	Ecuador	Elfenbenskusten
+Anders E	F	Nederländerna	Japan	Tunisien
+Anders E	G	Belgien	Iran	Egypten
+Anders E	H	Spanien	Uruguay	Saudiarabien
+Anders E	I	Frankrike	Senegal	Norge
+Anders E	J	Argentina	Österrike	Algeriet
+Anders E	K	Portugal	Colombia	Uzbekistan
+Anders E	L	England	Kroatien	Panama
+Anneli	A	Mexiko	Sydkorea	Tjeckien
+Anneli	B	Schweiz	Kanada	Bosnien och Hercegovina
+Anneli	C	Brasilien	Marocko	Skottland
+Anneli	D	USA	Turkiet	Paraguay
+Anneli	E	Tyskland	Ecuador	Elfenbenskusten
+Anneli	F	Nederländerna	Japan	Sverige
+Anneli	G	Belgien	Iran	Egypten
+Anneli	H	Spanien	Uruguay	Saudiarabien
+Anneli	I	Frankrike	Norge	Senegal
+Anneli	J	Argentina	Österrike	Algeriet
+Anneli	K	Portugal	Colombia	DR Kongo
+Anneli	L	England	Kroatien	Ghana
+Emelie	A	Sydkorea	Mexiko	Tjeckien
+Emelie	B	Schweiz	Bosnien och Hercegovina	Kanada
+Emelie	C	Brasilien	Marocko	Skottland
+Emelie	D	Turkiet	USA	Paraguay
+Emelie	E	Tyskland	Ecuador	Elfenbenskusten
+Emelie	F	Nederländerna	Japan	Sverige
+Emelie	G	Belgien	Egypten	Iran
+Emelie	H	Spanien	Uruguay	Saudiarabien
+Emelie	I	Frankrike	Norge	Senegal
+Emelie	J	Argentina	Österrike	Algeriet
+Emelie	K	Portugal	Colombia	DR Kongo
+Emelie	L	Kroatien	England	Panama
+Andreas	A	Mexiko	Tjeckien	Sydkorea
+Andreas	B	Schweiz	Kanada	Bosnien och Hercegovina
+Andreas	C	Brasilien	Marocko	Skottland
+Andreas	D	Turkiet	USA	Paraguay
+Andreas	E	Tyskland	Elfenbenskusten	Ecuador
+Andreas	F	Nederländerna	Japan	Sverige
+Andreas	G	Belgien	Egypten	Iran
+Andreas	H	Spanien	Uruguay	Saudiarabien
+Andreas	I	Frankrike	Norge	Senegal
+Andreas	J	Argentina	Österrike	Algeriet
+Andreas	K	Portugal	Colombia	DR Kongo
+Andreas	L	England	Kroatien	Ghana
+Anders F	A	Sydkorea	Mexiko	Tjeckien
+Anders F	B	Schweiz	Kanada	Bosnien och Hercegovina
+Anders F	C	Brasilien	Skottland	Marocko
+Anders F	D	Turkiet	USA	Paraguay
+Anders F	E	Tyskland	Elfenbenskusten	Ecuador
+Anders F	F	Nederländerna	Sverige	Japan
+Anders F	G	Belgien	Egypten	Iran
+Anders F	H	Spanien	Kap Verde	Uruguay
+Anders F	I	Norge	Frankrike	Senegal
+Anders F	J	Argentina	Österrike	Algeriet
+Anders F	K	Portugal	Colombia	DR Kongo
+Anders F	L	England	Kroatien	Panama
+Elton	A	Mexiko	Tjeckien	Sydkorea
+Elton	B	Schweiz	Kanada	Bosnien och Hercegovina
+Elton	C	Brasilien	Marocko	Skottland
+Elton	D	Turkiet	USA	Paraguay
+Elton	E	Elfenbenskusten	Ecuador	Tyskland
+Elton	F	Japan	Nederländerna	Sverige
+Elton	G	Belgien	Egypten	Iran
+Elton	H	Spanien	Uruguay	Saudiarabien
+Elton	I	Frankrike	Norge	Senegal
+Elton	J	Argentina	Algeriet	Österrike
+Elton	K	Portugal	Colombia	DR Kongo
+Elton	L	England	Kroatien	Ghana
+Carl	A	Tjeckien	Mexiko	Sydkorea
+Carl	B	Schweiz	Bosnien och Hercegovina	Kanada
+Carl	C	Brasilien	Skottland	Marocko
+Carl	D	Paraguay	Turkiet	USA
+Carl	E	Tyskland	Ecuador	Elfenbenskusten
+Carl	F	Nederländerna	Sverige	Japan
+Carl	G	Belgien	Egypten	Iran
+Carl	H	Spanien	Uruguay	Saudiarabien
+Carl	I	Frankrike	Norge	Senegal
+Carl	J	Argentina	Österrike	Algeriet
+Carl	K	Portugal	Colombia	Uzbekistan
+Carl	L	Kroatien	England	Ghana
+Robin	A	Mexiko	Sydkorea	Tjeckien
+Robin	B	Schweiz	Kanada	Bosnien och Hercegovina
+Robin	C	Brasilien	Marocko	Skottland
+Robin	D	Turkiet	USA	Paraguay
+Robin	E	Tyskland	Ecuador	Elfenbenskusten
+Robin	F	Nederländerna	Sverige	Japan
+Robin	G	Belgien	Egypten	Nya Zeeland
+Robin	H	Spanien	Uruguay	Saudiarabien
+Robin	I	Frankrike	Norge	Senegal
+Robin	J	Argentina	Österrike	Algeriet
+Robin	K	Portugal	Colombia	Uzbekistan
+Robin	L	England	Kroatien	Ghana
+Niklas	A	Mexiko	Sydkorea	Tjeckien
+Niklas	B	Schweiz	Kanada	Bosnien och Hercegovina
+Niklas	C	Brasilien	Marocko	Skottland
+Niklas	D	USA	Paraguay	Turkiet
+Niklas	E	Tyskland	Ecuador	Elfenbenskusten
+Niklas	F	Nederländerna	Japan	Sverige
+Niklas	G	Belgien	Egypten	Iran
+Niklas	H	Spanien	Uruguay	Saudiarabien
+Niklas	I	Frankrike	Senegal	Norge
+Niklas	J	Argentina	Österrike	Algeriet
+Niklas	K	Portugal	Colombia	DR Kongo
+Niklas	L	England	Kroatien	Ghana
+Anna N	A	Sydkorea	Tjeckien	Mexiko
+Anna N	B	Schweiz	Bosnien och Hercegovina	Qatar
+Anna N	C	Brasilien	Skottland	Marocko
+Anna N	D	Turkiet	Paraguay	USA
+Anna N	E	Tyskland	Elfenbenskusten	Ecuador
+Anna N	F	Nederländerna	Japan	Sverige
+Anna N	G	Belgien	Iran	Nya Zeeland
+Anna N	H	Spanien	Uruguay	Saudiarabien
+Anna N	I	Frankrike	Norge	Senegal
+Anna N	J	Österrike	Argentina	Algeriet
+Anna N	K	Portugal	Colombia	DR Kongo
+Anna N	L	England	Kroatien	Ghana
+Anna M	A	Sydkorea	Mexiko	Tjeckien
+Anna M	B	Schweiz	Kanada	Bosnien och Hercegovina
+Anna M	C	Brasilien	Marocko	Skottland
+Anna M	D	USA	Turkiet	Australien
+Anna M	E	Tyskland	Ecuador	Elfenbenskusten
+Anna M	F	Nederländerna	Japan	Sverige
+Anna M	G	Belgien	Egypten	Iran
+Anna M	H	Spanien	Uruguay	Saudiarabien
+Anna M	I	Frankrike	Norge	Senegal
+Anna M	J	Argentina	Österrike	Algeriet
+Anna M	K	Colombia	Portugal	Uzbekistan
+Anna M	L	England	Kroatien	Ghana
+Simon	A	Sydkorea	Mexiko	Tjeckien
+Simon	B	Schweiz	Bosnien och Hercegovina	Kanada
+Simon	C	Brasilien	Skottland	Marocko
+Simon	D	USA	Australien	Turkiet
+Simon	E	Ecuador	Tyskland	Elfenbenskusten
+Simon	F	Japan	Nederländerna	Sverige
+Simon	G	Belgien	Egypten	Iran
+Simon	H	Spanien	Uruguay	Kap Verde
+Simon	I	Norge	Frankrike	Senegal
+Simon	J	Argentina	Algeriet	Österrike
+Simon	K	Portugal	Colombia	Uzbekistan
+Simon	L	Kroatien	England	Panama
+Monica och Göran	A	Mexiko	Sydkorea	Sydafrika
+Monica och Göran	B	Schweiz	Kanada	Bosnien och Hercegovina
+Monica och Göran	C	Brasilien	Marocko	Skottland
+Monica och Göran	D	Turkiet	USA	Paraguay
+Monica och Göran	E	Tyskland	Ecuador	Elfenbenskusten
+Monica och Göran	F	Nederländerna	Japan	Sverige
+Monica och Göran	G	Belgien	Egypten	Iran
+Monica och Göran	H	Spanien	Uruguay	Saudiarabien
+Monica och Göran	I	Frankrike	Norge	Senegal
+Monica och Göran	J	Argentina	Algeriet	Österrike
+Monica och Göran	K	Portugal	Colombia	DR Kongo
+Monica och Göran	L	England	Kroatien	Ghana
+Mathias	A	Mexiko	Sydkorea	Tjeckien
+Mathias	B	Schweiz	Bosnien och Hercegovina	Kanada
+Mathias	C	Brasilien	Marocko	Skottland
+Mathias	D	Turkiet	USA	Paraguay
+Mathias	E	Tyskland	Ecuador	Elfenbenskusten
+Mathias	F	Nederländerna	Sverige	Japan
+Mathias	G	Belgien	Egypten	Iran
+Mathias	H	Spanien	Uruguay	Saudiarabien
+Mathias	I	Frankrike	Norge	Senegal
+Mathias	J	Argentina	Algeriet	Österrike
+Mathias	K	Portugal	Colombia	Uzbekistan
+Mathias	L	England	Ghana	Kroatien
+Jacob	A	Tjeckien	Sydkorea	Sydafrika
+Jacob	B	Schweiz	Bosnien och Hercegovina	Kanada
+Jacob	C	Marocko	Brasilien	Skottland
+Jacob	D	Paraguay	USA	Turkiet
+Jacob	E	Tyskland	Ecuador	Elfenbenskusten
+Jacob	F	Nederländerna	Sverige	Japan
+Jacob	G	Belgien	Egypten	Iran
+Jacob	H	Spanien	Uruguay	Saudiarabien
+Jacob	I	Frankrike	Norge	Senegal
+Jacob	J	Argentina	Österrike	Algeriet
+Jacob	K	Colombia	Portugal	Uzbekistan
+Jacob	L	England	Kroatien	Ghana
+Frida	A	Mexiko	Sydkorea	Tjeckien
+Frida	B	Schweiz	Kanada	Bosnien och Hercegovina
+Frida	C	Marocko	Brasilien	Skottland
+Frida	D	USA	Australien	Turkiet
+Frida	E	Tyskland	Elfenbenskusten	Ecuador
+Frida	F	Nederländerna	Japan	Sverige
+Frida	G	Belgien	Iran	Egypten
+Frida	H	Spanien	Uruguay	Saudiarabien
+Frida	I	Frankrike	Norge	Senegal
+Frida	J	Argentina	Österrike	Algeriet
+Frida	K	Colombia	Portugal	DR Kongo
+Frida	L	Kroatien	England	Ghana
+Susi	A	Mexiko	Sydkorea	Tjeckien
+Susi	B	Schweiz	Bosnien och Hercegovina	Kanada
+Susi	C	Brasilien	Marocko	Skottland
+Susi	D	USA	Turkiet	Paraguay
+Susi	E	Tyskland	Elfenbenskusten	Ecuador
+Susi	F	Nederländerna	Sverige	Japan
+Susi	G	Belgien	Egypten	Iran
+Susi	H	Spanien	Uruguay	Saudiarabien
+Susi	I	Frankrike	Senegal	Norge
+Susi	J	Argentina	Österrike	Algeriet
+Susi	K	Colombia	Portugal	Uzbekistan
+Susi	L	Kroatien	England	Ghana
+Marcus	A	Mexiko	Sydkorea	Sydafrika
+Marcus	B	Schweiz	Kanada	Bosnien och Hercegovina
+Marcus	C	Brasilien	Marocko	Skottland
+Marcus	D	USA	Turkiet	Paraguay
+Marcus	E	Tyskland	Ecuador	Elfenbenskusten
+Marcus	F	Nederländerna	Japan	Sverige
+Marcus	G	Belgien	Egypten	Iran
+Marcus	H	Spanien	Uruguay	Saudiarabien
+Marcus	I	Frankrike	Senegal	Norge
+Marcus	J	Argentina	Österrike	Algeriet
+Marcus	K	Portugal	Colombia	Uzbekistan
+Marcus	L	England	Kroatien	Ghana
+Philip	A	Mexiko	Sydkorea	Tjeckien
+Philip	B	Schweiz	Kanada	Bosnien och Hercegovina
+Philip	C	Brasilien	Marocko	Skottland
+Philip	D	USA	Turkiet	Paraguay
+Philip	E	Tyskland	Ecuador	Elfenbenskusten
+Philip	F	Nederländerna	Japan	Sverige
+Philip	G	Belgien	Egypten	Iran
+Philip	H	Spanien	Uruguay	Saudiarabien
+Philip	I	Frankrike	Norge	Senegal
+Philip	J	Argentina	Österrike	Algeriet
+Philip	K	Portugal	Colombia	DR Kongo
+Philip	L	England	Kroatien	Ghana
+David	A	Mexiko	Tjeckien	Sydkorea
+David	B	Bosnien och Hercegovina	Schweiz	Qatar
+David	C	Brasilien	Marocko	Skottland
+David	D	USA	Paraguay	Turkiet
+David	E	Tyskland	Ecuador	Elfenbenskusten
+David	F	Nederländerna	Sverige	Japan
+David	G	Belgien	Egypten	Nya Zeeland
+David	H	Spanien	Uruguay	Saudiarabien
+David	I	Frankrike	Norge	Senegal
+David	J	Argentina	Österrike	Algeriet
+David	K	Portugal	Colombia	DR Kongo
+David	L	Kroatien	England	Ghana
+Tobias	A	Mexiko	Sydkorea	Tjeckien
+Tobias	B	Schweiz	Bosnien och Hercegovina	Qatar
+Tobias	C	Brasilien	Marocko	Skottland
+Tobias	D	Turkiet	USA	Paraguay
+Tobias	E	Tyskland	Ecuador	Elfenbenskusten
+Tobias	F	Japan	Nederländerna	Sverige
+Tobias	G	Belgien	Egypten	Iran
+Tobias	H	Spanien	Uruguay	Saudiarabien
+Tobias	I	Frankrike	Norge	Senegal
+Tobias	J	Argentina	Österrike	Algeriet
+Tobias	K	Portugal	Colombia	Uzbekistan
+Tobias	L	Kroatien	England	Ghana

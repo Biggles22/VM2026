@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Poängställning - VM 2026</title>
+  <style>
+    :root {
+      color: #122547;
+      background: #eef4fb;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: radial-gradient(circle at top, #dce8ff 0%, #eef4fb 50%, #ffffff 100%);
+    }
+
+    .page {
+      width: min(1180px, 96%);
+      margin: 0 auto;
+      padding: 32px 0 48px;
+    }
+
+    header {
+      text-align: center;
+      padding: 24px 20px 10px;
+      margin-bottom: 24px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2rem, 3vw, 2.8rem);
+      letter-spacing: -0.04em;
+      color: #0f2a4d;
+    }
+
+    p.lead {
+      margin: 16px auto 0;
+      max-width: 760px;
+      color: #42526a;
+      font-size: 1rem;
+      line-height: 1.7;
+    }
+
+    .card {
+      overflow-x: auto;
+      background: #ffffff;
+      border-radius: 24px;
+      border: 1px solid rgba(18, 37, 71, 0.08);
+      box-shadow: 0 24px 60px rgba(18, 37, 71, 0.08);
+    }
+
+    table {
+      width: 100%;
+      min-width: 820px;
+      border-collapse: collapse;
+    }
+
+    thead {
+      background: linear-gradient(90deg, #1f4e78, #3e7cc8);
+      color: #ffffff;
+    }
+
+    th, td {
+      padding: 16px 18px;
+      text-align: left;
+      font-size: 0.95rem;
+      border-bottom: 1px solid rgba(18, 37, 71, 0.08);
+      vertical-align: middle;
+    }
+
+    th {
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+    }
+
+    tbody tr:nth-child(even) {
+      background: rgba(31, 78, 120, 0.04);
+    }
+
+    tbody tr:hover {
+      background: rgba(31, 78, 120, 0.08);
+    }
+
+    .rank {
+      font-weight: 700;
+      color: #1f4e78;
+      width: 80px;
+    }
+
+    .status-yes {
+      color: #207a4f;
+      font-weight: 700;
+    }
+
+    .status-no {
+      color: #cc3a44;
+      font-weight: 700;
+    }
+
+    .notes {
+      margin-top: 18px;
+      color: #4d657f;
+      font-size: 0.95rem;
+      line-height: 1.7;
+    }
+
+    .footer-status {
+      margin-top: 18px;
+      padding: 18px 24px;
+      border-radius: 18px;
+      background: #e8f1fb;
+      border: 1px solid rgba(31, 78, 120, 0.12);
+      color: #0f2a4d;
+      font-weight: 700;
+      line-height: 1.6;
+    }
+
+    @media (max-width: 740px) {
+      th, td {
+        padding: 14px 12px;
+      }
+
+      .page {
+        padding: 24px 0 32px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header>
+      <p class="lead">Här visas nuvarande poängställning för VM 2026-grundspelstipset. Alla tips jämförs med en aktuell grupptabell som räknas fram från spelade matcher.</p>
+    </header>
+
+    <section class="card" id="statusCard">
+      <div id="statusText" style="padding:18px 24px; font-size:1rem; color:#122547;">Laddar tips och aktuell ställning...</div>
+    </section>
+
+    <section class="card" id="tipsCard">
+      <h2 style="margin:0;padding:24px 24px 0 24px;color:#0f2a4d;">Allas tips och poäng</h2>
+      <div id="tipsTable" style="padding:0 24px 24px;"></div>
+    </section>
+
+    <section class="card" id="rulesCard">
+      <h2 style="margin:0;padding:24px 24px 0 24px;color:#0f2a4d;">Poängsystem</h2>
+      <div style="padding:0 24px 24px; color:#42526a; line-height:1.7;">
+        <p>Poängen som används här är hämtade från <a href="Anders_vm_tips.html">regler</a>:</p>
+        <ul>
+          <li><strong>Rätt gruppvinnare:</strong> 5 p</li>
+          <li><strong>Rätt grupptvåa:</strong> 3 p</li>
+        </ul>
+        <p>Filen uppdateras automatiskt när aktuella matchresultat hämtas från API-Football.</p>
+      </div>
+    </section>
+
+    <section class="footer-status" id="footerStatus">Senast uppdaterad: väntar på inläsning.</section>
+  </main>
+  <script>
+    const API_KEY = "170d2afb853fb860d9432d14d7eaaaa5";
+    const BASE_URL = "https://v3.football.api-sports.io";
+    const LEAGUE = 1;
+    const SEASON = 2026;
+    const FINISHED_STATUSES = new Set(["FT", "AET", "PEN"]);
+
+    const TEAM_NAME_ALIASES = {
+      "algeriet": "algeria",
+      "algeria": "algeria",
+      "argentina": "argentina",
+      "osterrike": "austria",
+      "austria": "austria",
+      "australien": "australia",
+      "australia": "australia",
+      "belgien": "belgium",
+      "belgium": "belgium",
+      "bosnien och hercegovina": "bosnia and herzegovina",
+      "bosninen och hercegovinia": "bosnia and herzegovina",
+      "bosnia herzegovina": "bosnia and herzegovina",
+      "bosnia and herzegovina": "bosnia and herzegovina",
+      "bosnia & herzegovina": "bosnia and herzegovina",
+      "brasilien": "brazil",
+      "brazil": "brazil",
+      "colombia": "colombia",
+      "ecuador": "ecuador",
+      "egypten": "egypt",
+      "egypt": "egypt",
+      "elfenbenskusten": "ivory coast",
+      "ivory coast": "ivory coast",
+      "cote d ivoire": "ivory coast",
+      "england": "england",
+      "frankrike": "france",
+      "france": "france",
+      "ghana": "ghana",
+      "iran": "iran",
+      "japan": "japan",
+      "kanada": "canada",
+      "canada": "canada",
+      "kap verde": "cape verde",
+      "cape verde": "cape verde",
+      "cape verde island": "cape verde",
+      "cape verde islands": "cape verde",
+      "kroatien": "croatia",
+      "croatia": "croatia",
+      "marocko": "morocco",
+      "morocco": "morocco",
+      "mexiko": "mexico",
+      "mexico": "mexico",
+      "nederlanderna": "netherlands",
+      "netherlands": "netherlands",
+      "norge": "norway",
+      "norway": "norway",
+      "panama": "panama",
+      "paraguay": "paraguay",
+      "portugal": "portugal",
+      "qatar": "qatar",
+      "saudiarabien": "saudi arabia",
+      "saudi arabia": "saudi arabia",
+      "schweiz": "switzerland",
+      "switzerland": "switzerland",
+      "senegal": "senegal",
+      "skottland": "scotland",
+      "scotland": "scotland",
+      "spanien": "spain",
+      "spain": "spain",
+      "sverige": "sweden",
+      "sweden": "sweden",
+      "sydkorea": "south korea",
+      "south korea": "south korea",
+      "tjeckien": "czechia",
+      "czechia": "czechia",
+      "czech republic": "czechia",
+      "tunisien": "tunisia",
+      "tunisia": "tunisia",
+      "turkiet": "turkey",
+      "turkiye": "turkey",
+      "turkey": "turkey",
+      "tyskland": "germany",
+      "germany": "germany",
+      "uruguay": "uruguay",
+      "usa": "usa",
+      "united states": "usa",
+      "uzbekistan": "uzbekistan"
+    };
+
+    function normalizeName(value) {
+      return String(value || "")
+        .trim()
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9]+/g, " ")
+        .trim();
+    }
+
+    function canonicalTeamName(value) {
+      const normalized = normalizeName(value);
+      return TEAM_NAME_ALIASES[normalized] || normalized;
+    }
+
+    function getGroupLetter(groupName) {
+      const match = String(groupName || "").match(/(?:Group|Grupp)\s*([A-L])\b/i);
+      return match ? match[1].toUpperCase() : "";
+    }
+
+    function parseTips(text) {
+      const lines = text.split(/\r?\n/).filter(line => line.trim().length > 0);
+      const participants = {};
+      const groups = [];
+
+      for (const line of lines) {
+        const parts = line.split(/\t+/).map(x => x.trim());
+        if (parts.length < 2) continue;
+        const [name, group, first = "", second = "", third = ""] = parts;
+        if (!name || !group) continue;
+        if (!participants[name]) {
+          participants[name] = { name, predictions: {} };
+        }
+        participants[name].predictions[group.toUpperCase()] = [first, second, third];
+        if (!groups.includes(group.toUpperCase())) groups.push(group.toUpperCase());
+      }
+
+      return { participants: Object.values(participants), groups: groups.sort() };
+    }
+
+    function renderTips(participants, actualGroups) {
+      const groupMap = Object.fromEntries(actualGroups.map(g => [g.group, g.teams.map(canonicalTeamName)]));
+
+      const rows = participants.map(participant => {
+        let points = 0;
+        const details = [];
+        for (const [group, prediction] of Object.entries(participant.predictions)) {
+          const actual = groupMap[group] || ["", "", ""];
+          const [p1, p2] = prediction.map(canonicalTeamName);
+          if (p1 && p1 === actual[0]) { points += 5; details.push(`${group} 1:a korrekt`); }
+          if (p2 && p2 === actual[1]) { points += 3; details.push(`${group} 2:a korrekt`); }
+        }
+        return { ...participant, points, details: details.join(", ") };
+      });
+
+      rows.sort((a, b) => b.points - a.points || a.name.localeCompare(b.name, "sv"));
+
+      const htmlRows = rows.map((participant, index) => `
+        <tr>
+          <td class="rank">${index + 1}</td>
+          <td>${participant.name}</td>
+          <td>${participant.points}</td>
+          <td>${participant.details || "-"}</td>
+        </tr>
+      `).join("");
+
+      return `
+        <table>
+          <thead>
+            <tr>
+              <th>Placering</th>
+              <th>Deltagare</th>
+              <th>Poäng</th>
+              <th>Kommentar</th>
+            </tr>
+          </thead>
+          <tbody>${htmlRows}</tbody>
+        </table>
+      `;
+    }
+
+    function buildGroupsFromStandingsAndFixtures(standings, fixtures) {
+      const groupsByName = new Map();
+      const groupByTeamId = new Map();
+      const groupByTeamName = new Map();
+
+      for (const group of standings) {
+        const rawGroupName = group[0]?.group || "";
+        const groupName = getGroupLetter(rawGroupName);
+        if (!groupName) continue;
+
+        const teams = group.map((team, index) => ({
+          id: team.team?.id,
+          name: team.team?.name || "",
+          seedRank: Number(team.rank) || index + 1,
+          played: 0,
+          win: 0,
+          draw: 0,
+          lose: 0,
+          goalsFor: 0,
+          goalsAgainst: 0,
+          goalsDiff: 0,
+          points: 0
+        }));
+
+        groupsByName.set(groupName, teams);
+        teams.forEach(team => {
+          if (team.id !== undefined && team.id !== null) groupByTeamId.set(String(team.id), groupName);
+          groupByTeamName.set(canonicalTeamName(team.name), groupName);
+        });
+      }
+
+      for (const match of fixtures) {
+        const status = match.fixture?.status?.short;
+        const homeGoals = match.goals?.home;
+        const awayGoals = match.goals?.away;
+        if (!FINISHED_STATUSES.has(status) || homeGoals == null || awayGoals == null) continue;
+        if (!/^Group Stage\b/i.test(match.league?.round || "")) continue;
+
+        const homeGroup = groupByTeamId.get(String(match.teams?.home?.id)) || groupByTeamName.get(canonicalTeamName(match.teams?.home?.name));
+        const awayGroup = groupByTeamId.get(String(match.teams?.away?.id)) || groupByTeamName.get(canonicalTeamName(match.teams?.away?.name));
+        if (!homeGroup || homeGroup !== awayGroup) continue;
+
+        const teams = groupsByName.get(homeGroup);
+        const home = teams.find(team => String(team.id) === String(match.teams?.home?.id)) ||
+          teams.find(team => canonicalTeamName(team.name) === canonicalTeamName(match.teams?.home?.name));
+        const away = teams.find(team => String(team.id) === String(match.teams?.away?.id)) ||
+          teams.find(team => canonicalTeamName(team.name) === canonicalTeamName(match.teams?.away?.name));
+        if (!home || !away) continue;
+
+        applyMatchResult(home, Number(homeGoals), Number(awayGoals));
+        applyMatchResult(away, Number(awayGoals), Number(homeGoals));
+      }
+
+      const actualGroups = Array.from(groupsByName, ([group, teams]) => ({
+        group,
+        teams: teams
+          .slice()
+          .sort(sortGroupTable)
+          .map(team => team.name)
+      }));
+
+      actualGroups.sort((a, b) => a.group.localeCompare(b.group, "sv"));
+      return actualGroups;
+    }
+
+    function applyMatchResult(team, goalsFor, goalsAgainst) {
+      team.played += 1;
+      team.goalsFor += goalsFor;
+      team.goalsAgainst += goalsAgainst;
+      team.goalsDiff = team.goalsFor - team.goalsAgainst;
+
+      if (goalsFor > goalsAgainst) {
+        team.win += 1;
+        team.points += 3;
+      } else if (goalsFor === goalsAgainst) {
+        team.draw += 1;
+        team.points += 1;
+      } else {
+        team.lose += 1;
+      }
+    }
+
+    function sortGroupTable(a, b) {
+      return b.points - a.points ||
+        b.goalsDiff - a.goalsDiff ||
+        b.goalsFor - a.goalsFor ||
+        a.seedRank - b.seedRank ||
+        a.name.localeCompare(b.name, "sv");
+    }
+
+    function formatStatusText(message) {
+      const updatedAt = new Date().toLocaleString("sv-SE", {
+        dateStyle: "short",
+        timeStyle: "short"
+      });
+
+      return `${message} Senast uppdaterad: ${updatedAt}.`;
+    }
+
+    async function loadData() {
+      const statusText = document.getElementById("statusText");
+      const footerStatus = document.getElementById("footerStatus");
+      const tipsTable = document.getElementById("tipsTable");
+
+      try {
+        const [tipsResponse, standingsResponse, fixturesResponse] = await Promise.all([
+          fetch("grupptips.txt"),
+          fetch(`${BASE_URL}/standings?league=${LEAGUE}&season=${SEASON}`, {
+            headers: { "x-apisports-key": API_KEY }
+          }),
+          fetch(`${BASE_URL}/fixtures?league=${LEAGUE}&season=${SEASON}`, {
+            headers: { "x-apisports-key": API_KEY }
+          })
+        ]);
+
+        if (!tipsResponse.ok) throw new Error("Kunde inte läsa grupptips.txt");
+        if (!standingsResponse.ok) throw new Error("Kunde inte läsa gruppindelningen från API");
+        if (!fixturesResponse.ok) throw new Error("Kunde inte läsa aktuella matcher från API");
+
+        const tipsText = await tipsResponse.text();
+        const standingsData = await standingsResponse.json();
+        const fixturesData = await fixturesResponse.json();
+
+        const { participants } = parseTips(tipsText);
+        const standings = standingsData.response[0]?.league?.standings || [];
+        const fixtures = fixturesData.response || [];
+        const actualGroups = buildGroupsFromStandingsAndFixtures(standings, fixtures);
+
+        tipsTable.innerHTML = renderTips(participants, actualGroups);
+        const finishedMatches = fixtures.filter(match =>
+          FINISHED_STATUSES.has(match.fixture?.status?.short) &&
+          /^Group Stage\b/i.test(match.league?.round || "")
+        ).length;
+        const successMessage = `Uppdaterat från grupptips och ${finishedMatches} spelade gruppmatcher. ${participants.length} deltagare och ${actualGroups.length} grupper jämförda.`;
+        statusText.textContent = successMessage;
+        footerStatus.textContent = formatStatusText(successMessage);
+      } catch (error) {
+        console.error(error);
+        const errorMessage = `Fel vid inläsning: ${error.message}`;
+        statusText.textContent = errorMessage;
+        footerStatus.textContent = formatStatusText(errorMessage);
+        tipsTable.innerHTML = `<div class="error">Kunde inte läsa in tipsen.</div>`;
+      }
+    }
+
+    loadData();
+  </script>
+</body>
+</html>

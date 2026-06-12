@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matchdetaljer VM 2026</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 0;
+            background: #f7f9fc;
+            color: #1d1d1d;
+        }
+        header {
+            background: #005293;
+            color: #ffffff;
+            padding: 24px 16px;
+            text-align: center;
+        }
+        header h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 24px auto;
+            padding: 0 16px 40px;
+        }
+        .status-box,
+        .back-link {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 10px 14px;
+            border-radius: 10px;
+            background: #e2e8f0;
+            color: #0f172a;
+            font-size: 14px;
+            text-decoration: none;
+        }
+        .back-link {
+            margin-right: 12px;
+        }
+        .section {
+            background: #ffffff;
+            border-radius: 14px;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.06);
+            padding: 22px 24px;
+            border: 1px solid rgba(0,0,0,0.04);
+            margin-bottom: 22px;
+        }
+        .section h2 {
+            margin-top: 0;
+            font-size: 22px;
+            color: #0f172a;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px 20px;
+        }
+        .info-grid div {
+            background: #f8fafc;
+            padding: 12px 14px;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            color: #334155;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 16px;
+        }
+        th, td {
+            padding: 10px 12px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 14px;
+        }
+        th {
+            background: #f1f5f9;
+            font-weight: 700;
+        }
+        .loading,
+        .error {
+            padding: 18px;
+            border-radius: 12px;
+            margin-top: 12px;
+        }
+        .loading {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            color: #475569;
+        }
+        .error {
+            background: #fee2e2;
+            border: 1px solid #fecaca;
+            color: #991b1b;
+        }
+        .lineup-team {
+            margin-top: 14px;
+        }
+        .lineup-team h3 {
+            margin-bottom: 8px;
+            font-size: 18px;
+        }
+        .lineup-list {
+            display: grid;
+            gap: 12px;
+        }
+        .lineup-list div {
+            background: #f8fafc;
+            padding: 10px 12px;
+            border-radius: 10px;
+        }
+        .squad-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 18px;
+        }
+        .squad-team h3 {
+            margin: 0 0 10px;
+            font-size: 18px;
+        }
+        .squad-list {
+            display: grid;
+            gap: 8px;
+        }
+        .squad-player {
+            display: grid;
+            grid-template-columns: 42px 1fr auto;
+            gap: 10px;
+            align-items: center;
+            background: #f8fafc;
+            padding: 9px 11px;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+            font-size: 14px;
+        }
+        .squad-number {
+            color: #0f172a;
+            font-weight: 800;
+        }
+        .squad-position {
+            color: #64748b;
+            font-size: 12px;
+            font-weight: 700;
+        }
+        .odds-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin: 12px 0 16px;
+        }
+        .odds-toolbar label {
+            font-weight: 700;
+            color: #334155;
+        }
+        .odds-select {
+            min-width: 220px;
+            max-width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            background: #ffffff;
+            color: #0f172a;
+            font: inherit;
+        }
+        .bookmaker-odds[hidden] {
+            display: none;
+        }
+        @media (max-width: 720px) {
+            .info-grid,
+            .squad-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Matchdetaljer</h1>
+    </header>
+    <div class="container">
+        <div>
+            <a class="back-link" id="backLink" href="FIFA2026-matcher.html">← Tillbaka till matcher</a>
+            <span class="status-box" id="status">Laddar matchdetaljer...</span>
+        </div>
+
+        <div id="matchInfo" class="section loading">Hämtar matchinformation...</div>
+        <div id="lineups" class="section"></div>
+        <div id="squads" class="section"></div>
+        <div id="headtohead" class="section"></div>
+        <div id="odds" class="section"></div>
+    </div>
+
+    <script>
+        const API_KEY = "170d2afb853fb860d9432d14d7eaaaa5";
+        const BASE_URL = "https://v3.football.api-sports.io";
+
+        function getQueryParam(name) {
+            return new URLSearchParams(window.location.search).get(name);
+        }
+
+        function setupBackLink() {
+            const back = getQueryParam("back");
+            const allowedBackLinks = new Set(["FIFA2026-matcher.html", "FIFA2026-matcher-plus.html"]);
+            if (allowedBackLinks.has(back)) {
+                document.getElementById("backLink").href = back;
+            }
+        }
+
+        function formatDate(dateString) {
+            return new Intl.DateTimeFormat("sv-SE", {
+                weekday: "long",
+                day: "2-digit",
+                month: "2-digit",
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: false,
+                timeZone: "Europe/Stockholm"
+            }).format(new Date(dateString));
+        }
+
+        async function apiFootball(endpoint) {
+            const response = await fetch(`${BASE_URL}/${endpoint}`, {
+                headers: { "x-apisports-key": API_KEY }
+            });
+            if (!response.ok) {
+                const text = await response.text();
+                throw new Error(`API-fel ${response.status}: ${response.statusText} ${text}`);
+            }
+            return response.json();
+        }
+
+        function escapeHtml(value) {
+            return String(value ?? "").replace(/[&<>"']/g, char => ({
+                "&": "&amp;",
+                "<": "&lt;",
+                ">": "&gt;",
+                '"': "&quot;",
+                "'": "&#039;"
+            }[char]));
+        }
+
+        function renderMatchSummary(match) {
+            const home = match.teams.home.name;
+            const away = match.teams.away.name;
+            const date = formatDate(match.fixture.date);
+            const venue = match.fixture.venue?.name || "Okänt stadium";
+            const city = match.fixture.venue?.city || "";
+            const status = match.fixture.status.long || match.fixture.status.short || "Okänt";
+
+            return `
+                <h2>Matchinformation</h2>
+                <div class="info-grid">
+                    <div><strong>Match:</strong> ${home} — ${away}</div>
+                    <div><strong>Datum:</strong> ${date}</div>
+                    <div><strong>Status:</strong> ${status}</div>
+                    <div><strong>Arena:</strong> ${venue}${city ? ', ' + city : ''}</div>
+                    <div><strong>Match ID:</strong> ${match.fixture.id}</div>
+                    <div><strong>Turnering:</strong> ${match.league.name}</div>
+                </div>
+            `;
+        }
+
+        function renderLineups(lineups) {
+            if (!lineups.length) {
+                return `<h2>Startelvor</h2><div class="error">Inga startelvor tillgängliga för denna match.</div>`;
+            }
+
+            return `
+                <h2>Startelvor</h2>
+                ${lineups.map(team => {
+                    const starters = team.startXI || [];
+                    const subs = team.substitutes || [];
+                    return `
+                        <div class="lineup-team">
+                            <h3>${team.team.name}</h3>
+                            <div class="lineup-list">
+                                <div><strong>Startelva:</strong><br>${starters.map(p => `${p.player.name} (${p.player.number})`).join('<br>') || 'Ingen data'}</div>
+                                <div><strong>Bänken:</strong><br>${subs.map(p => `${p.player.name} (${p.player.number})`).join('<br>') || 'Ingen data'}</div>
+                            </div>
+                        </div>
+                    `;
+                }).join('')}
+            `;
+        }
+
+        function translatePosition(position) {
+            const normalized = String(position || "").toLowerCase();
+            const translations = {
+                goalkeeper: "M\u00e5lvakt",
+                defender: "F\u00f6rsvarare",
+                midfielder: "Mittf\u00e4ltare",
+                attacker: "Anfallare"
+            };
+
+            return translations[normalized] || position || "Position saknas";
+        }
+
+        function renderSquads(squads) {
+            const availableSquads = squads.filter(squad => (squad.players || []).length);
+
+            if (!availableSquads.length) {
+                return `<h2>Trupper</h2><div class="error">Inga trupper tillg&auml;ngliga f&ouml;r lagen i denna match.</div>`;
+            }
+
+            return `
+                <h2>Trupper</h2>
+                <div class="squad-grid">
+                    ${availableSquads.map(squad => `
+                        <div class="squad-team">
+                            <h3>${escapeHtml(squad.teamName)}</h3>
+                            <div class="squad-list">
+                                ${squad.players.map(player => `
+                                    <div class="squad-player">
+                                        <span class="squad-number">${escapeHtml(player.number ?? "-")}</span>
+                                        <strong>${escapeHtml(player.name)}</strong>
+                                        <span class="squad-position">${escapeHtml(translatePosition(player.position))}</span>
+                                    </div>
+                                `).join("")}
+                            </div>
+                        </div>
+                    `).join("")}
+                </div>
+            `;
+        }
+
+        async function loadSquad(teamId, teamName) {
+            const data = await apiFootball(`players/squads?team=${teamId}`);
+            const squad = data.response[0] || {};
+
+            return {
+                teamName,
+                players: squad.players || []
+            };
+        }
+
+        function renderOdds(oddsResponse) {
+            if (!oddsResponse.length) {
+                return `<h2>Odds</h2><div class="error">Inga odds finns för denna match.</div>`;
+            }
+
+            const preferredBookmakers = ["bet365", "unibet"];
+            const bookmakerPriority = name => {
+                const normalizedName = (name || "").toLowerCase();
+                const index = preferredBookmakers.findIndex(preferred => normalizedName.includes(preferred));
+                return index === -1 ? preferredBookmakers.length : index;
+            };
+            const bookmakers = oddsResponse
+                .flatMap(entry => entry.bookmakers || entry.odds || [])
+                .map((bookmaker, index) => ({ bookmaker, index }))
+                .sort((a, b) => {
+                    const priorityDiff = bookmakerPriority(a.bookmaker.name) - bookmakerPriority(b.bookmaker.name);
+                    return priorityDiff || a.index - b.index;
+                })
+                .map(entry => entry.bookmaker);
+
+            if (!bookmakers.length) {
+                return `<h2>Odds</h2><div class="error">Inga bookmaker-data.</div>`;
+            }
+
+            return `
+                <h2>Odds</h2>
+                <div class="odds-toolbar">
+                    <label for="bookmakerSelect">Välj bettingbolag</label>
+                    <select class="odds-select" id="bookmakerSelect">
+                        ${bookmakers.map((bookmaker, index) => `
+                            <option value="${index}">${bookmaker.name}</option>
+                        `).join('')}
+                    </select>
+                </div>
+                <div id="bookmakerOdds">
+                    ${bookmakers.map((bookmaker, index) => {
+                        const bets = bookmaker.bets || [];
+                        return `
+                            <div class="section bookmaker-odds" data-bookmaker-index="${index}" style="margin-bottom:12px; padding:14px;" ${index === 0 ? '' : 'hidden'}>
+                                <h3>${bookmaker.name}</h3>
+                                ${bets.map(bet => {
+                                    const values = bet.values || [];
+                                    return `
+                                        <div style="margin-top:10px;">
+                                            <strong>${bet.name}</strong><br>
+                                            ${values.map(v => `${v.value}: ${v.odd}`).join('<br>') || 'Ingen odds-data'}
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+        }
+
+        function setupBookmakerSelect() {
+            const select = document.getElementById("bookmakerSelect");
+            const oddsCards = document.querySelectorAll(".bookmaker-odds");
+            if (!select || !oddsCards.length) {
+                return;
+            }
+
+            select.addEventListener("change", () => {
+                oddsCards.forEach(card => {
+                    card.hidden = card.dataset.bookmakerIndex !== select.value;
+                });
+            });
+        }
+
+        function renderHeadToHead(response, homeId, awayId) {
+            if (!response.length) {
+                return `<h2>Head to Head</h2><div class="error">Ingen head-to-head-data hittades.</div>`;
+            }
+
+            const rows = response.map(match => {
+                const date = formatDate(match.fixture.date);
+                const homeName = match.teams.home.name;
+                const awayName = match.teams.away.name;
+                const homeGoals = match.goals.home !== null ? match.goals.home : '-';
+                const awayGoals = match.goals.away !== null ? match.goals.away : '-';
+                return `
+                    <tr>
+                        <td>${date}</td>
+                        <td>${homeName}</td>
+                        <td>${awayName}</td>
+                        <td>${homeGoals} - ${awayGoals}</td>
+                        <td>${match.league.name}</td>
+                    </tr>
+                `;
+            }).join('');
+
+            return `
+                <h2>Head to Head</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Datum</th>
+                            <th>Hemmalag</th>
+                            <th>Bortalag</th>
+                            <th>Resultat</th>
+                            <th>Turnering</th>
+                        </tr>
+                    </thead>
+                    <tbody>${rows}</tbody>
+                </table>
+            `;
+        }
+
+        async function loadMatchDetails() {
+            const statusBox = document.getElementById('status');
+            const matchInfoBox = document.getElementById('matchInfo');
+            const lineupsBox = document.getElementById('lineups');
+            const squadsBox = document.getElementById('squads');
+            const oddsBox = document.getElementById('odds');
+            const headtoheadBox = document.getElementById('headtohead');
+
+            const fixtureId = getQueryParam('fixture');
+            let homeId = getQueryParam('home');
+            let awayId = getQueryParam('away');
+
+            if (!fixtureId) {
+                matchInfoBox.className = 'section error';
+                matchInfoBox.innerHTML = 'Ingen match vald. Ange fixture-id i URL:en.';
+                statusBox.textContent = 'Fel: Ingen match vald.';
+                return;
+            }
+
+            try {
+                const [fixtureData, lineupsData, oddsData] = await Promise.all([
+                    apiFootball(`fixtures?id=${fixtureId}`),
+                    apiFootball(`fixtures/lineups?fixture=${fixtureId}`),
+                    apiFootball(`odds?fixture=${fixtureId}`)
+                ]);
+
+                const match = fixtureData.response[0];
+                if (!match) {
+                    throw new Error('Matchdata saknas.');
+                }
+
+                matchInfoBox.className = 'section';
+                matchInfoBox.innerHTML = renderMatchSummary(match);
+
+                lineupsBox.innerHTML = renderLineups(lineupsData.response || []);
+                squadsBox.innerHTML = `<h2>Trupper</h2><div class="loading">H&auml;mtar trupper...</div>`;
+
+                try {
+                    const squads = await Promise.all([
+                        loadSquad(match.teams.home.id, match.teams.home.name),
+                        loadSquad(match.teams.away.id, match.teams.away.name)
+                    ]);
+                    squadsBox.innerHTML = renderSquads(squads);
+                } catch (squadError) {
+                    console.warn('Trupper saknas:', squadError);
+                    squadsBox.innerHTML = `<h2>Trupper</h2><div class="error">Kan inte h&auml;mta trupper f&ouml;r denna match.</div>`;
+                }
+
+                oddsBox.innerHTML = renderOdds(oddsData.response || []);
+                setupBookmakerSelect();
+                statusBox.textContent = `Visar detaljer för ${match.teams.home.name} vs ${match.teams.away.name}.`;
+
+                if (!homeId || !awayId) {
+                    homeId = match.teams.home.id;
+                    awayId = match.teams.away.id;
+                }
+
+                try {
+                    const head2headData = await apiFootball(`fixtures/headtohead?h2h=${homeId}-${awayId}`);
+                    headtoheadBox.innerHTML = renderHeadToHead(head2headData.response || [], homeId, awayId);
+                } catch (headError) {
+                    console.warn('Head-to-head saknas:', headError);
+                    headtoheadBox.innerHTML = `<h2>Head to Head</h2><div class="error">Kan inte hämta head-to-head-data för denna match.</div>`;
+                }
+            } catch (error) {
+                console.error(error);
+                matchInfoBox.className = 'section error';
+                matchInfoBox.innerHTML = `Kunde inte hämta matchdetaljer. ${error.message}`;
+                lineupsBox.innerHTML = '';
+                squadsBox.innerHTML = '';
+                oddsBox.innerHTML = '';
+                headtoheadBox.innerHTML = '';
+                statusBox.textContent = 'Fel vid hämtning av matchdetaljer.';
+            }
+        }
+
+        setupBackLink();
+        loadMatchDetails();
+    </script>
+</body>
+</html>

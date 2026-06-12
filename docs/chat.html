@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VM 2026 - Chat</title>
+  <style>
+    :root {
+      color: #122547;
+      background: #eef4fb;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #eef4fb;
+    }
+
+    .chat-page {
+      min-height: 100vh;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      background:
+        linear-gradient(135deg, rgba(0, 82, 147, 0.12), rgba(254, 203, 0, 0.16)),
+        #f7fbff;
+    }
+
+    header {
+      padding: 22px clamp(16px, 4vw, 40px);
+      background: #ffffff;
+      border-bottom: 1px solid rgba(18, 37, 71, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(1.4rem, 3vw, 2rem);
+      color: #0f2a4d;
+      letter-spacing: 0;
+    }
+
+    .status {
+      color: #4d657f;
+      font-size: 0.95rem;
+      white-space: nowrap;
+    }
+
+    .messages {
+      width: min(980px, 100%);
+      margin: 0 auto;
+      padding: 20px clamp(12px, 3vw, 24px);
+      overflow-y: auto;
+    }
+
+    .empty {
+      margin: 48px auto;
+      max-width: 520px;
+      padding: 24px;
+      color: #42526a;
+      text-align: center;
+      line-height: 1.6;
+      background: rgba(255, 255, 255, 0.72);
+      border: 1px solid rgba(18, 37, 71, 0.08);
+      border-radius: 8px;
+    }
+
+    .message {
+      width: fit-content;
+      max-width: min(720px, 92%);
+      margin: 0 0 12px;
+      padding: 12px 14px;
+      background: #ffffff;
+      border: 1px solid rgba(18, 37, 71, 0.08);
+      border-radius: 8px;
+      box-shadow: 0 12px 28px rgba(18, 37, 71, 0.08);
+    }
+
+    .message.mine {
+      margin-left: auto;
+      background: #0f5f9f;
+      color: #ffffff;
+    }
+
+    .meta {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      margin-bottom: 6px;
+      font-size: 0.82rem;
+      color: #5a6f86;
+    }
+
+    .mine .meta {
+      color: rgba(255, 255, 255, 0.78);
+    }
+
+    .author {
+      font-weight: 700;
+    }
+
+    .text {
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      line-height: 1.45;
+      font-size: 1rem;
+    }
+
+    .composer {
+      padding: 14px clamp(12px, 3vw, 24px);
+      background: #ffffff;
+      border-top: 1px solid rgba(18, 37, 71, 0.1);
+    }
+
+    .composer-inner {
+      width: min(980px, 100%);
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: minmax(130px, 190px) 1fr auto auto;
+      gap: 10px;
+      align-items: end;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #42526a;
+    }
+
+    input,
+    textarea {
+      width: 100%;
+      border: 1px solid rgba(18, 37, 71, 0.18);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font: inherit;
+      color: #122547;
+      background: #fbfdff;
+      outline: none;
+    }
+
+    textarea {
+      min-height: 44px;
+      max-height: 140px;
+      resize: vertical;
+    }
+
+    input:focus,
+    textarea:focus {
+      border-color: #0f5f9f;
+      box-shadow: 0 0 0 3px rgba(15, 95, 159, 0.12);
+    }
+
+    button {
+      border: 0;
+      border-radius: 8px;
+      padding: 11px 14px;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      min-height: 44px;
+    }
+
+    .send {
+      background: #005293;
+      color: #ffffff;
+    }
+
+    .clear {
+      background: #edf3fa;
+      color: #254762;
+    }
+
+    button:hover {
+      filter: brightness(0.96);
+    }
+
+    @media (max-width: 760px) {
+      header {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .status {
+        white-space: normal;
+      }
+
+      .composer-inner {
+        grid-template-columns: 1fr;
+      }
+
+      button {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="chat-page">
+    <header>
+      <h1>VM-chat</h1>
+      <div class="status" id="status">Ansluter till chatten...</div>
+    </header>
+
+    <section class="messages" id="messages" aria-live="polite"></section>
+
+    <form class="composer" id="chatForm">
+      <div class="composer-inner">
+        <div>
+          <label for="nameInput">Namn</label>
+          <input id="nameInput" name="name" autocomplete="name" maxlength="32" placeholder="Ditt namn">
+        </div>
+        <div>
+          <label for="messageInput">Meddelande</label>
+          <textarea id="messageInput" name="message" maxlength="800" placeholder="Skriv ett meddelande..."></textarea>
+        </div>
+        <button class="send" type="submit">Skicka</button>
+        <button class="clear" id="clearButton" type="button">Uppdatera</button>
+      </div>
+    </form>
+  </main>
+
+  <script>
+    const CHAT_API_BASE = "https://vm2026-worker.anders-h-engstrom.workers.dev/api/chat";
+    const STORAGE_KEY = "vm2026-chat-messages";
+    const NAME_KEY = "vm2026-chat-name";
+    const messagesEl = document.getElementById("messages");
+    const statusEl = document.getElementById("status");
+    const form = document.getElementById("chatForm");
+    const nameInput = document.getElementById("nameInput");
+    const messageInput = document.getElementById("messageInput");
+    const clearButton = document.getElementById("clearButton");
+
+    let messages = [];
+    let usingLocalFallback = false;
+
+    nameInput.value = localStorage.getItem(NAME_KEY) || "";
+    loadRemoteMessages();
+
+    form.addEventListener("submit", event => {
+      event.preventDefault();
+
+      const author = nameInput.value.trim() || "Anonym";
+      const text = messageInput.value.trim();
+      if (!text) return;
+
+      localStorage.setItem(NAME_KEY, author);
+      sendMessage(author, text);
+    });
+
+    clearButton.addEventListener("click", () => {
+      loadRemoteMessages();
+    });
+
+    window.setInterval(loadRemoteMessages, 12000);
+
+    async function loadRemoteMessages() {
+      try {
+        const response = await fetch(`${CHAT_API_BASE}/messages`, {
+          headers: { "accept": "application/json" },
+          cache: "no-store"
+        });
+        if (!response.ok) throw new Error("Kunde inte hämta chatten.");
+        const data = await response.json();
+        messages = mergeMessages(messages, Array.isArray(data.messages) ? data.messages : []);
+        usingLocalFallback = false;
+        saveMessages();
+        renderMessages();
+      } catch (error) {
+        messages = loadMessages();
+        usingLocalFallback = true;
+        renderMessages();
+      }
+    }
+
+    async function sendMessage(author, text) {
+      const localMessage = {
+        id: makeId(),
+        author,
+        text,
+        createdAt: new Date().toISOString()
+      };
+
+      messageInput.disabled = true;
+      try {
+        const response = await fetch(`${CHAT_API_BASE}/messages`, {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ author, text })
+        });
+        if (!response.ok) throw new Error("Kunde inte skicka meddelandet.");
+        const data = await response.json();
+        messages = mergeMessages(messages, [data.message || localMessage]);
+        usingLocalFallback = false;
+      } catch (error) {
+        messages = mergeMessages(messages, [localMessage]);
+        usingLocalFallback = true;
+      } finally {
+        saveMessages();
+        messageInput.value = "";
+        messageInput.disabled = false;
+        messageInput.focus();
+        renderMessages(true);
+      }
+    }
+
+    function loadMessages() {
+      try {
+        const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+        return Array.isArray(parsed) ? parsed : [];
+      } catch (error) {
+        return [];
+      }
+    }
+
+    function saveMessages() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(messages.slice(-200)));
+    }
+
+    function mergeMessages(currentMessages, incomingMessages) {
+      const byId = new Map();
+      [...currentMessages, ...incomingMessages].forEach(message => {
+        if (!message || !message.id || !message.text) return;
+        byId.set(message.id, message);
+      });
+
+      return [...byId.values()]
+        .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
+        .slice(-200);
+    }
+
+    function renderMessages(scrollToBottom = false) {
+      if (!messages.length) {
+        messagesEl.innerHTML = '<div class="empty">Inga meddelanden än. Starta snacket inför nästa match.</div>';
+        statusEl.textContent = usingLocalFallback
+          ? "Offline-läge: visar lokalt sparade meddelanden."
+          : "Gemensam chat via Cloudflare Worker.";
+        return;
+      }
+
+      const currentName = (nameInput.value.trim() || localStorage.getItem(NAME_KEY) || "").toLowerCase();
+      messagesEl.innerHTML = messages.map(message => {
+        const mine = currentName && message.author.toLowerCase() === currentName;
+        return `
+          <article class="message ${mine ? "mine" : ""}">
+            <div class="meta">
+              <span class="author">${escapeHtml(message.author)}</span>
+              <time>${formatTime(message.createdAt)}</time>
+            </div>
+            <div class="text">${escapeHtml(message.text)}</div>
+          </article>
+        `;
+      }).join("");
+
+      statusEl.textContent = usingLocalFallback
+        ? `${messages.length} lokala meddelanden. Workern kunde inte nås.`
+        : `${messages.length} meddelanden i gemensam chat.`;
+      if (scrollToBottom) {
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+      }
+    }
+
+    function formatTime(value) {
+      return new Date(value).toLocaleString("sv-SE", {
+        dateStyle: "short",
+        timeStyle: "short"
+      });
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function makeId() {
+      if (crypto.randomUUID) return crypto.randomUUID();
+      return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    }
+  </script>
+</body>
+</html>

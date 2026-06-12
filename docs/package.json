@@ -1,0 +1,13 @@
+{
+  "scripts": {
+    "push:dev": "npm --prefix vm2026-worker run dev",
+    "push:deploy": "npm --prefix vm2026-worker run deploy",
+    "push:test": "npm --prefix vm2026-worker test"
+  },
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  },
+  "dependencies": {
+    "web-push": "^3.6.7"
+  }
+}

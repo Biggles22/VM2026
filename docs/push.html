@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VM 2026 Notiser</title>
+  <style>
+    :root {
+      color: #172033;
+      background: #eef3f8;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        linear-gradient(135deg, rgba(0, 82, 147, 0.94), rgba(0, 142, 105, 0.86)),
+        radial-gradient(circle at 18% 0%, rgba(254, 203, 0, 0.42), transparent 34%),
+        #eef3f8;
+      color: #172033;
+    }
+
+    header {
+      color: #ffffff;
+      padding: 34px 18px 24px;
+    }
+
+    .hero,
+    main {
+      width: min(980px, 94%);
+      margin: 0 auto;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2rem, 4vw, 3.4rem);
+      line-height: 1;
+      font-weight: 800;
+    }
+
+    .lead {
+      max-width: 720px;
+      margin: 14px 0 0;
+      color: rgba(255, 255, 255, 0.92);
+      line-height: 1.65;
+    }
+
+    main {
+      display: grid;
+      gap: 16px;
+      padding-bottom: 42px;
+    }
+
+    .panel {
+      background: #ffffff;
+      border: 1px solid rgba(15, 44, 69, 0.08);
+      border-radius: 8px;
+      box-shadow: 0 16px 38px rgba(15, 44, 69, 0.12);
+      padding: 20px;
+    }
+
+    h2 {
+      margin: 0 0 12px;
+      color: #0f2c45;
+      font-size: 20px;
+    }
+
+    p {
+      line-height: 1.6;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    button {
+      min-height: 42px;
+      border: 0;
+      border-radius: 8px;
+      padding: 10px 14px;
+      background: #005293;
+      color: #ffffff;
+      cursor: pointer;
+      font: inherit;
+      font-weight: 800;
+    }
+
+    button.secondary {
+      background: #e2e8f0;
+      color: #0f172a;
+    }
+
+    label {
+      display: grid;
+      gap: 6px;
+      margin-top: 12px;
+      color: #334155;
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    input,
+    textarea {
+      width: 100%;
+      min-height: 42px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 10px 12px;
+      font: inherit;
+    }
+
+    textarea {
+      min-height: 92px;
+      resize: vertical;
+    }
+
+    .status {
+      min-height: 42px;
+      margin: 0 0 16px;
+      padding: 11px 13px;
+      border-radius: 8px;
+      background: #e2e8f0;
+      color: #0f172a;
+      font-weight: 700;
+    }
+
+    .status[data-type="success"] {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .status[data-type="error"] {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .diagnostics {
+      margin: 14px 0 0;
+      padding: 12px;
+      border-radius: 8px;
+      background: #f8fafc;
+      color: #334155;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 12px;
+      line-height: 1.55;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="hero">
+      <h1>VM 2026-notiser</h1>
+      <p class="lead">Aktivera web push f&ouml;r att kunna f&aring; snabba uppdateringar fr&aring;n VM-tipset.</p>
+    </div>
+  </header>
+
+  <main>
+    <p class="status" id="pushStatus">Redo.</p>
+
+    <section class="panel">
+      <h2>Notiser p&aring; den h&auml;r enheten</h2>
+      <p>Webbl&auml;saren fr&aring;gar om till&aring;telse. Du kan st&auml;nga av igen n&auml;r du vill.</p>
+      <div class="actions">
+        <button id="enablePush" type="button">Aktivera notiser</button>
+        <button class="secondary" id="localPushTest" type="button">Testa lokal notis</button>
+        <button class="secondary" id="disablePush" type="button">St&auml;ng av notiser</button>
+      </div>
+      <pre class="diagnostics" id="pushDiagnostics">Diagnostik visas h&auml;r efter test.</pre>
+    </section>
+
+  </main>
+
+  <script src="push-client.js"></script>
+</body>
+</html>

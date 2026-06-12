@@ -1,0 +1,14 @@
+name = "vm2026-web-push"
+main = "src/index.js"
+compatibility_date = "2026-06-10"
+compatibility_flags = ["nodejs_compat"]
+routes = [
+  { pattern = "vm2026.info/api/push*", zone_name = "vm2026.info" }
+]
+
+[vars]
+VAPID_SUBJECT = "mailto:admin@vm2026.info"
+
+[[kv_namespaces]]
+binding = "PUSH_SUBSCRIPTIONS"
+id = "REPLACE_WITH_KV_NAMESPACE_ID"

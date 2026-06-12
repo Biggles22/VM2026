@@ -1,0 +1,23 @@
+För att enkelt få ner GitHub-versionen och strunta i lokala skillnader, kör detta:
+
+git fetch origin
+git reset --hard origin/main
+
+Det gör din Mac exakt likadan som GitHub.
+
+Sedan kontrollera:
+
+git status
+
+Du vill se:
+
+Your branch is up to date with 'origin/main'.
+nothing to commit, working tree clean
+
+Efter det kan du öppna Start.html i VS Code och jobba vidare.
+
+Viktigt: git reset --hard origin/main kastar lokala ändringar som inte finns på GitHub. Eftersom du ville tanka ner från GitHub är detta enklaste vägen.
+
+
+git pull origin main       
+för att synka github till datorn

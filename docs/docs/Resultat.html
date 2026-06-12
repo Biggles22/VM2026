@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VM 2026 - Resultat</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h2 {
+            font-size: 28px;
+            color: #1F4E78;
+            margin-bottom: 20px;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        /* Resultat sektionen */
+        #vm-results {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 40px;
+        }
+
+        .match-row {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 15px;
+            margin-bottom: 12px;
+            border-left: 4px solid #667eea;
+            border-radius: 4px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .match-row:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+        }
+
+        .match-row strong {
+            display: block;
+            color: #667eea;
+            font-size: 12px;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        .match-row .match-teams {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1F4E78;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .match-row .score {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+            min-width: 80px;
+            text-align: center;
+        }
+
+        .match-row .team-name {
+            flex: 1;
+        }
+
+        .match-row .away-team {
+            text-align: right;
+        }
+
+        /* Gruppställningar */
+        #vm-standings {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .standings-group {
+            margin-bottom: 30px;
+        }
+
+        .standings-group h3 {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 15px;
+            border-radius: 4px 4px 0 0;
+            font-size: 18px;
+            margin-bottom: 0;
+        }
+
+        .standings-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border: 1px solid #e9ecef;
+        }
+
+        .standings-table thead {
+            background: #f8f9fa;
+        }
+
+        .standings-table th {
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #1F4E78;
+            border-bottom: 2px solid #667eea;
+            font-size: 13px;
+            text-transform: uppercase;
+        }
+
+        .standings-table td {
+            padding: 12px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .standings-table tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        .standings-table tbody tr:nth-child(1),
+        .standings-table tbody tr:nth-child(2) {
+            background: #e8f5e9;
+        }
+
+        .standings-table tbody tr:nth-child(3) {
+            background: #fff3cd;
+        }
+
+        .team-rank {
+            font-weight: bold;
+            color: #667eea;
+            min-width: 25px;
+        }
+
+        .team-name-cell {
+            font-weight: 600;
+            color: #1F4E78;
+        }
+
+        .points-cell {
+            font-weight: bold;
+            font-size: 16px;
+            color: #667eea;
+        }
+
+        /* Loading state */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #667eea;
+            font-size: 16px;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 4px;
+            border-left: 4px solid #dc3545;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            h2 {
+                font-size: 22px;
+            }
+
+            .match-row {
+                padding: 12px;
+            }
+
+            .match-row .match-teams {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .match-row .score {
+                font-size: 20px;
+            }
+
+            .match-row .away-team {
+                text-align: left;
+            }
+
+            .standings-table th,
+            .standings-table td {
+                padding: 8px;
+                font-size: 12px;
+            }
+
+            .standings-table th {
+                font-size: 11px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>🏆 VM 2026 – Resultat</h2>
+        <div id="vm-results" class="loading">Laddar resultat...</div>
+
+        <h2>📊 VM 2026 – Gruppställningar</h2>
+        <div id="vm-standings" class="loading">Laddar tabeller...</div>
+    </div>
+
+    <script>
+        const API_KEY = "170d2afb853fb860d9432d14d7eaaaa5"; // ⚠️ Byt ut mot din API-nyckel från api-football.com
+        const LEAGUE = 1; // FIFA World Cup
+        const SEASON = 2026;
+
+        // Funktion för API-anrop
+        async function apiFootball(endpoint) {
+            try {
+                const response = await fetch(`https://v3.football.api-sports.io/${endpoint}`, {
+                    method: "GET",
+                    headers: {
+                        "x-apisports-key": API_KEY
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API-fel: ${response.status} - ${response.statusText}`);
+                }
+
+                return response.json();
+            } catch (error) {
+                console.error("API-fel:", error);
+                throw error;
+            }
+        }
+
+        // Ladda matcher/resultat
+        async function loadFixtures() {
+            const box = document.getElementById("vm-results");
+
+            try {
+                const data = await apiFootball(`fixtures?league=${LEAGUE}&season=${SEASON}`);
+                const matches = data.response || [];
+
+                if (matches.length === 0) {
+                    box.innerHTML = '<div class="error">Inga matcher tillgängliga ännu.</div>';
+                    return;
+                }
+
+                box.innerHTML = matches
+                    .sort((a, b) => new Date(b.fixture.date) - new Date(a.fixture.date))
+                    .map(m => {
+                        const home = m.teams.home.name;
+                        const away = m.teams.away.name;
+                        const hg = m.goals.home !== null ? m.goals.home : "-";
+                        const ag = m.goals.away !== null ? m.goals.away : "-";
+                        const date = new Date(m.fixture.date).toLocaleString("sv-SE");
+                        const status = m.fixture.status;
+
+                        return `
+                            <div class="match-row">
+                                <strong>${date}</strong>
+                                <div class="match-teams">
+                                    <span class="team-name">${home}</span>
+                                    <span class="score">${hg} - ${ag}</span>
+                                    <span class="team-name away-team">${away}</span>
+                                </div>
+                            </div>
+                        `;
+                    })
+                    .join("");
+
+            } catch (err) {
+                box.innerHTML = `<div class="error">Kunde inte hämta resultat. Kontrollera att API-nyckeln är korrekt.</div>`;
+                console.error("Fel vid hämtning av matcher:", err);
+            }
+        }
+
+        // Ladda gruppställningar
+        async function loadStandings() {
+            const box = document.getElementById("vm-standings");
+
+            try {
+                const data = await apiFootball(`standings?league=${LEAGUE}&season=${SEASON}`);
+                const leagueData = data.response[0]?.league || {};
+                const standings = leagueData.standings || [];
+
+                if (standings.length === 0) {
+                    box.innerHTML = '<div class="error">Inga gruppställningar tillgängliga ännu.</div>';
+                    return;
+                }
+
+                box.innerHTML = standings
+                    .map((group, idx) => {
+                        const groupName = group[0]?.group || `Grupp ${String.fromCharCode(65 + idx)}`;
+                        return `
+                            <div class="standings-group">
+                                <h3>${groupName}</h3>
+                                <table class="standings-table">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Lag</th>
+                                            <th>Sp</th>
+                                            <th>V</th>
+                                            <th>O</th>
+                                            <th>F</th>
+                                            <th>MS</th>
+                                            <th>P</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${group
+                                            .map(team => `
+                                                <tr>
+                                                    <td class="team-rank">${team.rank}</td>
+                                                    <td class="team-name-cell">${team.team.name}</td>
+                                                    <td>${team.all.played}</td>
+                                                    <td>${team.all.win}</td>
+                                                    <td>${team.all.draw}</td>
+                                                    <td>${team.all.lose}</td>
+                                                    <td>${team.goalsDiff > 0 ? '+' : ''}${team.goalsDiff}</td>
+                                                    <td class="points-cell">${team.points}</td>
+                                                </tr>
+                                            `)
+                                            .join("")}
+                                    </tbody>
+                                </table>
+                            </div>
+                        `;
+                    })
+                    .join("");
+
+            } catch (err) {
+                box.innerHTML = `<div class="error">Kunde inte hämta gruppställningar. Kontrollera att API-nyckeln är korrekt.</div>`;
+                console.error("Fel vid hämtning av gruppställningar:", err);
+            }
+        }
+
+        // Ladda data vid sidladdning
+        loadFixtures();
+        loadStandings();
+
+        // Uppdatera automatiskt var 5:e minut
+        setInterval(() => {
+            loadFixtures();
+            loadStandings();
+        }, 5 * 60 * 1000);
+    </script>
+</body>
+</html>
