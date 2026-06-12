@@ -35,6 +35,25 @@
             color: #0f172a;
             font-size: 14px;
         }
+        .header-actions {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 14px;
+        }
+        .action-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 40px;
+            padding: 0 14px;
+            border-radius: 8px;
+            background: #ffffff;
+            color: #005293;
+            font-weight: 700;
+            text-decoration: none;
+        }
         .group {
             background: #ffffff;
             border-radius: 14px;
@@ -106,6 +125,9 @@
     <header>
         <h1>VM 2026 Gruppställningar</h1>
         <p class="status-box" id="status">Laddar gruppställningar från api-football...</p>
+        <div class="header-actions">
+            <a class="action-link" href="test_slutspelstrad.html">Preliminärt slutspel</a>
+        </div>
     </header>
 
     <div class="container">

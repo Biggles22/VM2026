@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Preliminart slutspel - VM 2026</title>
+  <style>
+    :root {
+      color: #14213d;
+      background: #f4f7fb;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #f4f7fb;
+    }
+
+    header {
+      background: #0f4c81;
+      color: #fff;
+      padding: 26px 18px;
+      text-align: center;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(1.8rem, 3vw, 2.7rem);
+    }
+
+    .lead {
+      max-width: 860px;
+      margin: 12px auto 0;
+      line-height: 1.6;
+      color: #dbeafe;
+    }
+
+    .page {
+      width: min(1320px, 96%);
+      margin: 24px auto 48px;
+    }
+
+    .toolbar,
+    .panel,
+    .round {
+      background: #fff;
+      border: 1px solid #d9e2ec;
+      border-radius: 8px;
+      box-shadow: 0 14px 32px rgba(16, 42, 67, 0.07);
+    }
+
+    .toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 18px;
+      padding: 14px 16px;
+      color: #334e68;
+      line-height: 1.5;
+    }
+
+    .button {
+      border: 0;
+      border-radius: 6px;
+      background: #0f4c81;
+      color: #fff;
+      cursor: pointer;
+      font-weight: 700;
+      min-height: 40px;
+      padding: 0 14px;
+    }
+
+    .button:disabled {
+      cursor: progress;
+      opacity: 0.7;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: minmax(280px, 360px) 1fr;
+      gap: 18px;
+      align-items: start;
+    }
+
+    .panel {
+      padding: 16px;
+    }
+
+    .panel h2,
+    .round h2 {
+      margin: 0 0 12px;
+      font-size: 1.05rem;
+      color: #102a43;
+    }
+
+    .third-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .third-row {
+      display: grid;
+      grid-template-columns: 30px 1fr auto;
+      gap: 10px;
+      align-items: center;
+      min-height: 38px;
+      padding: 7px 8px;
+      border: 1px solid #edf2f7;
+      border-radius: 6px;
+      background: #fbfdff;
+      font-size: 0.94rem;
+    }
+
+    .third-row.out {
+      color: #627d98;
+      background: #f8fafc;
+    }
+
+    .rank {
+      font-weight: 800;
+      color: #0f4c81;
+    }
+
+    .stats {
+      color: #627d98;
+      font-size: 0.86rem;
+      white-space: nowrap;
+    }
+
+    .bracket {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(230px, 1fr));
+      gap: 14px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+    }
+
+    .round {
+      min-width: 230px;
+      overflow: hidden;
+    }
+
+    .round h2 {
+      margin: 0;
+      padding: 13px 14px;
+      background: #0f4c81;
+      color: #fff;
+    }
+
+    .round-body {
+      display: grid;
+      gap: 10px;
+      padding: 12px;
+    }
+
+    .match-card {
+      border: 1px solid #d9e2ec;
+      border-radius: 8px;
+      background: #fff;
+      overflow: hidden;
+    }
+
+    .match-meta {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 9px 10px;
+      background: #f8fafc;
+      color: #486581;
+      font-size: 0.82rem;
+      font-weight: 700;
+    }
+
+    .team-row {
+      display: grid;
+      grid-template-columns: 24px 1fr;
+      gap: 9px;
+      align-items: center;
+      min-height: 38px;
+      padding: 8px 10px;
+      border-top: 1px solid #edf2f7;
+    }
+
+    .team-row img {
+      width: 24px;
+      height: 24px;
+      object-fit: contain;
+    }
+
+    .team-name {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-weight: 800;
+    }
+
+    .seed {
+      color: #627d98;
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+
+    .empty,
+    .error,
+    .loading {
+      padding: 16px;
+      border-radius: 8px;
+      line-height: 1.6;
+    }
+
+    .empty,
+    .loading {
+      background: #fff;
+      border: 1px dashed #bcccdc;
+      color: #486581;
+    }
+
+    .error {
+      background: #fee2e2;
+      border: 1px solid #fecaca;
+      color: #991b1b;
+    }
+
+    @media (max-width: 980px) {
+      .toolbar,
+      .grid {
+        display: block;
+      }
+
+      .button {
+        margin-top: 12px;
+        width: 100%;
+      }
+
+      .panel {
+        margin-bottom: 16px;
+      }
+
+      .bracket {
+        grid-template-columns: repeat(5, 250px);
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Preliminart slutspel</h1>
+    <p class="lead">Baserat pa dagens gruppstallning: gruppettor, grupptvaor och de 8 basta grupptreorna placeras i VM 2026:s Round of 32.</p>
+  </header>
+
+  <main class="page">
+    <section class="toolbar">
+      <div id="status">Laddar gruppstallningar fran api-football...</div>
+      <button class="button" id="reloadButton" type="button">Uppdatera</button>
+    </section>
+
+    <section class="grid">
+      <aside class="panel">
+        <h2>Basta grupptreor</h2>
+        <div id="thirds" class="third-list">
+          <div class="loading">Hamtar tabeller...</div>
+        </div>
+      </aside>
+
+      <div id="bracket" class="bracket" aria-live="polite">
+        <div class="loading">Bygger preliminart slutspel...</div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const API_KEY = "170d2afb853fb860d9432d14d7eaaaa5";
+    const BASE_URL = "https://v3.football.api-sports.io";
+    const LEAGUE = 1;
+    const SEASON = 2026;
+    const FINISHED_STATUSES = new Set(["FT", "AET", "PEN"]);
+    const GROUPS = "ABCDEFGHIJKL".split("");
+
+    const THIRD_PLACE_MATRIX_DATA = "EFGHIJKL:EJIFHGLK;DFGHIJKL:HGIDJFLK;DEGHIJKL:EJIDHGLK;DEFHIJKL:EJIDHFLK;DEFGIJKL:EGIDJFLK;DEFGHJKL:EGJDHFLK;DEFGHIKL:EGIDHFLK;DEFGHIJL:EGJDHFLI;DEFGHIJK:EGJDHFIK;CFGHIJKL:HGICJFLK;CEGHIJKL:EJICHGLK;CEFHIJKL:EJICHFLK;CEFGIJKL:EGICJFLK;CEFGHJKL:EGJCHFLK;CEFGHIKL:EGICHFLK;CEFGHIJL:EGJCHFLI;CEFGHIJK:EGJCHFIK;CDGHIJKL:HGICJDLK;CDFHIJKL:CJIDHFLK;CDFGIJKL:CGIDJFLK;CDFGHJKL:CGJDHFLK;CDFGHIKL:CGIDHFLK;CDFGHIJL:CGJDHFLI;CDFGHIJK:CGJDHFIK;CDEHIJKL:EJICHDLK;CDEGIJKL:EGICJDLK;CDEGHJKL:EGJCHDLK;CDEGHIKL:EGICHDLK;CDEGHIJL:EGJCHDLI;CDEGHIJK:EGJCHDIK;CDEFIJKL:CJEDIFLK;CDEFHJKL:CJEDHFLK;CDEFHIKL:CEIDHFLK;CDEFHIJL:CJEDHFLI;CDEFHIJK:CJEDHFIK;CDEFGJKL:CGEDJFLK;CDEFGIKL:CGEDIFLK;CDEFGIJL:CGEDJFLI;CDEFGIJK:CGEDJFIK;CDEFGHKL:CGEDHFLK;CDEFGHJL:CGJDHFLE;CDEFGHJK:CGJDHFEK;CDEFGHIL:CGEDHFLI;CDEFGHIK:CGEDHFIK;CDEFGHIJ:CGJDHFEI;BFGHIJKL:HJBFIGLK;BEGHIJKL:EJIBHGLK;BEFHIJKL:EJBFIHLK;BEFGIJKL:EJBFIGLK;BEFGHJKL:EJBFHGLK;BEFGHIKL:EGBFIHLK;BEFGHIJL:EJBFHGLI;BEFGHIJK:EJBFHGIK;BDGHIJKL:HJBDIGLK;BDFHIJKL:HJBDIFLK;BDFGIJKL:IGBDJFLK;BDFGHJKL:HGBDJFLK;BDFGHIKL:HGBDIFLK;BDFGHIJL:HGBDJFLI;BDFGHIJK:HGBDJFIK;BDEHIJKL:EJBDIHLK;BDEGIJKL:EJBDIGLK;BDEGHJKL:EJBDHGLK;BDEGHIKL:EGBDIHLK;BDEGHIJL:EJBDHGLI;BDEGHIJK:EJBDHGIK;BDEFIJKL:EJBDIFLK;BDEFHJKL:EJBDHFLK;BDEFHIKL:EIBDHFLK;BDEFHIJL:EJBDHFLI;BDEFHIJK:EJBDHFIK;BDEFGJKL:EGBDJFLK;BDEFGIKL:EGBDIFLK;BDEFGIJL:EGBDJFLI;BDEFGIJK:EGBDJFIK;BDEFGHKL:EGBDHFLK;BDEFGHJL:HGBDJFLE;BDEFGHJK:HGBDJFEK;BDEFGHIL:EGBDHFLI;BDEFGHIK:EGBDHFIK;BDEFGHIJ:HGBDJFEI;BCGHIJKL:HJBCIGLK;BCFHIJKL:HJBCIFLK;BCFGIJKL:IGBCJFLK;BCFGHJKL:HGBCJFLK;BCFGHIKL:HGBCIFLK;BCFGHIJL:HGBCJFLI;BCFGHIJK:HGBCJFIK;BCEHIJKL:EJBCIHLK;BCEGIJKL:EJBCIGLK;BCEGHJKL:EJBCHGLK;BCEGHIKL:EGBCIHLK;BCEGHIJL:EJBCHGLI;BCEGHIJK:EJBCHGIK;BCEFIJKL:EJBCIFLK;BCEFHJKL:EJBCHFLK;BCEFHIKL:EIBCHFLK;BCEFHIJL:EJBCHFLI;BCEFHIJK:EJBCHFIK;BCEFGJKL:EGBCJFLK;BCEFGIKL:EGBCIFLK;BCEFGIJL:EGBCJFLI;BCEFGIJK:EGBCJFIK;BCEFGHKL:EGBCHFLK;BCEFGHJL:HGBCJFLE;BCEFGHJK:HGBCJFEK;BCEFGHIL:EGBCHFLI;BCEFGHIK:EGBCHFIK;BCEFGHIJ:HGBCJFEI;BCDHIJKL:HJBCIDLK;BCDGIJKL:IGBCJDLK;BCDGHJKL:HGBCJDLK;BCDGHIKL:HGBCIDLK;BCDGHIJL:HGBCJDLI;BCDGHIJK:HGBCJDIK;BCDFIJKL:CJBDIFLK;BCDFHJKL:CJBDHFLK;BCDFHIKL:CIBDHFLK;BCDFHIJL:CJBDHFLI;BCDFHIJK:CJBDHFIK;BCDFGJKL:CGBDJFLK;BCDFGIKL:CGBDIFLK;BCDFGIJL:CGBDJFLI;BCDFGIJK:CGBDJFIK;BCDFGHKL:CGBDHFLK;BCDFGHJL:CGBDHFLJ;BCDFGHJK:HGBCJFDK;BCDFGHIL:CGBDHFLI;BCDFGHIK:CGBDHFIK;BCDFGHIJ:HGBCJFDI;BCDEIJKL:EJBCIDLK;BCDEHJKL:EJBCHDLK;BCDEHIKL:EIBCHDLK;BCDEHIJL:EJBCHDLI;BCDEHIJK:EJBCHDIK;BCDEGJKL:EGBCJDLK;BCDEGIKL:EGBCIDLK;BCDEGIJL:EGBCJDLI;BCDEGIJK:EGBCJDIK;BCDEGHKL:EGBCHDLK;BCDEGHJL:HGBCJDLE;BCDEGHJK:HGBCJDEK;BCDEGHIL:EGBCHDLI;BCDEGHIK:EGBCHDIK;BCDEGHIJ:HGBCJDEI;BCDEFJKL:CJBDEFLK;BCDEFIKL:CEBDIFLK;BCDEFIJL:CJBDEFLI;BCDEFIJK:CJBDEFIK;BCDEFHKL:CEBDHFLK;BCDEFHJL:CJBDHFLE;BCDEFHJK:CJBDHFEK;BCDEFHIL:CEBDHFLI;BCDEFHIK:CEBDHFIK;BCDEFHIJ:CJBDHFEI;BCDEFGKL:CGBDEFLK;BCDEFGJL:CGBDJFLE;BCDEFGJK:CGBDJFEK;BCDEFGIL:CGBDEFLI;BCDEFGIK:CGBDEFIK;BCDEFGIJ:CGBDJFEI;BCDEFGHL:CGBDHFLE;BCDEFGHK:CGBDHFEK;BCDEFGHJ:HGBCJFDE;BCDEFGHI:CGBDHFEI;AFGHIJKL:HJIFAGLK;AEGHIJKL:EJIAHGLK;AEFHIJKL:EJIFAHLK;AEFGIJKL:EJIFAGLK;AEFGHJKL:EGJFAHLK;AEFGHIKL:EGIFAHLK;AEFGHIJL:EGJFAHLI;AEFGHIJK:EGJFAHIK;ADGHIJKL:HJIDAGLK;ADFHIJKL:HJIDAFLK;ADFGIJKL:IGJDAFLK;ADFGHJKL:HGJDAFLK;ADFGHIKL:HGIDAFLK;ADFGHIJL:HGJDAFLI;ADFGHIJK:HGJDAFIK;ADEHIJKL:EJIDAHLK;ADEGIJKL:EJIDAGLK;ADEGHJKL:EGJDAHLK;ADEGHIKL:EGIDAHLK;ADEGHIJL:EGJDAHLI;ADEGHIJK:EGJDAHIK;ADEFIJKL:EJIDAFLK;ADEFHJKL:HJEDAFLK;ADEFHIKL:HEIDAFLK;ADEFHIJL:HJEDAFLI;ADEFHIJK:HJEDAFIK;ADEFGJKL:EGJDAFLK;ADEFGIKL:EGIDAFLK;ADEFGIJL:EGJDAFLI;ADEFGIJK:EGJDAFIK;ADEFGHKL:HGEDAFLK;ADEFGHJL:HGJDAFLE;ADEFGHJK:HGJDAFEK;ADEFGHIL:HGEDAFLI;ADEFGHIK:HGEDAFIK;ADEFGHIJ:HGJDAFEI;ACGHIJKL:HJICAGLK;ACFHIJKL:HJICAFLK;ACFGIJKL:IGJCAFLK;ACFGHJKL:HGJCAFLK;ACFGHIKL:HGICAFLK;ACFGHIJL:HGJCAFLI;ACFGHIJK:HGJCAFIK;ACEHIJKL:EJICAHLK;ACEGIJKL:EJICAGLK;ACEGHJKL:EGJCAHLK;ACEGHIKL:EGICAHLK;ACEGHIJL:EGJCAHLI;ACEGHIJK:EGJCAHIK;ACEFIJKL:EJICAFLK;ACEFHJKL:HJECAFLK;ACEFHIKL:HEICAFLK;ACEFHIJL:HJECAFLI;ACEFHIJK:HJECAFIK;ACEFGJKL:EGJCAFLK;ACEFGIKL:EGICAFLK;ACEFGIJL:EGJCAFLI;ACEFGIJK:EGJCAFIK;ACEFGHKL:HGECAFLK;ACEFGHJL:HGJCAFLE;ACEFGHJK:HGJCAFEK;ACEFGHIL:HGECAFLI;ACEFGHIK:HGECAFIK;ACEFGHIJ:HGJCAFEI;ACDHIJKL:HJICADLK;ACDGIJKL:IGJCADLK;ACDGHJKL:HGJCADLK;ACDGHIKL:HGICADLK;ACDGHIJL:HGJCADLI;ACDGHIJK:HGJCADIK;ACDFIJKL:CJIDAFLK;ACDFHJKL:HJFCADLK;ACDFHIKL:HFICADLK;ACDFHIJL:HJFCADLI;ACDFHIJK:HJFCADIK;ACDFGJKL:CGJDAFLK;ACDFGIKL:CGIDAFLK;ACDFGIJL:CGJDAFLI;ACDFGIJK:CGJDAFIK;ACDFGHKL:HGFCADLK;ACDFGHJL:CGJDAFLH;ACDFGHJK:HGJCAFDK;ACDFGHIL:HGFCADLI;ACDFGHIK:HGFCADIK;ACDFGHIJ:HGJCAFDI;ACDEIJKL:EJICADLK;ACDEHJKL:HJECADLK;ACDEHIKL:HEICADLK;ACDEHIJL:HJECADLI;ACDEHIJK:HJECADIK;ACDEGJKL:EGJCADLK;ACDEGIKL:EGICADLK;ACDEGIJL:EGJCADLI;ACDEGIJK:EGJCADIK;ACDEGHKL:HGECADLK;ACDEGHJL:HGJCADLE;ACDEGHJK:HGJCADEK;ACDEGHIL:HGECADLI;ACDEGHIK:HGECADIK;ACDEGHIJ:HGJCADEI;ACDEFJKL:CJEDAFLK;ACDEFIKL:CEIDAFLK;ACDEFIJL:CJEDAFLI;ACDEFIJK:CJEDAFIK;ACDEFHKL:HEFCADLK;ACDEFHJL:HJFCADLE;ACDEFHJK:HJECAFDK;ACDEFHIL:HEFCADLI;ACDEFHIK:HEFCADIK;ACDEFHIJ:HJECAFDI;ACDEFGKL:CGEDAFLK;ACDEFGJL:CGJDAFLE;ACDEFGJK:CGJDAFEK;ACDEFGIL:CGEDAFLI;ACDEFGIK:CGEDAFIK;ACDEFGIJ:CGJDAFEI;ACDEFGHL:HGFCADLE;ACDEFGHK:HGECAFDK;ACDEFGHJ:HGJCAFDE;ACDEFGHI:HGECAFDI;ABGHIJKL:HJBAIGLK;ABFHIJKL:HJBAIFLK;ABFGIJKL:IJBFAGLK;ABFGHJKL:HJBFAGLK;ABFGHIKL:HGBAIFLK;ABFGHIJL:HJBFAGLI;ABFGHIJK:HJBFAGIK;ABEHIJKL:EJBAIHLK;ABEGIJKL:EJBAIGLK;ABEGHJKL:EJBAHGLK;ABEGHIKL:EGBAIHLK;ABEGHIJL:EJBAHGLI;ABEGHIJK:EJBAHGIK;ABEFIJKL:EJBAIFLK;ABEFHJKL:EJBFAHLK;ABEFHIKL:EIBFAHLK;ABEFHIJL:EJBFAHLI;ABEFHIJK:EJBFAHIK;ABEFGJKL:EJBFAGLK;ABEFGIKL:EGBAIFLK;ABEFGIJL:EJBFAGLI;ABEFGIJK:EJBFAGIK;ABEFGHKL:EGBFAHLK;ABEFGHJL:HJBFAGLE;ABEFGHJK:HJBFAGEK;ABEFGHIL:EGBFAHLI;ABEFGHIK:EGBFAHIK;ABEFGHIJ:HJBFAGEI;ABDHIJKL:IJBDAHLK;ABDGIJKL:IJBDAGLK;ABDGHJKL:HJBDAGLK;ABDGHIKL:IGBDAHLK;ABDGHIJL:HJBDAGLI;ABDGHIJK:HJBDAGIK;ABDFIJKL:IJBDAFLK;ABDFHJKL:HJBDAFLK;ABDFHIKL:HIBDAFLK;ABDFHIJL:HJBDAFLI;ABDFHIJK:HJBDAFIK;ABDFGJKL:FJBDAGLK;ABDFGIKL:IGBDAFLK;ABDFGIJL:FJBDAGLI;ABDFGIJK:FJBDAGIK;ABDFGHKL:HGBDAFLK;ABDFGHJL:HGBDAFLJ;ABDFGHJK:HGBDAFJK;ABDFGHIL:HGBDAFLI;ABDFGHIK:HGBDAFIK;ABDFGHIJ:HGBDAFIJ;ABDEIJKL:EJBAIDLK;ABDEHJKL:EJBDAHLK;ABDEHIKL:EIBDAHLK;ABDEHIJL:EJBDAHLI;ABDEHIJK:EJBDAHIK;ABDEGJKL:EJBDAGLK;ABDEGIKL:EGBAIDLK;ABDEGIJL:EJBDAGLI;ABDEGIJK:EJBDAGIK;ABDEGHKL:EGBDAHLK;ABDEGHJL:HJBDAGLE;ABDEGHJK:HJBDAGEK;ABDEGHIL:EGBDAHLI;ABDEGHIK:EGBDAHIK;ABDEGHIJ:HJBDAGEI;ABDEFJKL:EJBDAFLK;ABDEFIKL:EIBDAFLK;ABDEFIJL:EJBDAFLI;ABDEFIJK:EJBDAFIK;ABDEFHKL:HEBDAFLK;ABDEFHJL:HJBDAFLE;ABDEFHJK:HJBDAFEK;ABDEFHIL:HEBDAFLI;ABDEFHIK:HEBDAFIK;ABDEFHIJ:HJBDAFEI;ABDEFGKL:EGBDAFLK;ABDEFGJL:EGBDAFLJ;ABDEFGJK:EGBDAFJK;ABDEFGIL:EGBDAFLI;ABDEFGIK:EGBDAFIK;ABDEFGIJ:EGBDAFIJ;ABDEFGHL:HGBDAFLE;ABDEFGHK:HGBDAFEK;ABDEFGHJ:HGBDAFEJ;ABDEFGHI:HGBDAFEI;ABCHIJKL:IJBCAHLK;ABCGIJKL:IJBCAGLK;ABCGHJKL:HJBCAGLK;ABCGHIKL:IGBCAHLK;ABCGHIJL:HJBCAGLI;ABCGHIJK:HJBCAGIK;ABCFIJKL:IJBCAFLK;ABCFHJKL:HJBCAFLK;ABCFHIKL:HIBCAFLK;ABCFHIJL:HJBCAFLI;ABCFHIJK:HJBCAFIK;ABCFGJKL:CJBFAGLK;ABCFGIKL:IGBCAFLK;ABCFGIJL:CJBFAGLI;ABCFGIJK:CJBFAGIK;ABCFGHKL:HGBCAFLK;ABCFGHJL:HGBCAFLJ;ABCFGHJK:HGBCAFJK;ABCFGHIL:HGBCAFLI;ABCFGHIK:HGBCAFIK;ABCFGHIJ:HGBCAFIJ;ABCEIJKL:EJBAICLK;ABCEHJKL:EJBCAHLK;ABCEHIKL:EIBCAHLK;ABCEHIJL:EJBCAHLI;ABCEHIJK:EJBCAHIK;ABCEGJKL:EJBCAGLK;ABCEGIKL:EGBAICLK;ABCEGIJL:EJBCAGLI;ABCEGIJK:EJBCAGIK;ABCEGHKL:EGBCAHLK;ABCEGHJL:HJBCAGLE;ABCEGHJK:HJBCAGEK;ABCEGHIL:EGBCAHLI;ABCEGHIK:EGBCAHIK;ABCEGHIJ:HJBCAGEI;ABCEFJKL:EJBCAFLK;ABCEFIKL:EIBCAFLK;ABCEFIJL:EJBCAFLI;ABCEFIJK:EJBCAFIK;ABCEFHKL:HEBCAFLK;ABCEFHJL:HJBCAFLE;ABCEFHJK:HJBCAFEK;ABCEFHIL:HEBCAFLI;ABCEFHIK:HEBCAFIK;ABCEFHIJ:HJBCAFEI;ABCEFGKL:EGBCAFLK;ABCEFGJL:EGBCAFLJ;ABCEFGJK:EGBCAFJK;ABCEFGIL:EGBCAFLI;ABCEFGIK:EGBCAFIK;ABCEFGIJ:EGBCAFIJ;ABCEFGHL:HGBCAFLE;ABCEFGHK:HGBCAFEK;ABCEFGHJ:HGBCAFEJ;ABCEFGHI:HGBCAFEI;ABCDIJKL:IJBCADLK;ABCDHJKL:HJBCADLK;ABCDHIKL:HIBCADLK;ABCDHIJL:HJBCADLI;ABCDHIJK:HJBCADIK;ABCDGJKL:CJBDAGLK;ABCDGIKL:IGBCADLK;ABCDGIJL:CJBDAGLI;ABCDGIJK:CJBDAGIK;ABCDGHKL:HGBCADLK;ABCDGHJL:HGBCADLJ;ABCDGHJK:HGBCADJK;ABCDGHIL:HGBCADLI;ABCDGHIK:HGBCADIK;ABCDGHIJ:HGBCADIJ;ABCDFJKL:CJBDAFLK;ABCDFIKL:CIBDAFLK;ABCDFIJL:CJBDAFLI;ABCDFIJK:CJBDAFIK;ABCDFHKL:HFBCADLK;ABCDFHJL:CJBDAFLH;ABCDFHJK:HJBCAFDK;ABCDFHIL:HFBCADLI;ABCDFHIK:HFBCADIK;ABCDFHIJ:HJBCAFDI;ABCDFGKL:CGBDAFLK;ABCDFGJL:CGBDAFLJ;ABCDFGJK:CGBDAFJK;ABCDFGIL:CGBDAFLI;ABCDFGIK:CGBDAFIK;ABCDFGIJ:CGBDAFIJ;ABCDFGHL:CGBDAFLH;ABCDFGHK:HGBCAFDK;ABCDFGHJ:HGBCAFDJ;ABCDFGHI:HGBCAFDI;ABCDEJKL:EJBCADLK;ABCDEIKL:EIBCADLK;ABCDEIJL:EJBCADLI;ABCDEIJK:EJBCADIK;ABCDEHKL:HEBCADLK;ABCDEHJL:HJBCADLE;ABCDEHJK:HJBCADEK;ABCDEHIL:HEBCADLI;ABCDEHIK:HEBCADIK;ABCDEHIJ:HJBCADEI;ABCDEGKL:EGBCADLK;ABCDEGJL:EGBCADLJ;ABCDEGJK:EGBCADJK;ABCDEGIL:EGBCADLI;ABCDEGIK:EGBCADIK;ABCDEGIJ:EGBCADIJ;ABCDEGHL:HGBCADLE;ABCDEGHK:HGBCADEK;ABCDEGHJ:HGBCADEJ;ABCDEGHI:HGBCADEI;ABCDEFKL:CEBDAFLK;ABCDEFJL:CJBDAFLE;ABCDEFJK:CJBDAFEK;ABCDEFIL:CEBDAFLI;ABCDEFIK:CEBDAFIK;ABCDEFIJ:CJBDAFEI;ABCDEFHL:HFBCADLE;ABCDEFHK:HEBCAFDK;ABCDEFHJ:HJBCAFDE;ABCDEFHI:HEBCAFDI;ABCDEFGL:CGBDAFLE;ABCDEFGK:CGBDAFEK;ABCDEFGJ:CGBDAFEJ;ABCDEFGI:CGBDAFEI;ABCDEFGH:HGBCAFDE";
+
+    const THIRD_PLACE_MATRIX = Object.fromEntries(
+      THIRD_PLACE_MATRIX_DATA.split(";").map(entry => entry.split(":"))
+    );
+    const THIRD_COLUMNS = ["1A", "1B", "1D", "1E", "1G", "1I", "1K", "1L"];
+
+    const ROUND_OF_32 = [
+      { match: 73, home: "2A", away: "2B" },
+      { match: 74, home: "1E", awayColumn: "1E" },
+      { match: 75, home: "1F", away: "2C" },
+      { match: 76, home: "1C", away: "2F" },
+      { match: 77, home: "1I", awayColumn: "1I" },
+      { match: 78, home: "2E", away: "2I" },
+      { match: 79, home: "1A", awayColumn: "1A" },
+      { match: 80, home: "1L", awayColumn: "1L" },
+      { match: 81, home: "1D", awayColumn: "1D" },
+      { match: 82, home: "1G", awayColumn: "1G" },
+      { match: 83, home: "2K", away: "2L" },
+      { match: 84, home: "1H", away: "2J" },
+      { match: 85, home: "1B", awayColumn: "1B" },
+      { match: 86, home: "1J", away: "2H" },
+      { match: 87, home: "1K", awayColumn: "1K" },
+      { match: 88, home: "2D", away: "2G" }
+    ];
+
+    const FUTURE_ROUNDS = [
+      { title: "Attondelsfinaler", matches: [[89, "W74", "W77"], [90, "W73", "W75"], [91, "W76", "W78"], [92, "W79", "W80"], [93, "W83", "W84"], [94, "W81", "W82"], [95, "W86", "W88"], [96, "W85", "W87"]] },
+      { title: "Kvartsfinaler", matches: [[97, "W89", "W90"], [98, "W93", "W94"], [99, "W91", "W92"], [100, "W95", "W96"]] },
+      { title: "Semifinaler", matches: [[101, "W97", "W98"], [102, "W99", "W100"]] },
+      { title: "Final", matches: [[104, "W101", "W102"]] }
+    ];
+
+    function escapeHtml(value) {
+      return String(value ?? "").replace(/[&<>"']/g, char => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+      }[char]));
+    }
+
+    async function apiFootball(endpoint) {
+      const response = await fetch(`${BASE_URL}/${endpoint}`, {
+        headers: { "x-apisports-key": API_KEY }
+      });
+
+      if (!response.ok) {
+        throw new Error(`API-fel ${response.status}`);
+      }
+
+      return response.json();
+    }
+
+    function getGroupLetter(groupName) {
+      const match = String(groupName || "").match(/(?:Group|Grupp)\s*([A-L])\b/i);
+      return match ? match[1].toUpperCase() : "";
+    }
+
+    function isRealGroup(groupData) {
+      return Boolean(getGroupLetter(groupData[0]?.group));
+    }
+
+    function cloneGroups(standings) {
+      return standings.filter(isRealGroup).map(group => group.map((team, index) => ({
+        team: team.team,
+        group: team.group,
+        groupLetter: getGroupLetter(team.group),
+        seedRank: Number(team.rank) || index + 1,
+        rank: index + 1,
+        points: 0,
+        goalsDiff: 0,
+        all: {
+          played: 0,
+          win: 0,
+          draw: 0,
+          lose: 0,
+          goals: { for: 0, against: 0 }
+        }
+      })));
+    }
+
+    function applyResult(team, goalsFor, goalsAgainst) {
+      team.all.played += 1;
+      team.all.goals.for += goalsFor;
+      team.all.goals.against += goalsAgainst;
+      team.goalsDiff = team.all.goals.for - team.all.goals.against;
+
+      if (goalsFor > goalsAgainst) {
+        team.all.win += 1;
+        team.points += 3;
+      } else if (goalsFor === goalsAgainst) {
+        team.all.draw += 1;
+        team.points += 1;
+      } else {
+        team.all.lose += 1;
+      }
+    }
+
+    function sortGroupRows(a, b) {
+      return (b.points ?? 0) - (a.points ?? 0) ||
+        (b.goalsDiff ?? 0) - (a.goalsDiff ?? 0) ||
+        (b.all?.goals?.for ?? 0) - (a.all?.goals?.for ?? 0) ||
+        a.seedRank - b.seedRank ||
+        String(a.team?.name || "").localeCompare(String(b.team?.name || ""), "sv");
+    }
+
+    function buildComputedGroups(standings, fixtures) {
+      const groups = cloneGroups(standings);
+      const groupByTeamId = new Map();
+
+      groups.forEach((group, groupIndex) => {
+        group.forEach(team => {
+          if (team.team?.id != null) {
+            groupByTeamId.set(String(team.team.id), groupIndex);
+          }
+        });
+      });
+
+      fixtures.forEach(match => {
+        const status = match.fixture?.status?.short;
+        const homeGoals = match.goals?.home;
+        const awayGoals = match.goals?.away;
+        if (!FINISHED_STATUSES.has(status) || homeGoals == null || awayGoals == null) return;
+        if (!/^Group Stage\b/i.test(match.league?.round || "")) return;
+
+        const homeGroupIndex = groupByTeamId.get(String(match.teams?.home?.id));
+        const awayGroupIndex = groupByTeamId.get(String(match.teams?.away?.id));
+        if (homeGroupIndex === undefined || homeGroupIndex !== awayGroupIndex) return;
+
+        const group = groups[homeGroupIndex];
+        const home = group.find(team => String(team.team?.id) === String(match.teams?.home?.id));
+        const away = group.find(team => String(team.team?.id) === String(match.teams?.away?.id));
+        if (!home || !away) return;
+
+        applyResult(home, Number(homeGoals), Number(awayGoals));
+        applyResult(away, Number(awayGoals), Number(homeGoals));
+      });
+
+      return groups.map(group => group
+        .slice()
+        .sort(sortGroupRows)
+        .map((team, index) => ({ ...team, rank: index + 1 })));
+    }
+
+    function sortThirds(a, b) {
+      return (b.points ?? 0) - (a.points ?? 0) ||
+        (b.goalsDiff ?? 0) - (a.goalsDiff ?? 0) ||
+        (b.all?.goals?.for ?? 0) - (a.all?.goals?.for ?? 0) ||
+        GROUPS.indexOf(a.groupLetter) - GROUPS.indexOf(b.groupLetter);
+    }
+
+    function getSeed(groups, seed) {
+      const rank = Number(seed[0]);
+      const groupLetter = seed[1];
+      return groups.find(group => group[0]?.groupLetter === groupLetter)?.find(team => team.rank === rank) || null;
+    }
+
+    function getThirdAssignments(bestThirds) {
+      const key = bestThirds.map(team => team.groupLetter).sort().join("");
+      const assignment = THIRD_PLACE_MATRIX[key];
+      if (!assignment) {
+        throw new Error(`Saknar matrisrad for grupptreor: ${key}`);
+      }
+
+      return Object.fromEntries(THIRD_COLUMNS.map((column, index) => [column, `3${assignment[index]}`]));
+    }
+
+    function renderThirds(thirds) {
+      return thirds.map((team, index) => {
+        const stats = team.all || {};
+        const qualified = index < 8;
+        return `
+          <div class="third-row ${qualified ? "" : "out"}">
+            <span class="rank">${index + 1}</span>
+            <span>${escapeHtml(team.team?.name || "Okant lag")} <span class="seed">3${team.groupLetter}</span></span>
+            <span class="stats">${stats.played ?? 0} sp, ${team.points ?? 0} p, ${team.goalsDiff ?? 0}</span>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function teamRow(team, seed) {
+      const name = team?.team?.name || seed || "Ej klart";
+      const logo = team?.team?.logo || "";
+
+      return `
+        <div class="team-row">
+          ${logo ? `<img src="${escapeHtml(logo)}" alt="">` : "<span></span>"}
+          <div>
+            <div class="team-name">${escapeHtml(name)}</div>
+            <div class="seed">${escapeHtml(seed)}</div>
+          </div>
+        </div>
+      `;
+    }
+
+    function matchCard(matchNo, homeTeam, homeSeed, awayTeam, awaySeed) {
+      return `
+        <article class="match-card">
+          <div class="match-meta">
+            <span>Match ${matchNo}</span>
+            <span>Round of 32</span>
+          </div>
+          ${teamRow(homeTeam, homeSeed)}
+          ${teamRow(awayTeam, awaySeed)}
+        </article>
+      `;
+    }
+
+    function placeholderCard(matchNo, homeSeed, awaySeed, label) {
+      return `
+        <article class="match-card">
+          <div class="match-meta">
+            <span>Match ${matchNo}</span>
+            <span>${label}</span>
+          </div>
+          ${teamRow(null, homeSeed)}
+          ${teamRow(null, awaySeed)}
+        </article>
+      `;
+    }
+
+    function renderBracket(groups, bestThirds) {
+      const assignments = getThirdAssignments(bestThirds);
+
+      const roundOf32 = ROUND_OF_32.map(slot => {
+        const awaySeed = slot.awayColumn ? assignments[slot.awayColumn] : slot.away;
+        return matchCard(
+          slot.match,
+          getSeed(groups, slot.home),
+          slot.home,
+          getSeed(groups, awaySeed),
+          awaySeed
+        );
+      }).join("");
+
+      const futureRounds = FUTURE_ROUNDS.map(round => `
+        <section class="round">
+          <h2>${round.title}</h2>
+          <div class="round-body">
+            ${round.matches.map(([matchNo, homeSeed, awaySeed]) => placeholderCard(matchNo, homeSeed, awaySeed, round.title)).join("")}
+          </div>
+        </section>
+      `).join("");
+
+      return `
+        <section class="round">
+          <h2>Round of 32</h2>
+          <div class="round-body">${roundOf32}</div>
+        </section>
+        ${futureRounds}
+      `;
+    }
+
+    async function loadPreliminaryBracket() {
+      const status = document.getElementById("status");
+      const thirdsContainer = document.getElementById("thirds");
+      const bracket = document.getElementById("bracket");
+      const reloadButton = document.getElementById("reloadButton");
+
+      reloadButton.disabled = true;
+      status.textContent = "Hamtar gruppstallningar och spelade matcher...";
+      bracket.innerHTML = `<div class="loading">Bygger preliminart slutspel...</div>`;
+
+      try {
+        const standingsData = await apiFootball(`standings?league=${LEAGUE}&season=${SEASON}`);
+        const standings = standingsData.response[0]?.league?.standings || [];
+        const realStandings = standings.filter(isRealGroup);
+
+        if (realStandings.length !== 12) {
+          throw new Error(`Hittade ${realStandings.length} grupper, forvantade 12.`);
+        }
+
+        let fixtures = [];
+        try {
+          const fixturesData = await apiFootball(`fixtures?league=${LEAGUE}&season=${SEASON}`);
+          fixtures = fixturesData.response || [];
+        } catch (fixtureError) {
+          console.warn("Kunde inte hamta matcher, anvander API-standings.", fixtureError);
+        }
+
+        const groups = fixtures.length ? buildComputedGroups(realStandings, fixtures) : cloneGroups(realStandings);
+        const thirdPlaceTeams = groups
+          .map(group => group.find(team => team.rank === 3))
+          .filter(Boolean)
+          .sort(sortThirds);
+        const bestThirds = thirdPlaceTeams.slice(0, 8);
+
+        thirdsContainer.innerHTML = renderThirds(thirdPlaceTeams);
+        bracket.innerHTML = renderBracket(groups, bestThirds);
+
+        const finishedMatches = fixtures.filter(match =>
+          FINISHED_STATUSES.has(match.fixture?.status?.short) &&
+          /^Group Stage\b/i.test(match.league?.round || "")
+        ).length;
+        const time = new Date().toLocaleString("sv-SE", { dateStyle: "short", timeStyle: "short" });
+        status.textContent = `Om VM slutade idag: ${bestThirds.map(team => `3${team.groupLetter}`).join(", ")} gar vidare. Gruppmatcher inraknade: ${finishedMatches}. Uppdaterad ${time}.`;
+      } catch (error) {
+        console.error(error);
+        thirdsContainer.innerHTML = `<div class="error">${escapeHtml(error.message)}</div>`;
+        bracket.innerHTML = `<div class="error">Kunde inte bygga preliminart slutspel.</div>`;
+        status.textContent = "Fel vid hamtning eller berakning.";
+      } finally {
+        reloadButton.disabled = false;
+      }
+    }
+
+    document.getElementById("reloadButton").addEventListener("click", loadPreliminaryBracket);
+    loadPreliminaryBracket();
+  </script>
+</body>
+</html>
