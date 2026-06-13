@@ -10,8 +10,18 @@
         .wrap{width:min(1100px,100%);text-align:center;padding:20px 18px 28px}
         .topbar{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;flex-wrap:wrap;margin-bottom:8px}
         h1{font-size:42px;margin:0;text-align:left;letter-spacing:-.03em}
-        .hero{position:relative;width:min(760px,100%);min-height:320px;margin:0 auto 4px;display:flex;align-items:center;justify-content:center}
+        .hero{position:relative;width:min(980px,100%);min-height:320px;margin:0 auto 4px;display:flex;align-items:center;justify-content:center}
         .logo{width:310px;height:auto;flex:0 0 auto;filter:drop-shadow(0 18px 28px rgba(0,0,0,.18))}
+        .score-card{position:absolute;left:0;top:50%;transform:translateY(-50%);width:230px;padding:12px 14px;border-radius:12px;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.24);box-shadow:0 10px 28px rgba(0,0,0,.12);text-align:left;backdrop-filter:blur(6px)}
+        .score-card h2{margin:0 0 8px;font-size:16px}
+        .score-list{list-style:none;margin:0;padding:0;display:grid;gap:5px}
+        .score-list li{display:grid;grid-template-columns:24px 1fr auto;align-items:center;gap:7px;padding:5px 0;border-top:1px solid rgba(255,255,255,.16);font-size:13px}
+        .score-list li:first-child{border-top:0}
+        .score-rank{width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.9);color:#0f2a4d;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:800}
+        .score-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+        .score-points{font-weight:800}
+        .score-link{display:inline-block;margin-top:8px;color:#fff;font-size:12px;font-weight:700;text-decoration:none;opacity:.9}
+        .score-link:hover{text-decoration:underline;opacity:1}
         .info-card{position:absolute;right:0;top:50%;transform:translateY(-50%);max-width:320px;padding:14px 16px;border-radius:14px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);box-shadow:0 10px 28px rgba(0,0,0,.12);text-align:left;backdrop-filter:blur(6px)}
         .info-card h2{margin:0 0 10px;font-size:20px}
         .info-card ul{margin:0;padding-left:20px;line-height:1.7;font-size:16px}
@@ -20,7 +30,9 @@
         .chat-link:hover{transform:translateY(-2px);box-shadow:0 18px 42px rgba(0,0,0,.22);background:#f8fbff}
         .chat-icon{width:22px;height:22px;border-radius:50%;background:#005293;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:14px;line-height:1}
         .chat-sub{display:block;margin-top:7px;font-size:13px;opacity:.86}
-        @media (max-width:600px){body{align-items:flex-start}.wrap{padding:18px 14px 24px}.topbar{justify-content:center}h1{font-size:28px}.hero{min-height:0;display:flex;flex-direction:column;gap:14px}.logo{width:180px}.info-card{position:static;transform:none;max-width:100%;width:100%;padding:14px 16px}.chat-link{width:100%;justify-content:center}.chat-sub{font-size:12px}}
+        .score-frame{position:absolute;width:1px;height:1px;border:0;clip-path:inset(50%);overflow:hidden}
+        @media (max-width:860px){.hero{min-height:0;display:flex;flex-direction:column;gap:14px}.score-card,.info-card{position:static;transform:none;max-width:100%;width:min(360px,100%)}}
+        @media (max-width:600px){body{align-items:flex-start}.wrap{padding:18px 14px 24px}.topbar{justify-content:center}h1{font-size:28px}.logo{width:180px}.info-card{padding:14px 16px}.chat-link{width:100%;justify-content:center}.chat-sub{font-size:12px}}
     </style>
 </head>
 <body>
@@ -38,6 +50,13 @@
             </a>
         </section>
         <div class="hero">
+            <section class="score-card" aria-label="Topp 5 grundspelspoäng">
+                <h2>Topp 5 grundspel</h2>
+                <ol class="score-list" id="topScores">
+                    <li><span class="score-rank">-</span><span class="score-name">Laddar poäng...</span><span class="score-points"></span></li>
+                </ol>
+                <a class="score-link" href="poangstallning_ny.html?v=3" target="contentFrame">Visa alla poäng</a>
+            </section>
             <img class="logo" src="2026_FIFA_World_Cup_emblem.svg.webp" alt="VM 2026 logga">
             <section class="info-card" aria-label="Tävlingsinformation">
                 <h2>Inför spelet</h2>
@@ -49,6 +68,70 @@
                 </ul>
             </section>
         </div>
+        <iframe class="score-frame" id="scoreFrame" src="poangstallning_ny.html?v=3" title="Poängdata" aria-hidden="true"></iframe>
     </div>
+    <script>
+        const topScores = document.getElementById("topScores");
+        const scoreFrame = document.getElementById("scoreFrame");
+
+        function escapeHtml(value) {
+            return String(value).replace(/[&<>"']/g, char => ({
+                "&": "&amp;",
+                "<": "&lt;",
+                ">": "&gt;",
+                '"': "&quot;",
+                "'": "&#039;",
+            }[char]));
+        }
+
+        function renderTopScores(rows) {
+            if (!rows.length) {
+                topScores.innerHTML = '<li><span class="score-rank">-</span><span class="score-name">Inga poäng ännu</span><span class="score-points">0 p</span></li>';
+                return;
+            }
+
+            topScores.innerHTML = rows.slice(0, 5).map((row, index) => `
+                <li>
+                    <span class="score-rank">${index + 1}</span>
+                    <span class="score-name" title="${escapeHtml(row.name)}">${escapeHtml(row.name)}</span>
+                    <span class="score-points">${escapeHtml(row.points)} p</span>
+                </li>
+            `).join("");
+        }
+
+        function readScoresFromFrame() {
+            try {
+                const rows = Array.from(scoreFrame.contentDocument.querySelectorAll("#tipsTable tbody tr"))
+                    .map(row => {
+                        const cells = row.querySelectorAll("td");
+                        return {
+                            name: cells[1]?.textContent.trim() || "",
+                            points: cells[2]?.textContent.trim() || "0",
+                        };
+                    })
+                    .filter(row => row.name);
+
+                if (rows.length) {
+                    renderTopScores(rows);
+                    return true;
+                }
+            } catch {
+                topScores.innerHTML = '<li><span class="score-rank">!</span><span class="score-name">Kunde inte läsa poängen</span><span class="score-points"></span></li>';
+                return true;
+            }
+
+            return false;
+        }
+
+        scoreFrame.addEventListener("load", () => {
+            let attempts = 0;
+            const timer = setInterval(() => {
+                attempts += 1;
+                if (readScoresFromFrame() || attempts >= 25) {
+                    clearInterval(timer);
+                }
+            }, 400);
+        });
+    </script>
 </body>
 </html>
