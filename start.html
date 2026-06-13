@@ -15,20 +15,12 @@
         .info-card{position:absolute;right:0;top:50%;transform:translateY(-50%);max-width:320px;padding:14px 16px;border-radius:14px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);box-shadow:0 10px 28px rgba(0,0,0,.12);text-align:left;backdrop-filter:blur(6px)}
         .info-card h2{margin:0 0 10px;font-size:20px}
         .info-card ul{margin:0;padding-left:20px;line-height:1.7;font-size:16px}
-        .countdown{margin:20px auto 0;max-width:560px}
-        .countdown-title{margin:0 0 14px;font-size:20px;font-weight:700}
-        .countdown-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
-        .countdown-box{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.3);border-radius:8px;padding:12px 10px;box-shadow:0 10px 28px rgba(0,0,0,.16)}
-        .countdown-number{display:block;font-size:34px;font-weight:800;line-height:1}
-        .countdown-label{display:block;margin-top:6px;font-size:13px;text-transform:uppercase;letter-spacing:.08em;opacity:.86}
-        .match-info{margin:14px 0 0;font-size:15px;opacity:.92}
         .quick-links{margin:22px auto 0;display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap}
         .chat-link{display:inline-flex;align-items:center;gap:10px;padding:13px 18px;border-radius:8px;background:#fff;color:#0f2a4d;text-decoration:none;font-weight:800;box-shadow:0 14px 34px rgba(0,0,0,.18);border:1px solid rgba(255,255,255,.58);transition:transform .16s ease,box-shadow .16s ease,background .16s ease}
         .chat-link:hover{transform:translateY(-2px);box-shadow:0 18px 42px rgba(0,0,0,.22);background:#f8fbff}
         .chat-icon{width:22px;height:22px;border-radius:50%;background:#005293;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:14px;line-height:1}
         .chat-sub{display:block;margin-top:7px;font-size:13px;opacity:.86}
-        .countdown + .quick-links{display:none}
-        @media (max-width:600px){body{align-items:flex-start}.wrap{padding:18px 14px 24px}.topbar{justify-content:center}h1{font-size:28px}.hero{min-height:0;display:flex;flex-direction:column;gap:14px}.logo{width:180px}.info-card{position:static;transform:none;max-width:100%;width:100%;padding:14px 16px}.countdown{margin-top:16px}.countdown-grid{gap:8px}.countdown-box{padding:10px 6px}.countdown-number{font-size:26px}.countdown-label{font-size:11px}.match-info{font-size:13px}.chat-link{width:100%;justify-content:center}.chat-sub{font-size:12px}}
+        @media (max-width:600px){body{align-items:flex-start}.wrap{padding:18px 14px 24px}.topbar{justify-content:center}h1{font-size:28px}.hero{min-height:0;display:flex;flex-direction:column;gap:14px}.logo{width:180px}.info-card{position:static;transform:none;max-width:100%;width:100%;padding:14px 16px}.chat-link{width:100%;justify-content:center}.chat-sub{font-size:12px}}
     </style>
 </head>
 <body>
@@ -57,54 +49,6 @@
                 </ul>
             </section>
         </div>
-        <section class="countdown" aria-label="Nedräkning till första matchen">
-            <p class="countdown-title" id="countdownTitle">Nedräkning till första matchen</p>
-            <div class="countdown-grid">
-                <div class="countdown-box"><span class="countdown-number" id="days">0</span><span class="countdown-label">Dagar</span></div>
-                <div class="countdown-box"><span class="countdown-number" id="hours">0</span><span class="countdown-label">Timmar</span></div>
-                <div class="countdown-box"><span class="countdown-number" id="minutes">0</span><span class="countdown-label">Minuter</span></div>
-                <div class="countdown-box"><span class="countdown-number" id="seconds">0</span><span class="countdown-label">Sekunder</span></div>
-            </div>
-            <p class="match-info">Mexiko - Sydafrika, 11 juni 2026 kl. 21:00</p>
-        </section>
-        <section class="quick-links" aria-label="Snabblänkar">
-            <a class="chat-link" href="chat.html" target="contentFrame">
-                <span class="chat-icon">C</span>
-                <span>
-                    Gå till VM-chatten
-                    <span class="chat-sub">Snacka matcher, tips och poäng med gänget</span>
-                </span>
-            </a>
-        </section>
     </div>
-    <script>
-        const firstMatchTime = new Date("2026-06-11T21:00:00+02:00").getTime();
-        const countdownTitle = document.getElementById("countdownTitle");
-        const days = document.getElementById("days");
-        const hours = document.getElementById("hours");
-        const minutes = document.getElementById("minutes");
-        const seconds = document.getElementById("seconds");
-
-        function updateCountdown() {
-            const distance = firstMatchTime - Date.now();
-
-            if (distance <= 0) {
-                countdownTitle.textContent = "VM 2026 är igång!";
-                days.textContent = "0";
-                hours.textContent = "0";
-                minutes.textContent = "0";
-                seconds.textContent = "0";
-                return;
-            }
-
-            days.textContent = Math.floor(distance / (1000 * 60 * 60 * 24));
-            hours.textContent = Math.floor((distance / (1000 * 60 * 60)) % 24);
-            minutes.textContent = Math.floor((distance / (1000 * 60)) % 60);
-            seconds.textContent = Math.floor((distance / 1000) % 60);
-        }
-
-        updateCountdown();
-        setInterval(updateCountdown, 1000);
-    </script>
 </body>
 </html>
