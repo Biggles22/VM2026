@@ -263,7 +263,7 @@ async function handlePresencePing(request: Request, env: WorkerEnv): Promise<Res
 	};
 
 	await env.SUBSCRIPTIONS.put(`presence:${id}`, JSON.stringify(record), {
-		expirationTtl: 75,
+		expirationTtl: 600,
 	});
 
 	return handlePresenceCount(request, env);
