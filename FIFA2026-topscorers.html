@@ -300,6 +300,22 @@
             return data.response || [];
         }
 
+        function normalizeTopscorers(players) {
+            return players.sort((a, b) => {
+                const aStats = a.statistics?.[0] || {};
+                const bStats = b.statistics?.[0] || {};
+                const goalDiff = (bStats.goals?.total ?? 0) - (aStats.goals?.total ?? 0);
+                if (goalDiff) return goalDiff;
+                const assistDiff = (bStats.goals?.assists ?? 0) - (aStats.goals?.assists ?? 0);
+                if (assistDiff) return assistDiff;
+                const aMinutes = aStats.games?.minutes ?? Number.MAX_SAFE_INTEGER;
+                const bMinutes = bStats.games?.minutes ?? Number.MAX_SAFE_INTEGER;
+                const minutesDiff = aMinutes - bMinutes;
+                if (minutesDiff) return minutesDiff;
+                return (a.player?.name || "").localeCompare(b.player?.name || "", "sv");
+            });
+        }
+
         function renderTopscorers(players) {
             const rows = players.slice(0, MAX_PLAYERS).map((item, index) => {
                 const player = item.player || {};
@@ -346,10 +362,18 @@
             const container = document.getElementById("topscorers");
             const status = document.getElementById("status");
             try {
-                let players = await loadTopscorersFromApi();
-                if (players.length === 0) {
-                    const fixtures = await loadFinishedFixtures();
-                    players = await loadTopscorersFromEvents(fixtures);
+                const apiPlayersPromise = loadTopscorersFromApi().catch(error => {
+                    console.warn("Kunde inte hämta färdig skytteliga:", error);
+                    return [];
+                });
+
+                const fixtures = await loadFinishedFixtures();
+                const eventPlayers = await loadTopscorersFromEvents(fixtures);
+                const apiPlayers = await apiPlayersPromise;
+                const players = eventPlayers.length ? eventPlayers : normalizeTopscorers(apiPlayers);
+
+                if (eventPlayers.length && apiPlayers.length) {
+                    console.info("Skytteligan visas från matchhändelser eftersom den färdiga API-listan kan släpa.");
                 }
                 if (players.length === 0) {
                     container.innerHTML = `<div class="error">Inga topplista-data hittades.</div>`;
@@ -357,7 +381,9 @@
                     return;
                 }
                 container.innerHTML = renderTopscorers(players);
-                status.textContent = `Visar top ${Math.min(players.length, MAX_PLAYERS)} målskyttar i VM 2026.`;
+                status.textContent = eventPlayers.length
+                    ? `Visar top ${Math.min(players.length, MAX_PLAYERS)} från matchhändelser.`
+                    : `Visar top ${Math.min(players.length, MAX_PLAYERS)} från API:s skytteliga.`;
             } catch (error) {
                 console.error(error);
                 container.innerHTML = `<div class="error">Kunde inte hämta toppskyttar. Kontrollera API-nyckeln och att tjänsten är tillgänglig.</div>`;
