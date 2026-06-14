@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VM 2026 Skytteliga</title>
+    <title>VM 2026 Skytteligaledare</title>
     <style>
         body {
             margin: 0;
@@ -20,16 +20,10 @@
         header h1 {
             margin: 0;
             font-size: clamp(2rem, 3vw, 2.6rem);
-            letter-spacing: 0;
-        }
-        header p {
-            margin: 10px auto 0;
-            max-width: 680px;
-            color: rgba(255, 255, 255, 0.88);
-            line-height: 1.5;
+            letter-spacing: -0.04em;
         }
         .container {
-            max-width: 880px;
+            max-width: 1100px;
             margin: 24px auto;
             padding: 0 18px 40px;
         }
@@ -44,90 +38,54 @@
             margin-bottom: 18px;
         }
         .note {
-            margin: 0 0 18px;
+            margin-bottom: 18px;
             padding: 16px 18px;
             background: #ffffff;
-            border-radius: 8px;
+            border-radius: 16px;
             border: 1px solid #dbe3ea;
             color: #334e68;
             line-height: 1.6;
         }
-        .topscorer-list {
-            display: grid;
-            gap: 12px;
-        }
-        .topscorer-card {
-            display: grid;
-            grid-template-columns: 48px minmax(0, 1fr) auto;
-            gap: 14px;
-            align-items: center;
-            padding: 16px;
-            border-radius: 8px;
+        .topscorers-table {
+            width: 100%;
+            border-collapse: collapse;
             background: #ffffff;
-            border: 1px solid #dbe3ea;
-            box-shadow: 0 12px 28px rgba(16, 42, 67, 0.08);
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: 0 18px 40px rgba(16, 42, 67, 0.08);
         }
-        .topscorer-card:first-child {
-            border-color: rgba(15, 76, 129, 0.28);
-            box-shadow: 0 18px 38px rgba(16, 42, 67, 0.12);
+        .topscorers-table thead {
+            background: linear-gradient(90deg, #0f4c81, #2566a8);
+            color: #ffffff;
         }
-        .rank {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 40px;
-            height: 40px;
-            border-radius: 999px;
-            background: #e8f1fb;
+        .topscorers-table th,
+        .topscorers-table td {
+            padding: 14px 16px;
+            text-align: left;
+            border-bottom: 1px solid #e1e8f0;
+            font-size: 0.95rem;
+        }
+        .topscorers-table tbody tr:nth-child(even) {
+            background: #f4f7fb;
+        }
+        .topscorers-table td.rank {
+            width: 60px;
+            font-weight: 700;
             color: #0f4c81;
-            font-weight: 900;
-        }
-        .topscorer-card:first-child .rank {
-            background: #f6c945;
-            color: #102a43;
         }
         .player-name {
-            margin: 0;
-            color: #102a43;
-            font-size: 1.12rem;
-            font-weight: 900;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
         }
         .player-team {
-            margin-top: 4px;
             color: #4a6d87;
-            font-size: 0.95rem;
-            font-weight: 700;
-        }
-        .player-extra {
-            margin-top: 6px;
-            color: #60758a;
             font-size: 0.9rem;
-            line-height: 1.45;
-        }
-        .goals-pill {
-            min-width: 94px;
-            padding: 10px 12px;
-            border-radius: 8px;
-            background: #0f4c81;
-            color: #ffffff;
-            text-align: center;
-        }
-        .goals-pill strong {
-            display: block;
-            font-size: 1.8rem;
-            line-height: 1;
-        }
-        .goals-pill span {
-            display: block;
-            margin-top: 3px;
-            font-size: 0.78rem;
-            font-weight: 800;
-            text-transform: uppercase;
         }
         .loading,
         .error {
-            padding: 16px;
-            border-radius: 8px;
+            padding: 18px;
+            border-radius: 16px;
             margin-top: 12px;
         }
         .loading {
@@ -141,25 +99,20 @@
             color: #9f1239;
         }
         @media (max-width: 760px) {
-            .topscorer-card {
-                grid-template-columns: 42px minmax(0, 1fr);
-            }
-            .goals-pill {
-                grid-column: 1 / -1;
-                min-width: 0;
+            .topscorers-table th,
+            .topscorers-table td {
+                padding: 12px 10px;
             }
         }
     </style>
 </head>
 <body>
     <header>
-        <h1>Skytteliga</h1>
-        <p>En enkel topplista över spelarna som gjort flest mål i VM 2026.</p>
+        <h1>VM 2026 - Skytteligaledare</h1>
     </header>
     <div class="container">
  
         <div class="status-box" id="status">Laddar toppskyttar...</div>
-        <div class="note">Listan sorteras på flest mål. Vid lika många mål sorteras spelarna efter flest assist och därefter färre spelade minuter.</div>
         <div id="topscorers">
             <div class="loading">Hämtar data från API...</div>
         </div>
@@ -169,7 +122,7 @@
         const BASE_URL = "https://v3.football.api-sports.io";
         const LEAGUE = 1;
         const SEASON = 2026;
-        const MAX_PLAYERS = 5;
+        const MAX_PLAYERS = 20;
         const FINISHED_STATUSES = new Set(["FT", "AET", "PEN"]);
 
         async function apiFootball(endpoint) {
@@ -348,32 +301,37 @@
                 const goals = statistics.goals?.total ?? 0;
                 const assists = statistics.goals?.assists ?? 0;
                 const penalties = statistics.penalties?.total ?? 0;
-                const scoringMatches = statistics.games?.scoringMatches ?? 0;
-                const detailParts = [
-                    `${assists} assist`,
-                    `${scoringMatches} målmatch${scoringMatches === 1 ? "" : "er"}`
-                ];
-                if (penalties > 0) detailParts.push(`${penalties} straffmål`);
+                const minutes = statistics.games?.minutes ?? 0;
+                const nationality = player.nationality || "-";
                 return `
-                    <article class="topscorer-card">
-                        <div class="rank">${index + 1}</div>
-                        <div>
-                            <h2 class="player-name">${escapeHtml(player.name || "-")}</h2>
-                            <div class="player-team">${escapeHtml(team.name || "-")}</div>
-                            <div class="player-extra">${escapeHtml(detailParts.join(" · "))}</div>
-                        </div>
-                        <div class="goals-pill">
-                            <strong>${goals}</strong>
-                            <span>mål</span>
-                        </div>
-                    </article>
+                    <tr>
+                        <td class="rank">${index + 1}</td>
+                        <td>
+                            <div class="player-name">${escapeHtml(player.name || "-")}</div>
+                            <div class="player-team">${escapeHtml(team.name || "-")} | ${escapeHtml(nationality)}</div>
+                        </td>
+                        <td>${goals}</td>
+                        <td>${assists}</td>
+                        <td>${penalties}</td>
+                        <td>${minutes}</td>
+                    </tr>
                 `;
             }).join("");
 
             return `
-                <section class="topscorer-list" aria-label="Skytteligans toppspelare">
-                    ${rows}
-                </section>
+                <table class="topscorers-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Spelare</th>
+                            <th>Mål</th>
+                            <th>Assist</th>
+                            <th>Straffmål</th>
+                            <th>Minuter</th>
+                        </tr>
+                    </thead>
+                    <tbody>${rows}</tbody>
+                </table>
             `;
         }
 
@@ -389,7 +347,7 @@
                     return;
                 }
                 container.innerHTML = renderTopscorers(players);
-                status.textContent = `Visar topp ${Math.min(players.length, MAX_PLAYERS)} i skytteligan.`;
+                status.textContent = `Visar de ${Math.min(players.length, MAX_PLAYERS)} bästa målskyttarna i VM 2026.`;
             } catch (error) {
                 console.error(error);
                 container.innerHTML = `<div class="error">Kunde inte hämta toppskyttar. Kontrollera API-nyckeln och att tjänsten är tillgänglig.</div>`;
