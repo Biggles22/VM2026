@@ -126,8 +126,11 @@
         const FINISHED_STATUSES = new Set(["FT", "AET", "PEN"]);
 
         async function apiFootball(endpoint) {
-            const response = await fetch(`${BASE_URL}/${endpoint}`, {
+            const separator = endpoint.includes("?") ? "&" : "?";
+            const response = await fetch(`${BASE_URL}/${endpoint}${separator}_=${Date.now()}`, {
+                cache: "no-store",
                 headers: {
+                    "Cache-Control": "no-cache",
                     "x-apisports-key": API_KEY
                 }
             });
@@ -259,14 +262,17 @@
         async function loadTopscorersFromEvents(fixtures) {
             const entries = new Map();
 
-            await mapWithConcurrency(fixtures, 4, async match => {
-                try {
-                    await Promise.all([
-                        addFixturePlayerStatistics(entries, match),
-                        addFixtureEvents(entries, match)
-                    ]);
-                } catch (error) {
-                    console.warn(`Kunde inte hämta mål-events för match ${match.fixture.id}:`, error);
+            await mapWithConcurrency(fixtures, 2, async match => {
+                const [playerStatsResult, eventsResult] = await Promise.allSettled([
+                    addFixturePlayerStatistics(entries, match),
+                    addFixtureEvents(entries, match)
+                ]);
+
+                if (playerStatsResult.status === "rejected") {
+                    console.warn(`Kunde inte hämta spelarstatistik för match ${match.fixture.id}:`, playerStatsResult.reason);
+                }
+                if (eventsResult.status === "rejected") {
+                    console.warn(`Kunde inte hämta mål-events för match ${match.fixture.id}:`, eventsResult.reason);
                 }
             });
 
