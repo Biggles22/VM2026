@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VM 2026 Skytteligaledare</title>
+    <title>VM 2026 Top 5 skytteliga</title>
     <style>
         body {
             margin: 0;
@@ -108,7 +108,7 @@
 </head>
 <body>
     <header>
-        <h1>VM 2026 - Skytteligaledare</h1>
+        <h1>VM 2026 - Top 5 skytteliga</h1>
     </header>
     <div class="container">
  
@@ -122,7 +122,7 @@
         const BASE_URL = "https://v3.football.api-sports.io";
         const LEAGUE = 1;
         const SEASON = 2026;
-        const MAX_PLAYERS = 20;
+        const MAX_PLAYERS = 5;
         const FINISHED_STATUSES = new Set(["FT", "AET", "PEN"]);
 
         async function apiFootball(endpoint) {
@@ -341,7 +341,7 @@
                     return;
                 }
                 container.innerHTML = renderTopscorers(players);
-                status.textContent = `Visar de ${Math.min(players.length, MAX_PLAYERS)} bästa målskyttarna i VM 2026.`;
+                status.textContent = `Visar top ${Math.min(players.length, MAX_PLAYERS)} målskyttar i VM 2026.`;
             } catch (error) {
                 console.error(error);
                 container.innerHTML = `<div class="error">Kunde inte hämta toppskyttar. Kontrollera API-nyckeln och att tjänsten är tillgänglig.</div>`;
