@@ -216,6 +216,39 @@
       font-weight: 700;
     }
 
+    .profile-summary {
+      display: none;
+      padding: 14px;
+      border: 1px solid rgba(246, 184, 0, 0.34);
+      border-radius: 16px;
+      background: #fff8dc;
+      color: #102743;
+    }
+
+    .profile-summary.active {
+      display: grid;
+      gap: 8px;
+    }
+
+    .profile-summary span {
+      color: #6f5a12;
+      font-size: 0.78rem;
+      font-weight: 900;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .profile-summary strong {
+      color: #102743;
+      font-size: 1.15rem;
+    }
+
+    article.participant.selected {
+      border-color: rgba(246, 184, 0, 0.52);
+      background: linear-gradient(180deg, #fffdf0 0%, #fff8dc 100%);
+      box-shadow: 0 14px 30px rgba(111, 90, 18, 0.12);
+    }
+
     .fineprint {
       margin-top: 14px;
       color: var(--muted);
@@ -270,6 +303,14 @@
         <div class="section-body status" id="statusText">Laddar tips och aktuell ställning...</div>
       </section>
 
+      <section class="card" id="profileCard">
+        <h2 class="section-title">Min vy</h2>
+        <div class="section-body">
+          <div class="profile-summary" id="profileSummary"></div>
+          <div class="fineprint" id="profileEmpty">Välj deltagare på mobilstarten för att markera din rad här.</div>
+        </div>
+      </section>
+
       <section class="card">
         <h2 class="section-title">Allas tips och poäng</h2>
         <div class="section-body">
@@ -298,6 +339,7 @@
     const LEAGUE = 1;
     const SEASON = 2026;
     const FINISHED_STATUSES = new Set(["FT", "AET", "PEN"]);
+    const PROFILE_KEY = "vm2026-selected-participant";
 
     const TEAM_NAME_ALIASES = {
       "algeriet": "algeria",
@@ -535,8 +577,33 @@
       `;
     }
 
+    function renderProfileSummary(rows) {
+      const selectedName = localStorage.getItem(PROFILE_KEY) || "";
+      const summary = document.getElementById("profileSummary");
+      const empty = document.getElementById("profileEmpty");
+      if (!summary || !empty) return;
+
+      const row = rows.find(item => item.name === selectedName);
+      if (!selectedName || !row) {
+        summary.classList.remove("active");
+        summary.innerHTML = "";
+        empty.style.display = "";
+        return;
+      }
+
+      const leader = rows[0];
+      const behind = Math.max(0, (leader?.points || 0) - row.points);
+      summary.classList.add("active");
+      summary.innerHTML = `
+        <div><span>Deltagare</span><strong>${row.name}</strong></div>
+        <div><span>Placering</span><strong>#${row.rank} · ${row.points} p · ${behind} p bakom ledaren</strong></div>
+      `;
+      empty.style.display = "none";
+    }
+
     function renderTips(participants, actualGroups) {
       const groupMap = Object.fromEntries(actualGroups.map(g => [g.group, g.teams.map(canonicalTeamName)]));
+      const selectedName = localStorage.getItem(PROFILE_KEY) || "";
 
       const rows = participants.map(participant => {
         let points = 0;
@@ -557,18 +624,21 @@
       });
 
       rows.sort((a, b) => b.points - a.points || a.name.localeCompare(b.name, "sv"));
+      const rankedRows = rows.map((row, index) => ({ ...row, rank: index + 1 }));
+      renderProfileSummary(rankedRows);
 
-      if (!rows.length) {
+      if (!rankedRows.length) {
         return '<div class="error">Inga deltagare hittades i grupptips.txt.</div>';
       }
 
-      return rows.map((participant, index) => {
+      return rankedRows.map(participant => {
         const detailsText = participant.details || "Inga rätta topp-2-tips ännu.";
+        const selectedClass = participant.name === selectedName ? " selected" : "";
 
         return `
-          <article class="participant" role="button" aria-expanded="false" tabindex="0">
+          <article class="participant${selectedClass}" role="button" aria-expanded="false" tabindex="0">
             <div class="participant-top">
-              <div class="rank">${index + 1}</div>
+              <div class="rank">${participant.rank}</div>
               <div>
                 <div class="participant-name">${participant.name}</div>
                 <div class="participant-subline">

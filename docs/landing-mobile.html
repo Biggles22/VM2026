@@ -61,6 +61,44 @@
             margin-bottom: 16px;
         }
 
+        .profile-card {
+            margin: 0 0 16px;
+            padding: 14px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.96);
+            border: 1px solid rgba(15, 44, 69, 0.1);
+            box-shadow: 0 14px 32px rgba(15, 44, 69, 0.13);
+        }
+
+        .profile-card label {
+            display: block;
+            color: #5f7085;
+            font-size: 0.78rem;
+            font-weight: 900;
+            letter-spacing: 0.04em;
+            margin-bottom: 7px;
+            text-transform: uppercase;
+        }
+
+        .profile-card select {
+            width: 100%;
+            min-height: 46px;
+            border: 1px solid rgba(15, 44, 69, 0.16);
+            border-radius: 8px;
+            background: #ffffff;
+            color: #10243b;
+            font: inherit;
+            font-weight: 800;
+            padding: 10px 12px;
+        }
+
+        .profile-card p {
+            margin: 9px 0 0;
+            color: #60738a;
+            font-size: 0.88rem;
+            line-height: 1.4;
+        }
+
         .tile,
         .link-row {
             text-decoration: none;
@@ -190,7 +228,7 @@
         </section>
 
         <section class="quick-grid" aria-label="Snabbval">
-            <a class="tile" href="poangstallning-mobile.html">
+            <a class="tile" href="poangstallning-mobile.html?v=2">
                 <span>Live</span>
                 <strong>Poängstatus</strong>
             </a>
@@ -208,13 +246,21 @@
             </a>
         </section>
 
+        <section class="profile-card" aria-label="Min vy">
+            <label for="participantSelect">Min vy</label>
+            <select id="participantSelect">
+                <option value="">Välj deltagare</option>
+            </select>
+            <p>Valet sparas på mobilen och används på poäng- och matchvyerna.</p>
+        </section>
+
         <h2 class="section-title">Mer i tipset</h2>
         <section class="link-list" aria-label="Mobilmeny">
-            <a class="link-row" href="grupptips.html">
+            <a class="link-row" href="grupptips.html?v=2">
                 <span><strong>Gruppspelstips</strong><span>Alla deltagares gruppvinnare och tvåor.</span></span>
                 <span class="arrow">›</span>
             </a>
-            <a class="link-row" href="slutspelstips.html">
+            <a class="link-row" href="slutspelstips.html?v=2">
                 <span><strong>Slutspelstips</strong><span>Världsmästare, brons och skyttekung.</span></span>
                 <span class="arrow">›</span>
             </a>
@@ -222,7 +268,7 @@
                 <span><strong>Skytteliga</strong><span>Topplistan enligt Golden Boot-sortering.</span></span>
                 <span class="arrow">›</span>
             </a>
-            <a class="link-row" href="slutspelstrad.html">
+            <a class="link-row" href="slutspelstrad.html?v=2">
                 <span><strong>Slutspelsträd</strong><span>Utslagsmatcher när de finns tillgängliga.</span></span>
                 <span class="arrow">›</span>
             </a>
@@ -240,10 +286,52 @@
     </main>
 
     <nav class="bottom-nav" aria-label="Snabbnavigering">
-        <a href="landing-mobile.html?v=5">Start</a>
-        <a href="poangstallning-mobile.html">Poäng</a>
+        <a href="landing-mobile.html?v=6">Start</a>
+        <a href="poangstallning-mobile.html?v=2">Poäng</a>
         <a href="FIFA2026-matcher-plus.html?v=7">Matcher</a>
         <a href="chat.html">Chat</a>
     </nav>
+    <script>
+        const PROFILE_KEY = "vm2026-selected-participant";
+
+        function escapeOption(value) {
+            return String(value).replace(/[&<>"']/g, char => ({
+                "&": "&amp;",
+                "<": "&lt;",
+                ">": "&gt;",
+                '"': "&quot;",
+                "'": "&#039;"
+            }[char]));
+        }
+
+        async function loadParticipantPicker() {
+            const select = document.getElementById("participantSelect");
+            if (!select) return;
+
+            try {
+                const response = await fetch("grupptips.txt", { cache: "no-store" });
+                if (!response.ok) throw new Error("Kunde inte läsa deltagare.");
+                const text = await response.text();
+                const names = [...new Set(text
+                    .split(/\r?\n/)
+                    .map(line => line.split(/\t+/)[0]?.trim())
+                    .filter(Boolean))]
+                    .sort((a, b) => a.localeCompare(b, "sv"));
+
+                select.innerHTML = '<option value="">Välj deltagare</option>' + names
+                    .map(name => `<option value="${escapeOption(name)}">${escapeOption(name)}</option>`)
+                    .join("");
+                select.value = localStorage.getItem(PROFILE_KEY) || "";
+            } catch (error) {
+                console.warn("Kunde inte ladda deltagare:", error);
+            }
+
+            select.addEventListener("change", () => {
+                localStorage.setItem(PROFILE_KEY, select.value);
+            });
+        }
+
+        loadParticipantPicker();
+    </script>
 </body>
 </html>
