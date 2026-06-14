@@ -46,6 +46,18 @@
             color: #334e68;
             line-height: 1.6;
         }
+        .rule-note {
+            margin: 0 0 18px;
+            padding: 14px 16px;
+            border-radius: 8px;
+            background: #ffffff;
+            border: 1px solid #dbe3ea;
+            color: #334e68;
+            line-height: 1.55;
+        }
+        .rule-note strong {
+            color: #0f4c81;
+        }
         .topscorers-table {
             width: 100%;
             border-collapse: collapse;
@@ -113,6 +125,9 @@
     <div class="container">
  
         <div class="status-box" id="status">Laddar toppskyttar...</div>
+        <div class="rule-note">
+            <strong>Golden Boot-sortering:</strong> flest mål, därefter flest assist, därefter färre spelade minuter.
+        </div>
         <div id="topscorers">
             <div class="loading">Hämtar data från API...</div>
         </div>
@@ -350,7 +365,7 @@
                             <th>Mål</th>
                             <th>Assist</th>
                             <th>Straffmål</th>
-                            <th>Minuter</th>
+                            <th title="Vid lika mål och assist rankas färre spelade minuter högre enligt FIFA:s Golden Boot-regel.">Minuter*</th>
                         </tr>
                     </thead>
                     <tbody>${rows}</tbody>
