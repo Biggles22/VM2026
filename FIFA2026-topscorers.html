@@ -129,7 +129,6 @@
             const response = await fetch(`${BASE_URL}/${endpoint}`, {
                 cache: "no-store",
                 headers: {
-                    "Cache-Control": "no-cache",
                     "x-apisports-key": API_KEY
                 }
             });
@@ -137,7 +136,11 @@
                 const text = await response.text();
                 throw new Error(`API-fel ${response.status}: ${response.statusText} ${text}`);
             }
-            return response.json();
+            const data = await response.json();
+            if (data.errors && Object.keys(data.errors).length) {
+                throw new Error(`API-fel: ${JSON.stringify(data.errors)}`);
+            }
+            return data;
         }
 
         function escapeHtml(value) {
@@ -292,14 +295,19 @@
             });
         }
 
+        async function loadTopscorersFromApi() {
+            const data = await apiFootball(`players/topscorers?league=${LEAGUE}&season=${SEASON}`);
+            return data.response || [];
+        }
+
         function renderTopscorers(players) {
             const rows = players.slice(0, MAX_PLAYERS).map((item, index) => {
                 const player = item.player || {};
-                const team = item.team || {};
                 const statistics = item.statistics?.[0] || {};
+                const team = item.team || statistics.team || {};
                 const goals = statistics.goals?.total ?? 0;
                 const assists = statistics.goals?.assists ?? 0;
-                const penalties = statistics.penalties?.total ?? 0;
+                const penalties = statistics.penalties?.total ?? statistics.penalty?.scored ?? 0;
                 const minutes = statistics.games?.minutes ?? 0;
                 const nationality = player.nationality || "-";
                 return `
@@ -338,8 +346,11 @@
             const container = document.getElementById("topscorers");
             const status = document.getElementById("status");
             try {
-                const fixtures = await loadFinishedFixtures();
-                const players = await loadTopscorersFromEvents(fixtures);
+                let players = await loadTopscorersFromApi();
+                if (players.length === 0) {
+                    const fixtures = await loadFinishedFixtures();
+                    players = await loadTopscorersFromEvents(fixtures);
+                }
                 if (players.length === 0) {
                     container.innerHTML = `<div class="error">Inga topplista-data hittades.</div>`;
                     status.textContent = "Inga toppskyttar hittades.";
