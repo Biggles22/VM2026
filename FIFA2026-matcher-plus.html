@@ -701,9 +701,15 @@
             return groupMatch ? groupMatch[1].toUpperCase() : "";
         }
 
-        function buildTipImpact(match) {
+        function buildTipSummary(match) {
             const group = matchGroupLetter(match);
-            if (!group || !tipImpactRows.length) return "Tipsdata saknas";
+            if (!group || !tipImpactRows.length) {
+                return {
+                    favorite: "Tipsdata saknas",
+                    challenger: "Tipsdata saknas",
+                    selected: ""
+                };
+            }
 
             const selectedName = localStorage.getItem(PROFILE_KEY) || "";
             const groupRows = tipImpactRows.filter(row => row.group === group);
@@ -722,18 +728,25 @@
                 return { winnerNames, topTwoNames };
             }
 
-            const home = statsFor(match.teams.home.name);
-            const away = statsFor(match.teams.away.name);
-            const selectedRow = groupRows.find(row => row.name === selectedName);
-            const selectedText = selectedRow
-                ? ` Min vy: ${selectedRow.first || "-"} / ${selectedRow.second || "-"}.`
-                : "";
+            const teams = [
+                { name: match.teams.home.name, ...statsFor(match.teams.home.name) },
+                { name: match.teams.away.name, ...statsFor(match.teams.away.name) }
+            ].sort((a, b) =>
+                b.topTwoNames.length - a.topTwoNames.length ||
+                b.winnerNames.length - a.winnerNames.length ||
+                a.name.localeCompare(b.name, "sv")
+            );
 
-            return [
-                `${match.teams.home.name}: ${home.winnerNames.length} etta, ${home.topTwoNames.length} topp 2`,
-                `${match.teams.away.name}: ${away.winnerNames.length} etta, ${away.topTwoNames.length} topp 2`,
-                selectedText
-            ].filter(Boolean).join(". ");
+            const selectedRow = groupRows.find(row => row.name === selectedName);
+            const selected = selectedRow
+                ? `${selectedRow.first || "-"} som gruppvinnare, ${selectedRow.second || "-"} som tvåa`
+                : selectedName ? "Inget tips hittat för vald deltagare" : "Välj deltagare i Min vy";
+
+            return {
+                favorite: `${teams[0].name} är tipsfavorit (${teams[0].topTwoNames.length} har laget topp 2)`,
+                challenger: `${teams[1].name}: ${teams[1].topTwoNames.length} topp 2, ${teams[1].winnerNames.length} som gruppvinnare`,
+                selected
+            };
         }
 
         function searchableText(match) {
@@ -775,7 +788,7 @@
             const referee = fixture.referee || "Domare ej utsedd";
             const elapsed = fixture.status.elapsed ? `${fixture.status.elapsed} min` : "Ej startad";
             const group = matchGroupLabel(match);
-            const tipImpact = buildTipImpact(match);
+            const tipSummary = buildTipSummary(match);
             const fixtureId = fixture.id;
             const href = `FIFA2026-match-details.html?fixture=${fixtureId}&home=${home.id}&away=${away.id}&back=FIFA2026-matcher-plus.html`;
 
@@ -809,10 +822,11 @@
                         <div class="fact-grid">
                             <div class="fact"><span>Status</span><strong>${escapeHtml(fixtureStatusLabel(fixture.status))}</strong></div>
                             <div class="fact"><span>Grupp</span><strong>${escapeHtml(group)}</strong></div>
-                            <div class="fact"><span>Tips-impact</span><strong>${escapeHtml(tipImpact)}</strong></div>
+                            <div class="fact"><span>Tipsfavorit</span><strong>${escapeHtml(tipSummary.favorite)}</strong></div>
+                            <div class="fact"><span>Utmanare</span><strong>${escapeHtml(tipSummary.challenger)}</strong></div>
+                            <div class="fact"><span>Ditt tips</span><strong>${escapeHtml(tipSummary.selected)}</strong></div>
                             <div class="fact"><span>Spelminut</span><strong>${escapeHtml(elapsed)}</strong></div>
                             <div class="fact"><span>Domare</span><strong>${escapeHtml(referee)}</strong></div>
-                            <div class="fact"><span>Match ID</span><strong>${escapeHtml(fixtureId)}</strong></div>
                         </div>
                     </article>
                 </a>
