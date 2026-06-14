@@ -393,6 +393,7 @@
                 Status
                 <select id="statusFilter">
                     <option value="all">Alla matcher</option>
+                    <option value="active" selected>Live + kommande</option>
                     <option value="upcoming">Kommande</option>
                     <option value="live">Live</option>
                     <option value="finished">Spelade</option>
@@ -777,11 +778,20 @@
 
             let matches = allMatches.filter(match => {
                 const matchesSearch = !search || searchableText(match).includes(search);
-                const matchesStatus = statusFilter === "all" || matchState(match) === statusFilter;
+                const state = matchState(match);
+                const matchesStatus = statusFilter === "all"
+                    || state === statusFilter
+                    || (statusFilter === "active" && ["live", "upcoming"].includes(state));
                 return matchesSearch && matchesStatus;
             });
 
             matches = matches.sort((a, b) => {
+                if (statusFilter === "active") {
+                    const statePriority = { live: 0, upcoming: 1 };
+                    const stateDiff = statePriority[matchState(a)] - statePriority[matchState(b)];
+                    if (stateDiff !== 0) return stateDiff;
+                }
+
                 const diff = new Date(a.fixture.date) - new Date(b.fixture.date);
                 return sortOrder === "desc" ? -diff : diff;
             });
