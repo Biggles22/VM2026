@@ -120,6 +120,44 @@
       gap: 12px;
     }
 
+    .movement-card {
+      display: none;
+      margin: 0 0 18px;
+      padding: 18px 22px;
+      border-radius: 18px;
+      background: linear-gradient(135deg, #0f2a4d, #2566a8);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      box-shadow: 0 20px 48px rgba(18, 37, 71, 0.16);
+      color: #ffffff;
+    }
+
+    .movement-card.active {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) repeat(3, minmax(0, 0.8fr));
+      gap: 12px;
+      align-items: center;
+    }
+
+    .movement-card span {
+      display: block;
+      color: rgba(255, 255, 255, 0.75);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .movement-card strong {
+      display: block;
+      margin-top: 6px;
+      font-size: clamp(1.2rem, 2vw, 1.65rem);
+      color: #ffffff;
+    }
+
+    .movement-card .movement-title strong {
+      font-size: clamp(1.45rem, 2.4vw, 2rem);
+    }
+
     .profile-card span {
       display: block;
       color: #60738a;
@@ -145,9 +183,10 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      min-width: 54px;
+      gap: 6px;
+      min-width: 112px;
       min-height: 28px;
-      padding: 5px 8px;
+      padding: 5px 10px;
       border-radius: 999px;
       background: #eef4fb;
       color: #42526a;
@@ -163,6 +202,27 @@
     .change-badge.down {
       background: #fee2e2;
       color: #991b1b;
+    }
+
+    .change-arrow {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 18px;
+      height: 18px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.7);
+      font-size: 0.72rem;
+      line-height: 1;
+    }
+
+    .change-meta {
+      color: #60738a;
+      display: block;
+      font-size: 0.78rem;
+      font-weight: 700;
+      margin-top: 4px;
+      white-space: nowrap;
     }
 
     .notes {
@@ -195,6 +255,10 @@
       .profile-card.active {
         grid-template-columns: 1fr;
       }
+
+      .movement-card.active {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
@@ -205,6 +269,8 @@
     </header>
 
     <section class="profile-card" id="profileCard" aria-live="polite"></section>
+
+    <section class="movement-card" id="movementCard" aria-live="polite"></section>
 
     <section class="card" id="statusCard">
       <div id="statusText" style="padding:18px 24px; font-size:1rem; color:#122547;">Laddar tips och aktuell ställning...</div>
@@ -389,6 +455,53 @@
       return "Oförändrad";
     }
 
+    function pointChangeClass(change) {
+      if (change > 0) return "up";
+      if (change < 0) return "down";
+      return "";
+    }
+
+    function pointChangeArrow(change) {
+      if (change > 0) return "▲";
+      if (change < 0) return "▼";
+      return "•";
+    }
+
+    function rankMovementText(change) {
+      if (change > 0) return `${change} placeringar upp`;
+      if (change < 0) return `${Math.abs(change)} placeringar ner`;
+      return "samma placering";
+    }
+
+    function renderMovementCard(rows) {
+      const card = document.getElementById("movementCard");
+      if (!card) return;
+
+      const climbers = rows
+        .filter(row => row.pointChange > 0 || row.rankChange > 0)
+        .sort((a, b) =>
+          b.rankChange - a.rankChange ||
+          b.pointChange - a.pointChange ||
+          a.rank - b.rank ||
+          a.name.localeCompare(b.name, "sv")
+        );
+
+      if (!climbers.length) {
+        card.classList.remove("active");
+        card.innerHTML = "";
+        return;
+      }
+
+      const top = climbers[0];
+      card.classList.add("active");
+      card.innerHTML = `
+        <div class="movement-title"><span>Dagens klättrare</span><strong>${top.name}</strong></div>
+        <div><span>Poäng</span><strong>${formatPointChange(top.pointChange)}</strong></div>
+        <div><span>Placering</span><strong>${rankMovementText(top.rankChange)}</strong></div>
+        <div><span>Nuvarande plats</span><strong>#${top.rank}</strong></div>
+      `;
+    }
+
     function renderProfileCard(rows) {
       const selectedName = localStorage.getItem(PROFILE_KEY) || "";
       const card = document.getElementById("profileCard");
@@ -417,6 +530,7 @@
         row.classList.toggle("selected-participant", row.dataset.name === selectedName && Boolean(selectedName));
       });
       renderProfileCard(rows);
+      renderMovementCard(rows);
     }
 
     function renderTips(participants, actualGroups, previousActualGroups = []) {
@@ -440,9 +554,11 @@
           <td>${participant.name}</td>
           <td>${participant.points}</td>
           <td>
-            <span class="change-badge ${participant.pointChange > 0 ? "up" : participant.pointChange < 0 ? "down" : ""}" title="${formatRankChange(participant.rankChange)} sedan föregående spelade gruppmatch">
-              ${formatPointChange(participant.pointChange)}
+            <span class="change-badge ${pointChangeClass(participant.pointChange)}" title="${formatRankChange(participant.rankChange)} sedan senaste matchen">
+              <span class="change-arrow">${pointChangeArrow(participant.pointChange)}</span>
+              <span>${formatPointChange(participant.pointChange)}</span>
             </span>
+            <span class="change-meta">${rankMovementText(participant.rankChange)}</span>
           </td>
           <td>${participant.details || "-"}</td>
         </tr>
