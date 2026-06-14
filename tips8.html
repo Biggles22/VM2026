@@ -85,6 +85,32 @@
             text-align: right;
         }
 
+        .profile-picker {
+            display: grid;
+            gap: 4px;
+            min-width: 160px;
+        }
+
+        .profile-picker label {
+            color: #4a5870;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+
+        .profile-picker select {
+            min-height: 36px;
+            border: 1px solid #d6e1ee;
+            border-radius: 8px;
+            padding: 7px 10px;
+            background: #ffffff;
+            color: #0f2a4d;
+            font: inherit;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
         /* Navigation */
         nav ul {
             list-style: none;
@@ -226,6 +252,11 @@
                 width: 100%;
                 justify-content: center;
             }
+
+            .profile-picker {
+                order: 4;
+                width: 100%;
+            }
         }
     </style>
 </head>
@@ -243,13 +274,19 @@
                 <span class="live-dot" aria-hidden="true"></span>
                 <span><span class="live-count" id="activeVisitors">-</span> inne nu</span>
             </div>
+            <div class="profile-picker">
+                <label for="participantSelect">Min vy</label>
+                <select id="participantSelect">
+                    <option value="">Välj deltagare</option>
+                </select>
+            </div>
             <nav>
                 <ul class="nav-links">
                     <li><a href="grupptips.html" target="contentFrame">Gruppspelstips</a></li>
                     <li><a href="slutspelstips.html" target="contentFrame">Slutspelstips</a></li>
-                    <li><a href="poangstallning_ny.html?v=3" target="contentFrame">Nuvarande poängställning</a></li>
+                    <li><a href="poangstallning_ny.html?v=4" target="contentFrame">Nuvarande poängställning</a></li>
                     <li><a href="FIFA2026-standings.html?v=5" target="contentFrame">Gruppställningar</a></li>
-                    <li><a href="FIFA2026-matcher-plus.html?v=5" target="contentFrame">Matcher</a></li>
+                    <li><a href="FIFA2026-matcher-plus.html?v=6" target="contentFrame">Matcher</a></li>
                     <li><a href="FIFA2026-topscorers.html?v=8" target="contentFrame">Skytteligaledare</a></li>
                     <li><a href="Anders_vm_tips.html?v=5" target="contentFrame">Regler</a></li>
                     <li><a href="Deltagare-Tips2026.html?v=5" target="contentFrame">Deltagare & betalning</a></li>
@@ -272,12 +309,13 @@
 
     <main>
         <section class="iframe-wrapper">
-            <iframe id="contentFrame" name="contentFrame" src="start.html?V=6" title="Innehållsruta"></iframe>
+            <iframe id="contentFrame" name="contentFrame" src="start.html?V=7" title="Innehållsruta"></iframe>
         </section>
     </main>
     <script>
         const PRESENCE_API_URL = "https://vm2026-worker.anders-h-engstrom.workers.dev/api/presence";
         const PRESENCE_SESSION_KEY = "vm2026-presence-session";
+        const PROFILE_KEY = "vm2026-selected-participant";
 
         function getPresenceId() {
             let id = sessionStorage.getItem(PRESENCE_SESSION_KEY);
@@ -320,6 +358,47 @@
         pingPresence();
         setInterval(pingPresence, 300000);
         document.addEventListener("visibilitychange", pingPresence);
+
+        function notifyFrameAboutProfile() {
+            const frame = document.getElementById("contentFrame");
+            if (!frame?.contentWindow) return;
+            frame.contentWindow.postMessage({
+                type: "vm2026:selectedParticipant",
+                name: localStorage.getItem(PROFILE_KEY) || ""
+            }, window.location.origin);
+        }
+
+        async function loadParticipantPicker() {
+            const select = document.getElementById("participantSelect");
+            if (!select) return;
+
+            try {
+                const response = await fetch("grupptips.txt", { cache: "no-store" });
+                if (!response.ok) throw new Error("Kunde inte läsa deltagare.");
+                const text = await response.text();
+                const names = [...new Set(text
+                    .split(/\r?\n/)
+                    .map(line => line.split(/\t+/)[0]?.trim())
+                    .filter(Boolean))]
+                    .sort((a, b) => a.localeCompare(b, "sv"));
+
+                select.innerHTML = '<option value="">Välj deltagare</option>' + names
+                    .map(name => `<option value="${name.replace(/"/g, "&quot;")}">${name}</option>`)
+                    .join("");
+                select.value = localStorage.getItem(PROFILE_KEY) || "";
+            } catch (error) {
+                console.warn("Kunde inte ladda deltagarväljaren:", error);
+            }
+
+            select.addEventListener("change", () => {
+                localStorage.setItem(PROFILE_KEY, select.value);
+                notifyFrameAboutProfile();
+            });
+
+            document.getElementById("contentFrame")?.addEventListener("load", notifyFrameAboutProfile);
+        }
+
+        loadParticipantPicker();
 
         // Flytta extra länkar in i "Mer"-menyn om det behövs
         document.addEventListener('DOMContentLoaded', () => {

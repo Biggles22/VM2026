@@ -428,9 +428,11 @@
 
         let allMatches = [];
         const LINEUP_RECHECK_MS = 2 * 60 * 1000;
+        const PROFILE_KEY = "vm2026-selected-participant";
         const lineupStatus = new Map();
         const lineupCheckedAt = new Map();
         let lineupRefreshTimer = null;
+        let tipImpactRows = [];
 
         async function apiFootball(endpoint) {
             const response = await fetch(`${BASE_URL}/${endpoint}`, {
@@ -470,6 +472,19 @@
 
         function scoreValue(value) {
             return value !== null && value !== undefined ? value : "-";
+        }
+
+        function parseGroupTips(text) {
+            return text
+                .split(/\r?\n/)
+                .map(line => line.split(/\t+/).map(value => value.trim()))
+                .filter(parts => parts.length >= 4 && parts[0] && parts[1])
+                .map(([name, group, first = "", second = ""]) => ({
+                    name,
+                    group: group.toUpperCase(),
+                    first,
+                    second
+                }));
         }
 
         function matchState(match) {
@@ -680,6 +695,47 @@
             return "Grupp saknas";
         }
 
+        function matchGroupLetter(match) {
+            const label = matchGroupLabel(match);
+            const groupMatch = label.match(/Grupp\s*([A-L])/i);
+            return groupMatch ? groupMatch[1].toUpperCase() : "";
+        }
+
+        function buildTipImpact(match) {
+            const group = matchGroupLetter(match);
+            if (!group || !tipImpactRows.length) return "Tipsdata saknas";
+
+            const selectedName = localStorage.getItem(PROFILE_KEY) || "";
+            const groupRows = tipImpactRows.filter(row => row.group === group);
+
+            function statsFor(teamName) {
+                const aliases = new Set(aliasTerms(teamName));
+                const winnerNames = groupRows
+                    .filter(row => aliasTerms(row.first).some(term => aliases.has(term)))
+                    .map(row => row.name);
+                const topTwoNames = groupRows
+                    .filter(row =>
+                        aliasTerms(row.first).some(term => aliases.has(term)) ||
+                        aliasTerms(row.second).some(term => aliases.has(term))
+                    )
+                    .map(row => row.name);
+                return { winnerNames, topTwoNames };
+            }
+
+            const home = statsFor(match.teams.home.name);
+            const away = statsFor(match.teams.away.name);
+            const selectedRow = groupRows.find(row => row.name === selectedName);
+            const selectedText = selectedRow
+                ? ` Min vy: ${selectedRow.first || "-"} / ${selectedRow.second || "-"}.`
+                : "";
+
+            return [
+                `${match.teams.home.name}: ${home.winnerNames.length} etta, ${home.topTwoNames.length} topp 2`,
+                `${match.teams.away.name}: ${away.winnerNames.length} etta, ${away.topTwoNames.length} topp 2`,
+                selectedText
+            ].filter(Boolean).join(". ");
+        }
+
         function searchableText(match) {
             const fields = [
                 match.teams.home.name,
@@ -719,6 +775,7 @@
             const referee = fixture.referee || "Domare ej utsedd";
             const elapsed = fixture.status.elapsed ? `${fixture.status.elapsed} min` : "Ej startad";
             const group = matchGroupLabel(match);
+            const tipImpact = buildTipImpact(match);
             const fixtureId = fixture.id;
             const href = `FIFA2026-match-details.html?fixture=${fixtureId}&home=${home.id}&away=${away.id}&back=FIFA2026-matcher-plus.html`;
 
@@ -752,6 +809,7 @@
                         <div class="fact-grid">
                             <div class="fact"><span>Status</span><strong>${escapeHtml(fixtureStatusLabel(fixture.status))}</strong></div>
                             <div class="fact"><span>Grupp</span><strong>${escapeHtml(group)}</strong></div>
+                            <div class="fact"><span>Tips-impact</span><strong>${escapeHtml(tipImpact)}</strong></div>
                             <div class="fact"><span>Spelminut</span><strong>${escapeHtml(elapsed)}</strong></div>
                             <div class="fact"><span>Domare</span><strong>${escapeHtml(referee)}</strong></div>
                             <div class="fact"><span>Match ID</span><strong>${escapeHtml(fixtureId)}</strong></div>
@@ -855,7 +913,13 @@
             const statusBox = document.getElementById("status");
 
             try {
-                const data = await apiFootball(`fixtures?league=${LEAGUE}&season=${SEASON}`);
+                const [data, tipsResponse] = await Promise.all([
+                    apiFootball(`fixtures?league=${LEAGUE}&season=${SEASON}`),
+                    fetch("grupptips.txt", { cache: "no-store" })
+                ]);
+                if (tipsResponse.ok) {
+                    tipImpactRows = parseGroupTips(await tipsResponse.text());
+                }
                 allMatches = data.response || [];
 
                 if (!allMatches.length) {
@@ -878,6 +942,12 @@
         document.getElementById("searchInput").addEventListener("input", renderMatches);
         document.getElementById("statusFilter").addEventListener("change", renderMatches);
         document.getElementById("sortOrder").addEventListener("change", renderMatches);
+        window.addEventListener("message", event => {
+            if (event.origin !== window.location.origin) return;
+            if (event.data?.type !== "vm2026:selectedParticipant") return;
+            localStorage.setItem(PROFILE_KEY, event.data.name || "");
+            renderMatches();
+        });
 
         loadMatches();
     </script>

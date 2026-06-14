@@ -103,6 +103,68 @@
       font-weight: 700;
     }
 
+    .profile-card {
+      display: none;
+      margin: 0 0 18px;
+      padding: 18px 22px;
+      border-radius: 18px;
+      background: #ffffff;
+      border: 1px solid rgba(31, 78, 120, 0.14);
+      box-shadow: 0 18px 42px rgba(18, 37, 71, 0.08);
+      color: #0f2a4d;
+    }
+
+    .profile-card.active {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .profile-card span {
+      display: block;
+      color: #60738a;
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .profile-card strong {
+      display: block;
+      margin-top: 6px;
+      font-size: clamp(1.25rem, 2vw, 1.75rem);
+      color: #0f2a4d;
+    }
+
+    tr.selected-participant {
+      background: #fff7d6 !important;
+      box-shadow: inset 4px 0 0 #f6b800;
+    }
+
+    .change-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 54px;
+      min-height: 28px;
+      padding: 5px 8px;
+      border-radius: 999px;
+      background: #eef4fb;
+      color: #42526a;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .change-badge.up {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .change-badge.down {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
     .notes {
       margin-top: 18px;
       color: #4d657f;
@@ -129,6 +191,10 @@
       .page {
         padding: 24px 0 32px;
       }
+
+      .profile-card.active {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
@@ -137,6 +203,8 @@
     <header>
       <p class="lead">Här visas nuvarande poängställning för VM 2026-grundspelstipset. Alla tips jämförs med en aktuell grupptabell som räknas fram från spelade matcher.</p>
     </header>
+
+    <section class="profile-card" id="profileCard" aria-live="polite"></section>
 
     <section class="card" id="statusCard">
       <div id="statusText" style="padding:18px 24px; font-size:1rem; color:#122547;">Laddar tips och aktuell ställning...</div>
@@ -167,6 +235,9 @@
     const LEAGUE = 1;
     const SEASON = 2026;
     const FINISHED_STATUSES = new Set(["FT", "AET", "PEN"]);
+    const PROFILE_KEY = "vm2026-selected-participant";
+
+    let latestRows = [];
 
     const TEAM_NAME_ALIASES = {
       "algeriet": "algeria",
@@ -287,7 +358,7 @@
       return { participants: Object.values(participants), groups: groups.sort() };
     }
 
-    function renderTips(participants, actualGroups) {
+    function calculateRows(participants, actualGroups) {
       const groupMap = Object.fromEntries(actualGroups.map(g => [g.group, g.teams.map(canonicalTeamName)]));
 
       const rows = participants.map(participant => {
@@ -303,15 +374,81 @@
       });
 
       rows.sort((a, b) => b.points - a.points || a.name.localeCompare(b.name, "sv"));
+      return rows.map((row, index) => ({ ...row, rank: index + 1 }));
+    }
 
-      const htmlRows = rows.map((participant, index) => `
-        <tr>
-          <td class="rank">${index + 1}</td>
+    function formatPointChange(change) {
+      if (change > 0) return `+${change} p`;
+      if (change < 0) return `${change} p`;
+      return "0 p";
+    }
+
+    function formatRankChange(change) {
+      if (change > 0) return `Upp ${change}`;
+      if (change < 0) return `Ner ${Math.abs(change)}`;
+      return "Oförändrad";
+    }
+
+    function renderProfileCard(rows) {
+      const selectedName = localStorage.getItem(PROFILE_KEY) || "";
+      const card = document.getElementById("profileCard");
+      if (!card) return;
+
+      const row = rows.find(item => item.name === selectedName);
+      if (!selectedName || !row) {
+        card.classList.remove("active");
+        card.innerHTML = "";
+        return;
+      }
+
+      const leader = rows[0];
+      const behind = Math.max(0, (leader?.points || 0) - row.points);
+      card.classList.add("active");
+      card.innerHTML = `
+        <div><span>Min placering</span><strong>#${row.rank}</strong></div>
+        <div><span>Mina poäng</span><strong>${row.points} p (${formatPointChange(row.pointChange || 0)})</strong></div>
+        <div><span>Avstånd till ledaren</span><strong>${behind} p</strong></div>
+      `;
+    }
+
+    function applySelectedParticipant(rows = latestRows) {
+      const selectedName = localStorage.getItem(PROFILE_KEY) || "";
+      document.querySelectorAll("#tipsTable tbody tr").forEach(row => {
+        row.classList.toggle("selected-participant", row.dataset.name === selectedName && Boolean(selectedName));
+      });
+      renderProfileCard(rows);
+    }
+
+    function renderTips(participants, actualGroups, previousActualGroups = []) {
+      const previousByName = new Map(calculateRows(participants, previousActualGroups).map(row => [row.name, row]));
+      const rows = calculateRows(participants, actualGroups).map(row => {
+        const previous = previousByName.get(row.name);
+        return {
+          ...row,
+          previousPoints: previous?.points ?? row.points,
+          previousRank: previous?.rank ?? row.rank,
+          pointChange: row.points - (previous?.points ?? row.points),
+          rankChange: (previous?.rank ?? row.rank) - row.rank
+        };
+      });
+
+      latestRows = rows;
+
+      const htmlRows = rows.map(participant => `
+        <tr data-name="${participant.name.replace(/"/g, "&quot;")}">
+          <td class="rank">${participant.rank}</td>
           <td>${participant.name}</td>
           <td>${participant.points}</td>
+          <td>
+            <span class="change-badge ${participant.pointChange > 0 ? "up" : participant.pointChange < 0 ? "down" : ""}" title="${formatRankChange(participant.rankChange)} sedan föregående spelade gruppmatch">
+              ${formatPointChange(participant.pointChange)}
+            </span>
+          </td>
           <td>${participant.details || "-"}</td>
         </tr>
       `).join("");
+
+      requestAnimationFrame(() => applySelectedParticipant(rows));
 
       return `
         <table>
@@ -320,6 +457,7 @@
               <th>Placering</th>
               <th>Deltagare</th>
               <th>Poäng</th>
+              <th>Senaste</th>
               <th>Kommentar</th>
             </tr>
           </thead>
@@ -393,6 +531,17 @@
       return actualGroups;
     }
 
+    function latestFinishedGroupMatch(fixtures) {
+      return fixtures
+        .filter(match =>
+          FINISHED_STATUSES.has(match.fixture?.status?.short) &&
+          /^Group Stage\b/i.test(match.league?.round || "") &&
+          match.goals?.home != null &&
+          match.goals?.away != null
+        )
+        .sort((a, b) => (b.fixture?.timestamp || 0) - (a.fixture?.timestamp || 0))[0];
+    }
+
     function applyMatchResult(team, goalsFor, goalsAgainst) {
       team.played += 1;
       team.goalsFor += goalsFor;
@@ -455,8 +604,13 @@
         const standings = standingsData.response[0]?.league?.standings || [];
         const fixtures = fixturesData.response || [];
         const actualGroups = buildGroupsFromStandingsAndFixtures(standings, fixtures);
+        const latestMatch = latestFinishedGroupMatch(fixtures);
+        const fixturesBeforeLatest = latestMatch
+          ? fixtures.filter(match => match.fixture?.id !== latestMatch.fixture?.id)
+          : fixtures;
+        const previousActualGroups = buildGroupsFromStandingsAndFixtures(standings, fixturesBeforeLatest);
 
-        tipsTable.innerHTML = renderTips(participants, actualGroups);
+        tipsTable.innerHTML = renderTips(participants, actualGroups, previousActualGroups);
         const finishedMatches = fixtures.filter(match =>
           FINISHED_STATUSES.has(match.fixture?.status?.short) &&
           /^Group Stage\b/i.test(match.league?.round || "")
@@ -474,6 +628,13 @@
     }
 
     loadData();
+
+    window.addEventListener("message", event => {
+      if (event.origin !== window.location.origin) return;
+      if (event.data?.type !== "vm2026:selectedParticipant") return;
+      localStorage.setItem(PROFILE_KEY, event.data.name || "");
+      applySelectedParticipant();
+    });
   </script>
 </body>
 </html>
