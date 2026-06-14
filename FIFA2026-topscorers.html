@@ -126,8 +126,7 @@
         const FINISHED_STATUSES = new Set(["FT", "AET", "PEN"]);
 
         async function apiFootball(endpoint) {
-            const separator = endpoint.includes("?") ? "&" : "?";
-            const response = await fetch(`${BASE_URL}/${endpoint}${separator}_=${Date.now()}`, {
+            const response = await fetch(`${BASE_URL}/${endpoint}`, {
                 cache: "no-store",
                 headers: {
                     "Cache-Control": "no-cache",
