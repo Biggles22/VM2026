@@ -221,7 +221,7 @@
                     name: team.name || "-"
                 },
                 statistics: [{
-                    games: { scoringMatches: 0, minutes: 0 },
+                    games: { scoringMatches: 0, minutes: 0, hasMinutes: false },
                     goals: { total: 0, assists: 0 },
                     penalties: { total: 0 },
                     fixtureIds: new Set(),
@@ -259,8 +259,11 @@
             const stats = entries.get(key).statistics[0];
             if (stats.minutesFixtureIds.has(fixtureId)) return;
 
-            const minutes = Number(playerStats.games?.minutes ?? 0);
-            stats.games.minutes += Number.isFinite(minutes) ? minutes : 0;
+            const minutes = Number(playerStats.games?.minutes);
+            if (Number.isFinite(minutes) && minutes > 0) {
+                stats.games.minutes += minutes;
+                stats.games.hasMinutes = true;
+            }
             stats.minutesFixtureIds.add(fixtureId);
         }
 
@@ -331,21 +334,9 @@
                 }
             });
 
-            return Array.from(entries.values()).filter(item =>
+            return normalizeTopscorers(Array.from(entries.values()).filter(item =>
                 (item.statistics?.[0]?.goals?.total ?? 0) > 0
-            ).sort((a, b) => {
-                const aStats = a.statistics?.[0] || {};
-                const bStats = b.statistics?.[0] || {};
-                const goalDiff = (bStats.goals?.total ?? 0) - (aStats.goals?.total ?? 0);
-                if (goalDiff) return goalDiff;
-                const assistDiff = (bStats.goals?.assists ?? 0) - (aStats.goals?.assists ?? 0);
-                if (assistDiff) return assistDiff;
-                const aMinutes = aStats.games?.minutes ?? Number.MAX_SAFE_INTEGER;
-                const bMinutes = bStats.games?.minutes ?? Number.MAX_SAFE_INTEGER;
-                const minutesDiff = aMinutes - bMinutes;
-                if (minutesDiff) return minutesDiff;
-                return (a.player?.name || "").localeCompare(b.player?.name || "", "sv");
-            });
+            ));
         }
 
         async function loadTopscorersFromApi() {
@@ -361,12 +352,19 @@
                 if (goalDiff) return goalDiff;
                 const assistDiff = (bStats.goals?.assists ?? 0) - (aStats.goals?.assists ?? 0);
                 if (assistDiff) return assistDiff;
-                const aMinutes = aStats.games?.minutes ?? Number.MAX_SAFE_INTEGER;
-                const bMinutes = bStats.games?.minutes ?? Number.MAX_SAFE_INTEGER;
+                const aMinutes = knownMinutes(aStats);
+                const bMinutes = knownMinutes(bStats);
                 const minutesDiff = aMinutes - bMinutes;
                 if (minutesDiff) return minutesDiff;
                 return (a.player?.name || "").localeCompare(b.player?.name || "", "sv");
             });
+        }
+
+        function knownMinutes(statistics) {
+            const minutes = Number(statistics.games?.minutes);
+            return Number.isFinite(minutes) && minutes > 0
+                ? minutes
+                : Number.MAX_SAFE_INTEGER;
         }
 
         function renderTopscorers(players) {
@@ -377,7 +375,7 @@
                 const goals = statistics.goals?.total ?? 0;
                 const assists = statistics.goals?.assists ?? 0;
                 const penalties = statistics.penalties?.total ?? statistics.penalty?.scored ?? 0;
-                const minutes = statistics.games?.minutes ?? 0;
+                const minutes = knownMinutes(statistics) === Number.MAX_SAFE_INTEGER ? "-" : statistics.games.minutes;
                 const nationality = player.nationality || "-";
                 return `
                     <tr>
