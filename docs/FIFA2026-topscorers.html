@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VM 2026 Top 5 skytteliga</title>
+    <title>VM 2026 Golden Boot Top 5</title>
     <style>
         body {
             margin: 0;
@@ -57,6 +57,14 @@
         }
         .rule-note strong {
             color: #0f4c81;
+        }
+        .rule-note a {
+            color: #0f4c81;
+            font-weight: 700;
+            text-decoration: none;
+        }
+        .rule-note a:hover {
+            text-decoration: underline;
         }
         .topscorers-table {
             width: 100%;
@@ -158,13 +166,14 @@
 </head>
 <body>
     <header>
-        <h1>VM 2026 - Top 5 skytteliga</h1>
+        <h1>VM 2026 - Golden Boot Top 5</h1>
     </header>
     <div class="container">
  
         <div class="status-box" id="status">Laddar toppskyttar...</div>
         <div class="rule-note">
             <strong>Golden Boot-sortering:</strong> flest mål, därefter flest assist, därefter färre spelade minuter.
+            Samma logik som FIFA:s <a id="officialGoldenBootLink" href="https://www.fifa.com/en/tournaments/mens/worldcup/canadamexicousa2026/articles/adidas-golden-boot-race-top-scorer" target="_blank" rel="noopener noreferrer">officiella Golden Boot-race</a>.
         </div>
         <div id="topscorers">
             <div class="loading">Hämtar data från API...</div>
@@ -176,6 +185,7 @@
         const LEAGUE = 1;
         const SEASON = 2026;
         const MAX_PLAYERS = 5;
+        const OFFICIAL_GOLDEN_BOOT_URL = "https://www.fifa.com/en/tournaments/mens/worldcup/canadamexicousa2026/articles/adidas-golden-boot-race-top-scorer";
         const FINISHED_STATUSES = new Set(["FT", "AET", "PEN"]);
 
         async function apiFootball(endpoint) {
@@ -344,20 +354,20 @@
             return data.response || [];
         }
 
+        function compareByGoldenBootRules(a, b) {
+            const aStats = a.statistics?.[0] || {};
+            const bStats = b.statistics?.[0] || {};
+            const goalDiff = (bStats.goals?.total ?? 0) - (aStats.goals?.total ?? 0);
+            if (goalDiff) return goalDiff;
+            const assistDiff = (bStats.goals?.assists ?? 0) - (aStats.goals?.assists ?? 0);
+            if (assistDiff) return assistDiff;
+            const minutesDiff = knownMinutes(aStats) - knownMinutes(bStats);
+            if (minutesDiff) return minutesDiff;
+            return (a.player?.name || "").localeCompare(b.player?.name || "", "sv");
+        }
+
         function normalizeTopscorers(players) {
-            return players.sort((a, b) => {
-                const aStats = a.statistics?.[0] || {};
-                const bStats = b.statistics?.[0] || {};
-                const goalDiff = (bStats.goals?.total ?? 0) - (aStats.goals?.total ?? 0);
-                if (goalDiff) return goalDiff;
-                const assistDiff = (bStats.goals?.assists ?? 0) - (aStats.goals?.assists ?? 0);
-                if (assistDiff) return assistDiff;
-                const aMinutes = knownMinutes(aStats);
-                const bMinutes = knownMinutes(bStats);
-                const minutesDiff = aMinutes - bMinutes;
-                if (minutesDiff) return minutesDiff;
-                return (a.player?.name || "").localeCompare(b.player?.name || "", "sv");
-            });
+            return players.sort(compareByGoldenBootRules);
         }
 
         function knownMinutes(statistics) {
@@ -365,6 +375,11 @@
             return Number.isFinite(minutes) && minutes > 0
                 ? minutes
                 : Number.MAX_SAFE_INTEGER;
+        }
+
+        function configureOfficialLink() {
+            const link = document.getElementById("officialGoldenBootLink");
+            if (link) link.href = OFFICIAL_GOLDEN_BOOT_URL;
         }
 
         function renderTopscorers(players) {
@@ -410,6 +425,7 @@
         }
 
         async function loadTopscorers() {
+            configureOfficialLink();
             const container = document.getElementById("topscorers");
             const status = document.getElementById("status");
             try {
@@ -424,7 +440,7 @@
                 const players = eventPlayers.length ? eventPlayers : normalizeTopscorers(apiPlayers);
 
                 if (eventPlayers.length && apiPlayers.length) {
-                    console.info("Skytteligan visas från matchhändelser eftersom den färdiga API-listan kan släpa.");
+                    console.info("Skytteligan visas från matchhändelser och sorteras enligt FIFA:s Golden Boot-regel.");
                 }
                 if (players.length === 0) {
                     container.innerHTML = `<div class="error">Inga topplista-data hittades.</div>`;
@@ -433,8 +449,8 @@
                 }
                 container.innerHTML = renderTopscorers(players);
                 status.textContent = eventPlayers.length
-                    ? `Visar top ${Math.min(players.length, MAX_PLAYERS)} från matchhändelser.`
-                    : `Visar top ${Math.min(players.length, MAX_PLAYERS)} från API:s skytteliga.`;
+                    ? `Visar top ${Math.min(players.length, MAX_PLAYERS)} från matchhändelser enligt FIFA:s Golden Boot-regel.`
+                    : `Visar top ${Math.min(players.length, MAX_PLAYERS)} från API:s skytteliga enligt FIFA:s Golden Boot-regel.`;
             } catch (error) {
                 console.error(error);
                 container.innerHTML = `<div class="error">Kunde inte hämta toppskyttar. Kontrollera API-nyckeln och att tjänsten är tillgänglig.</div>`;
