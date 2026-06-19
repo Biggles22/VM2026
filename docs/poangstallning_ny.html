@@ -158,6 +158,38 @@
       font-size: clamp(1.45rem, 2.4vw, 2rem);
     }
 
+    .daily-comment {
+      margin: 0 0 18px;
+      padding: 18px 22px;
+      border-radius: 18px;
+      background: #fffdf4;
+      border: 1px solid rgba(246, 184, 0, 0.28);
+      box-shadow: 0 18px 42px rgba(18, 37, 71, 0.07);
+      color: #0f2a4d;
+      line-height: 1.65;
+    }
+
+    .daily-comment span {
+      display: block;
+      color: #8a6400;
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .daily-comment strong {
+      display: block;
+      margin-top: 6px;
+      font-size: clamp(1.2rem, 2vw, 1.55rem);
+      color: #0f2a4d;
+    }
+
+    .daily-comment p {
+      margin: 8px 0 0;
+      color: #42526a;
+    }
+
     .profile-card span {
       display: block;
       color: #60738a;
@@ -271,6 +303,11 @@
     <section class="profile-card" id="profileCard" aria-live="polite"></section>
 
     <section class="movement-card" id="movementCard" aria-live="polite"></section>
+
+    <section class="daily-comment" id="dailyComment" aria-live="polite">
+      <span>Dagens kommentar</span>
+      <strong>Laddar dagens läge...</strong>
+    </section>
 
     <section class="card" id="statusCard">
       <div id="statusText" style="padding:18px 24px; font-size:1rem; color:#122547;">Laddar tips och aktuell ställning...</div>
@@ -499,6 +536,57 @@
         <div><span>Poäng</span><strong>${formatPointChange(top.pointChange)}</strong></div>
         <div><span>Placering</span><strong>${rankMovementText(top.rankChange)}</strong></div>
         <div><span>Nuvarande plats</span><strong>#${top.rank}</strong></div>
+      `;
+    }
+
+    function matchLabel(match) {
+      if (!match) return "";
+      const home = match.teams?.home?.name || "";
+      const away = match.teams?.away?.name || "";
+      const homeGoals = match.goals?.home;
+      const awayGoals = match.goals?.away;
+      if (!home || !away || homeGoals == null || awayGoals == null) return "";
+      return `${home} - ${away} ${homeGoals}-${awayGoals}`;
+    }
+
+    function renderDailyComment(rows, latestMatch, finishedMatches) {
+      const card = document.getElementById("dailyComment");
+      if (!card) return;
+
+      if (!finishedMatches) {
+        card.innerHTML = `
+          <span>Dagens kommentar</span>
+          <strong>Vi väntar fortfarande på första gruppspelsresultatet.</strong>
+          <p>När matcherna börjar räknas poängen här automatiskt och kommentaren lyfter dagens rörelse i tabellen.</p>
+        `;
+        return;
+      }
+
+      const leader = rows[0];
+      const climbers = rows
+        .filter(row => row.pointChange > 0 || row.rankChange > 0)
+        .sort((a, b) =>
+          b.pointChange - a.pointChange ||
+          b.rankChange - a.rankChange ||
+          a.rank - b.rank ||
+          a.name.localeCompare(b.name, "sv")
+        );
+      const latestText = matchLabel(latestMatch);
+
+      if (climbers.length) {
+        const top = climbers[0];
+        card.innerHTML = `
+          <span>Dagens kommentar</span>
+          <strong>${top.name} fick bäst fart efter senaste uppdateringen.</strong>
+          <p>${latestText ? `Senaste matchen: ${latestText}. ` : ""}${top.name} tog ${formatPointChange(top.pointChange)} och är nu på plats #${top.rank}. Ledaren är ${leader.name} med ${leader.points} p.</p>
+        `;
+        return;
+      }
+
+      card.innerHTML = `
+        <span>Dagens kommentar</span>
+        <strong>Tabellen står still efter senaste uppdateringen.</strong>
+        <p>${latestText ? `Senaste matchen: ${latestText}. ` : ""}Ingen deltagare fick nya poäng den här gången. ${leader ? `${leader.name} leder fortsatt på ${leader.points} p.` : ""}</p>
       `;
     }
 
@@ -731,6 +819,7 @@
           FINISHED_STATUSES.has(match.fixture?.status?.short) &&
           /^Group Stage\b/i.test(match.league?.round || "")
         ).length;
+        renderDailyComment(latestRows, latestMatch, finishedMatches);
         const successMessage = `Uppdaterat från grupptips och ${finishedMatches} spelade gruppmatcher. ${participants.length} deltagare och ${actualGroups.length} grupper jämförda.`;
         statusText.textContent = successMessage;
         footerStatus.textContent = formatStatusText(successMessage);
