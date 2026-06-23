@@ -60,6 +60,8 @@ const APISPORTS_KEY_FALLBACK = "170d2afb853fb860d9432d14d7eaaaa5";
 const APISPORTS_BASE_URL = "https://v3.football.api-sports.io";
 const WORLD_CUP_LEAGUE = 1;
 const WORLD_CUP_SEASON = 2026;
+const FOOTBALL_TOPSCORERS_CACHE_KEY = "football:topscorers:2026";
+const FOOTBALL_TOPSCORERS_CACHE_TTL_SECONDS = 300;
 
 const JSON_HEADERS = {
 	"content-type": "application/json; charset=utf-8",
@@ -280,37 +282,55 @@ async function handlePresencePing(request: Request, env: WorkerEnv): Promise<Res
 }
 
 async function handleFootballTopscorers(request: Request, env: WorkerEnv): Promise<Response> {
+	const cached = await env.SUBSCRIPTIONS.get(FOOTBALL_TOPSCORERS_CACHE_KEY, "json");
+
 	const apiKey = env.APISPORTS_KEY || APISPORTS_KEY_FALLBACK;
 	const endpoint = `${APISPORTS_BASE_URL}/players/topscorers?league=${WORLD_CUP_LEAGUE}&season=${WORLD_CUP_SEASON}`;
-	const response = await fetch(endpoint, {
-		headers: {
-			"x-apisports-key": apiKey,
-		},
-	});
-
-	const text = await response.text();
-	if (!response.ok) {
-		throw new HttpError(`API-Football svarade ${response.status}: ${text}`, response.status);
-	}
-
-	let data: unknown;
 	try {
-		data = JSON.parse(text);
-	} catch {
-		throw new HttpError("API-Football svarade inte med giltig JSON.", 502);
-	}
+		const response = await fetch(endpoint, {
+			headers: {
+				"x-apisports-key": apiKey,
+			},
+		});
 
-	const payload = data as { errors?: unknown; response?: unknown[] };
-	if (payload.errors && hasApiErrors(payload.errors)) {
-		throw new HttpError(`API-Football-fel: ${JSON.stringify(payload.errors)}`, 502);
-	}
+		const text = await response.text();
+		if (!response.ok) {
+			throw new HttpError(`API-Football svarade ${response.status}: ${text}`, response.status);
+		}
 
-	return json(request, {
-		ok: true,
-		source: "api-football",
-		updatedAt: new Date().toISOString(),
-		response: Array.isArray(payload.response) ? payload.response : [],
-	});
+		let data: unknown;
+		try {
+			data = JSON.parse(text);
+		} catch {
+			throw new HttpError("API-Football svarade inte med giltig JSON.", 502);
+		}
+
+		const payload = data as { errors?: unknown; response?: unknown[] };
+		if (payload.errors && hasApiErrors(payload.errors)) {
+			throw new HttpError(`API-Football-fel: ${JSON.stringify(payload.errors)}`, 502);
+		}
+
+		const result = {
+			ok: true,
+			source: "api-football+fifa-overrides",
+			updatedAt: new Date().toISOString(),
+			response: applyOfficialTopscorerOverrides(Array.isArray(payload.response) ? payload.response : []),
+		};
+
+		await env.SUBSCRIPTIONS.put(FOOTBALL_TOPSCORERS_CACHE_KEY, JSON.stringify(result), {
+			expirationTtl: FOOTBALL_TOPSCORERS_CACHE_TTL_SECONDS,
+		});
+
+		return json(request, result);
+	} catch (error) {
+		if (cached) {
+			return json(request, {
+				...(cached as Record<string, unknown>),
+				cacheFallback: true,
+			});
+		}
+		throw error;
+	}
 }
 
 async function handlePresenceCount(request: Request, env: WorkerEnv): Promise<Response> {
@@ -338,6 +358,74 @@ function hasApiErrors(errors: unknown): boolean {
 	if (Array.isArray(errors)) return errors.length > 0;
 	if (typeof errors === "object") return Object.keys(errors).length > 0;
 	return Boolean(errors);
+}
+
+function applyOfficialTopscorerOverrides(players: unknown[]): unknown[] {
+	const cloned = players.map((player) => structuredClone(player)) as Array<Record<string, unknown>>;
+	const overrides = [
+		{ name: "Kylian Mbappe", matchNames: ["mbappe", "mbappe lottin"], team: "France", goals: 4, assists: 0, minutes: 89 },
+		{ name: "Erling Haaland", matchNames: ["haaland"], team: "Norway", goals: 4, assists: 0, minutes: 90 },
+	];
+
+	for (const override of overrides) {
+		let entry = cloned.find((item) => {
+			const playerName = normalizeName((item.player as { name?: string } | undefined)?.name || "");
+			const teamName = normalizeName(((item.statistics as Array<{ team?: { name?: string } }> | undefined)?.[0]?.team?.name) || "");
+			return override.matchNames.some((name) => playerName.includes(name)) && teamName.includes(normalizeName(override.team));
+		});
+
+		if (!entry) {
+			entry = {
+				player: { name: override.name, nationality: override.team },
+				statistics: [{
+					team: { name: override.team },
+					games: { minutes: override.minutes },
+					goals: { total: override.goals, assists: override.assists },
+					penalty: { scored: 0 },
+				}],
+			};
+			cloned.push(entry);
+		}
+
+		const statistics = (entry.statistics as Array<Record<string, unknown>> | undefined) || [{}];
+		entry.statistics = statistics;
+		const stats = statistics[0] || {};
+		statistics[0] = stats;
+
+		const goals = (stats.goals as Record<string, unknown> | undefined) || {};
+		stats.goals = goals;
+		const games = (stats.games as Record<string, unknown> | undefined) || {};
+		stats.games = games;
+		const player = (entry.player as Record<string, unknown> | undefined) || {};
+		entry.player = player;
+
+		player.name = override.name;
+		player.nationality = override.team;
+		goals.total = Math.max(Number(goals.total || 0), override.goals);
+		goals.assists = Number(goals.assists || override.assists);
+		games.minutes = override.minutes;
+	}
+
+	return cloned.sort(compareTopscorers);
+}
+
+function compareTopscorers(a: Record<string, unknown>, b: Record<string, unknown>): number {
+	const aStats = (a.statistics as Array<{ goals?: { total?: number; assists?: number }; games?: { minutes?: number } }> | undefined)?.[0] || {};
+	const bStats = (b.statistics as Array<{ goals?: { total?: number; assists?: number }; games?: { minutes?: number } }> | undefined)?.[0] || {};
+	const goalDiff = Number(bStats.goals?.total || 0) - Number(aStats.goals?.total || 0);
+	if (goalDiff) return goalDiff;
+	const assistDiff = Number(bStats.goals?.assists || 0) - Number(aStats.goals?.assists || 0);
+	if (assistDiff) return assistDiff;
+	const minuteDiff = Number(aStats.games?.minutes || Number.MAX_SAFE_INTEGER) - Number(bStats.games?.minutes || Number.MAX_SAFE_INTEGER);
+	if (minuteDiff) return minuteDiff;
+	return String((a.player as { name?: string } | undefined)?.name || "").localeCompare(String((b.player as { name?: string } | undefined)?.name || ""), "sv");
+}
+
+function normalizeName(value: string): string {
+	return value
+		.toLowerCase()
+		.normalize("NFD")
+		.replace(/[\u0300-\u036f]/g, "");
 }
 
 async function listChatMessages(env: WorkerEnv): Promise<ChatMessage[]> {
