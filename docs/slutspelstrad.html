@@ -236,6 +236,44 @@
         grid-template-columns: repeat(5, 250px);
       }
     }
+
+    .mobile-bottom-nav {
+      display: none;
+    }
+
+    @media (max-width: 820px) {
+      body {
+        padding-bottom: calc(78px + env(safe-area-inset-bottom));
+      }
+
+      .mobile-bottom-nav {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 1000;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 6px;
+        padding: 10px 10px calc(10px + env(safe-area-inset-bottom));
+        background: rgba(255, 255, 255, 0.96);
+        border-top: 1px solid rgba(15, 44, 69, 0.12);
+        box-shadow: 0 -14px 30px rgba(15, 44, 69, 0.12);
+      }
+
+      .mobile-bottom-nav a {
+        min-height: 48px;
+        display: grid;
+        place-items: center;
+        color: #244761;
+        font-size: 0.78rem;
+        font-weight: 900;
+        text-decoration: none;
+        border-radius: 8px;
+        background: #eef4fb;
+      }
+    }
+
   </style>
 </head>
 <body>
@@ -394,5 +432,13 @@
 
     loadBracket();
   </script>
+
+  <nav class="mobile-bottom-nav" aria-label="Snabbnavigering">
+    <a href="landing-mobile.html?v=6">Start</a>
+    <a href="poangstallning-mobile.html?v=2">Poäng</a>
+    <a href="FIFA2026-matcher-plus.html?v=7">Matcher</a>
+    <a href="chat.html">Chat</a>
+  </nav>
+
 </body>
 </html>

@@ -226,6 +226,11 @@
             color: #166534;
         }
 
+        .badge.tv {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
         .badge.lineup-waiting {
             background: #fff7ed;
             color: #9a3412;
@@ -370,7 +375,45 @@
                 width: 100%;
             }
         }
-    </style>
+
+    .mobile-bottom-nav {
+      display: none;
+    }
+
+    @media (max-width: 820px) {
+      body {
+        padding-bottom: calc(78px + env(safe-area-inset-bottom));
+      }
+
+      .mobile-bottom-nav {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 1000;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 6px;
+        padding: 10px 10px calc(10px + env(safe-area-inset-bottom));
+        background: rgba(255, 255, 255, 0.96);
+        border-top: 1px solid rgba(15, 44, 69, 0.12);
+        box-shadow: 0 -14px 30px rgba(15, 44, 69, 0.12);
+      }
+
+      .mobile-bottom-nav a {
+        min-height: 48px;
+        display: grid;
+        place-items: center;
+        color: #244761;
+        font-size: 0.78rem;
+        font-weight: 900;
+        text-decoration: none;
+        border-radius: 8px;
+        background: #eef4fb;
+      }
+    }
+
+  </style>
 </head>
 <body>
     <header>
@@ -393,6 +436,7 @@
                 Status
                 <select id="statusFilter">
                     <option value="all">Alla matcher</option>
+                    <option value="active" selected>Live + kommande</option>
                     <option value="upcoming">Kommande</option>
                     <option value="live">Live</option>
                     <option value="finished">Spelade</option>
@@ -427,9 +471,11 @@
 
         let allMatches = [];
         const LINEUP_RECHECK_MS = 2 * 60 * 1000;
+        const PROFILE_KEY = "vm2026-selected-participant";
         const lineupStatus = new Map();
         const lineupCheckedAt = new Map();
         let lineupRefreshTimer = null;
+        let tipImpactRows = [];
 
         async function apiFootball(endpoint) {
             const response = await fetch(`${BASE_URL}/${endpoint}`, {
@@ -469,6 +515,19 @@
 
         function scoreValue(value) {
             return value !== null && value !== undefined ? value : "-";
+        }
+
+        function parseGroupTips(text) {
+            return text
+                .split(/\r?\n/)
+                .map(line => line.split(/\t+/).map(value => value.trim()))
+                .filter(parts => parts.length >= 4 && parts[0] && parts[1])
+                .map(([name, group, first = "", second = ""]) => ({
+                    name,
+                    group: group.toUpperCase(),
+                    first,
+                    second
+                }));
         }
 
         function matchState(match) {
@@ -548,11 +607,14 @@
             belgium: ["belgien"],
             "bosnia and herzegovina": ["bosnien och hercegovina", "bosnien"],
             brazil: ["brasilien"],
+            "cape verde": ["kap verde"],
             canada: ["kanada"],
             colombia: ["colombia"],
             croatia: ["kroatien"],
+            curacao: ["curacao", "curaçao"],
             "czech republic": ["tjeckien"],
             czechia: ["tjeckien"],
+            "dr congo": ["demokratiska republiken kongo", "dr kongo", "d r congo", "d r kongo", "congo dr", "congo"],
             denmark: ["danmark"],
             ecuador: ["ecuador"],
             egypt: ["egypten"],
@@ -560,12 +622,16 @@
             france: ["frankrike"],
             germany: ["tyskland"],
             ghana: ["ghana"],
+            haiti: ["haiti"],
             iran: ["iran"],
+            iraq: ["irak"],
             "ivory coast": ["elfenbenskusten", "cote d ivoire", "côte d ivoire"],
             japan: ["japan"],
+            jordan: ["jordanien"],
             mexico: ["mexiko"],
             morocco: ["marocko"],
             netherlands: ["nederlanderna", "nederländerna", "holland"],
+            "new zealand": ["nya zeeland"],
             norway: ["norge"],
             panama: ["panama"],
             paraguay: ["paraguay"],
@@ -574,6 +640,7 @@
             "saudi arabia": ["saudiarabien", "saudi arabien"],
             scotland: ["skottland"],
             senegal: ["senegal"],
+            "south africa": ["sydafrika"],
             southkorea: ["sydkorea", "south korea"],
             spain: ["spanien"],
             sweden: ["sverige"],
@@ -583,6 +650,116 @@
             uruguay: ["uruguay"],
             usa: ["united states", "usa", "forenta staterna", "förenta staterna"],
             uzbekistan: ["uzbekistan"]
+        };
+
+        const TV_MATCHES = [
+            ["2026-06-11", "Mexico", "South Africa", "TV4 / TV4 Play"],
+            ["2026-06-12", "South Korea", "Czechia", "TV4 / TV4 Play"],
+            ["2026-06-12", "Canada", "Bosnia and Herzegovina", "SVT / SVT Play"],
+            ["2026-06-13", "USA", "Paraguay", "TV4 / TV4 Play"],
+            ["2026-06-13", "Qatar", "Switzerland", "TV4 / TV4 Play"],
+            ["2026-06-14", "Brazil", "Morocco", "SVT / SVT Play"],
+            ["2026-06-14", "Haiti", "Scotland", "SVT / SVT Play"],
+            ["2026-06-14", "Australia", "Turkey", "TV4 / TV4 Play"],
+            ["2026-06-14", "Germany", "Curacao", "TV4 / TV4 Play"],
+            ["2026-06-14", "Netherlands", "Japan", "TV4 / TV4 Play"],
+            ["2026-06-15", "Ivory Coast", "Ecuador", "TV4 / TV4 Play"],
+            ["2026-06-15", "Sweden", "Tunisia", "SVT / SVT Play"],
+            ["2026-06-15", "Spain", "Cape Verde", "SVT / SVT Play"],
+            ["2026-06-15", "Belgium", "Egypt", "SVT / SVT Play"],
+            ["2026-06-16", "Saudi Arabia", "Uruguay", "TV4 / TV4 Play"],
+            ["2026-06-16", "Iran", "New Zealand", "TV4 / TV4 Play"],
+            ["2026-06-16", "France", "Senegal", "SVT / SVT Play"],
+            ["2026-06-17", "Iraq", "Norway", "TV4 / TV4 Play"],
+            ["2026-06-17", "Argentina", "Algeria", "TV4 / TV4 Play"],
+            ["2026-06-17", "Austria", "Jordan", "TV4 / TV4 Play"],
+            ["2026-06-17", "Portugal", "DR Congo", "TV4 / TV4 Play"],
+            ["2026-06-17", "England", "Croatia", "TV4 / TV4 Play"],
+            ["2026-06-18", "Ghana", "Panama", "TV4 / TV4 Play"],
+            ["2026-06-18", "Uzbekistan", "Colombia", "TV4 / TV4 Play"],
+            ["2026-06-18", "Czechia", "South Africa", "TV4 / TV4 Play"],
+            ["2026-06-18", "Switzerland", "Bosnia and Herzegovina", "TV4 / TV4 Play"],
+            ["2026-06-19", "Canada", "Qatar", "TV4 / TV4 Play"],
+            ["2026-06-19", "Mexico", "South Korea", "TV4 / TV4 Play"],
+            ["2026-06-19", "USA", "Australia", "SVT2 / SVT Play"],
+            ["2026-06-20", "Scotland", "Morocco", "SVT1 / SVT Play"],
+            ["2026-06-20", "Brazil", "Haiti", "TV4 / TV4 Play"],
+            ["2026-06-20", "Turkey", "Paraguay", "TV4 / TV4 Play"],
+            ["2026-06-20", "Netherlands", "Sweden", "TV4 / TV4 Play"],
+            ["2026-06-20", "Germany", "Ivory Coast", "TV4 / TV4 Play"],
+            ["2026-06-21", "Ecuador", "Curacao", "TV4 / TV4 Play"],
+            ["2026-06-21", "Tunisia", "Japan", "SVT1 / SVT Play"],
+            ["2026-06-21", "Spain", "Saudi Arabia", "TV4 / TV4 Play"],
+            ["2026-06-21", "Belgium", "Iran", "TV4 / TV4 Play"],
+            ["2026-06-22", "Uruguay", "Cape Verde", "TV4 / TV4 Play"],
+            ["2026-06-22", "New Zealand", "Egypt", "TV4 / TV4 Play"],
+            ["2026-06-22", "Argentina", "Austria", "SVT1/SVT2 / SVT Play"],
+            ["2026-06-22", "France", "Iraq", "SVT1 / SVT Play"],
+            ["2026-06-23", "Norway", "Senegal", "SVT1 / SVT Play"],
+            ["2026-06-23", "Jordan", "Algeria", "TV4 / TV4 Play"],
+            ["2026-06-23", "Portugal", "Uzbekistan", "SVT/Kunskapskanalen / SVT Play"],
+            ["2026-06-23", "England", "Ghana", "SVT1 / SVT Play"],
+            ["2026-06-24", "Panama", "Croatia", "TV4 / TV4 Play"],
+            ["2026-06-24", "Colombia", "DR Congo", "TV4 / TV4 Play"],
+            ["2026-06-24", "Switzerland", "Canada", "TV4 / TV4 Play"],
+            ["2026-06-24", "Bosnia and Herzegovina", "Qatar", "TV4 / TV4 Play"],
+            ["2026-06-25", "Morocco", "Haiti", "TV4 / TV4 Play"],
+            ["2026-06-25", "Scotland", "Brazil", "TV4 / TV4 Play"],
+            ["2026-06-25", "South Africa", "South Korea", "SVT2 / SVT Play"],
+            ["2026-06-25", "Czechia", "Mexico", "SVT1 / SVT Play"],
+            ["2026-06-25", "Curacao", "Ivory Coast", "SVT1 / SVT Play"],
+            ["2026-06-25", "Ecuador", "Germany", "SVT1 / SVT Play"],
+            ["2026-06-26", "Tunisia", "Netherlands", "SVT2 / SVT Play"],
+            ["2026-06-26", "Japan", "Sweden", "SVT1 / SVT Play"],
+            ["2026-06-26", "Turkey", "USA", "TV4 / TV4 Play"],
+            ["2026-06-26", "Paraguay", "Australia", "TV4 / TV4 Play"],
+            ["2026-06-26", "Norway", "France", "TV4 / TV4 Play"],
+            ["2026-06-26", "Senegal", "Iraq", "TV4 / TV4 Play"],
+            ["2026-06-27", "Cape Verde", "Saudi Arabia", "TV4 / TV4 Play"],
+            ["2026-06-27", "Uruguay", "Spain", "TV4 / TV4 Play"],
+            ["2026-06-27", "New Zealand", "Belgium", "TV4 / TV4 Play"],
+            ["2026-06-27", "Egypt", "Iran", "TV4 / TV4 Play"],
+            ["2026-06-27", "Panama", "England", "SVT1 / SVT Play"],
+            ["2026-06-27", "Croatia", "Ghana", "SVT2 / SVT Play"],
+            ["2026-06-28", "DR Congo", "Uzbekistan", "TV4 / TV4 Play"],
+            ["2026-06-28", "Colombia", "Portugal", "TV4 / TV4 Play"],
+            ["2026-06-28", "Algeria", "Austria", "TV4 / TV4 Play"],
+            ["2026-06-28", "Jordan", "Argentina", "TV4 / TV4 Play"]
+        ];
+
+        const TV_KNOCKOUT_MATCHES = {
+            "2026-06-28 21:00": "TV4 / TV4 Play",
+            "2026-06-29 19:00": "TV4 / TV4 Play",
+            "2026-06-29 22:30": "SVT / SVT Play",
+            "2026-06-30 03:00": "SVT / SVT Play",
+            "2026-06-30 19:00": "TV4 / TV4 Play",
+            "2026-06-30 23:00": "TV4 / TV4 Play",
+            "2026-07-01 03:00": "TV4 / TV4 Play",
+            "2026-07-01 18:00": "SVT / SVT Play",
+            "2026-07-01 22:00": "TV4 / TV4 Play",
+            "2026-07-02 02:00": "TV4 / TV4 Play",
+            "2026-07-02 21:00": "SVT / SVT Play",
+            "2026-07-03 01:00": "TV4 / TV4 Play",
+            "2026-07-03 05:00": "TV4 / TV4 Play",
+            "2026-07-03 20:00": "TV4 / TV4 Play",
+            "2026-07-04 00:00": "SVT / SVT Play",
+            "2026-07-04 03:30": "SVT / SVT Play",
+            "2026-07-04 19:00": "TV4 / TV4 Play",
+            "2026-07-04 23:00": "SVT / SVT Play",
+            "2026-07-05 22:00": "TV4 / TV4 Play",
+            "2026-07-06 02:00": "SVT / SVT Play",
+            "2026-07-06 21:00": "TV4 / TV4 Play",
+            "2026-07-07 02:00": "TV4 / TV4 Play",
+            "2026-07-07 18:00": "TV4 / TV4 Play",
+            "2026-07-07 22:00": "SVT / SVT Play",
+            "2026-07-09 22:00": "TV4 / TV4 Play",
+            "2026-07-10 21:00": "SVT / SVT Play",
+            "2026-07-11 23:00": "TV4 / TV4 Play",
+            "2026-07-12 03:00": "SVT / SVT Play",
+            "2026-07-14 21:00": "SVT / SVT Play",
+            "2026-07-15 21:00": "TV4 / TV4 Play",
+            "2026-07-18 23:00": "SVT / SVT Play",
+            "2026-07-19 21:00": "TV4 / TV4 Play"
         };
 
         const GROUP_TEAMS = {
@@ -608,6 +785,53 @@
                 .replace(/[^a-z0-9]+/g, " ")
                 .trim()
                 .replace(/\s+/g, " ");
+        }
+
+        function canonicalTeamName(value) {
+            const normalized = normalizeSearch(value);
+            const compact = normalized.replace(/\s+/g, "");
+
+            for (const [team, aliases] of Object.entries(SEARCH_ALIASES)) {
+                const terms = [team, ...aliases].map(alias => normalizeSearch(alias));
+                const compactTerms = terms.map(term => term.replace(/\s+/g, ""));
+                if (terms.includes(normalized) || compactTerms.includes(compact)) {
+                    return team;
+                }
+            }
+
+            return normalized;
+        }
+
+        function stockholmDateTimeKey(dateString, includeTime = true) {
+            const parts = new Intl.DateTimeFormat("sv-SE", {
+                timeZone: "Europe/Stockholm",
+                year: "numeric",
+                month: "2-digit",
+                day: "2-digit",
+                hour: includeTime ? "2-digit" : undefined,
+                minute: includeTime ? "2-digit" : undefined,
+                hourCycle: "h23"
+            }).formatToParts(new Date(dateString));
+            const part = type => parts.find(item => item.type === type)?.value;
+            const date = `${part("year")}-${part("month")}-${part("day")}`;
+            return includeTime ? `${date} ${part("hour")}:${part("minute")}` : date;
+        }
+
+        function tvChannelForMatch(match) {
+            const dateKey = stockholmDateTimeKey(match.fixture.date, false);
+            const timeKey = stockholmDateTimeKey(match.fixture.date, true);
+            const home = canonicalTeamName(match.teams.home.name);
+            const away = canonicalTeamName(match.teams.away.name);
+
+            const groupMatch = TV_MATCHES.find(([date, homeTeam, awayTeam]) => {
+                if (date !== dateKey) return false;
+                const expectedHome = canonicalTeamName(homeTeam);
+                const expectedAway = canonicalTeamName(awayTeam);
+                return (home === expectedHome && away === expectedAway)
+                    || (home === expectedAway && away === expectedHome);
+            });
+
+            return groupMatch?.[3] || TV_KNOCKOUT_MATCHES[timeKey] || "Ej bekräftad";
         }
 
         function aliasTerms(value) {
@@ -679,7 +903,62 @@
             return "Grupp saknas";
         }
 
+        function matchGroupLetter(match) {
+            const label = matchGroupLabel(match);
+            const groupMatch = label.match(/Grupp\s*([A-L])/i);
+            return groupMatch ? groupMatch[1].toUpperCase() : "";
+        }
+
+        function buildTipSummary(match) {
+            const group = matchGroupLetter(match);
+            if (!group || !tipImpactRows.length) {
+                return {
+                    favorite: "Tipsdata saknas",
+                    challenger: "Tipsdata saknas",
+                    selected: ""
+                };
+            }
+
+            const selectedName = localStorage.getItem(PROFILE_KEY) || "";
+            const groupRows = tipImpactRows.filter(row => row.group === group);
+
+            function statsFor(teamName) {
+                const aliases = new Set(aliasTerms(teamName));
+                const winnerNames = groupRows
+                    .filter(row => aliasTerms(row.first).some(term => aliases.has(term)))
+                    .map(row => row.name);
+                const topTwoNames = groupRows
+                    .filter(row =>
+                        aliasTerms(row.first).some(term => aliases.has(term)) ||
+                        aliasTerms(row.second).some(term => aliases.has(term))
+                    )
+                    .map(row => row.name);
+                return { winnerNames, topTwoNames };
+            }
+
+            const teams = [
+                { name: match.teams.home.name, ...statsFor(match.teams.home.name) },
+                { name: match.teams.away.name, ...statsFor(match.teams.away.name) }
+            ].sort((a, b) =>
+                b.topTwoNames.length - a.topTwoNames.length ||
+                b.winnerNames.length - a.winnerNames.length ||
+                a.name.localeCompare(b.name, "sv")
+            );
+
+            const selectedRow = groupRows.find(row => row.name === selectedName);
+            const selected = selectedRow
+                ? `${selectedRow.first || "-"} som gruppvinnare, ${selectedRow.second || "-"} som tvåa`
+                : selectedName ? "Inget tips hittat för vald deltagare" : "Välj deltagare i Min vy";
+
+            return {
+                favorite: `${teams[0].name} är tipsfavorit (${teams[0].topTwoNames.length} har laget topp 2)`,
+                challenger: `${teams[1].name}: ${teams[1].topTwoNames.length} topp 2, ${teams[1].winnerNames.length} som gruppvinnare`,
+                selected
+            };
+        }
+
         function searchableText(match) {
+            const tvChannel = tvChannelForMatch(match);
             const fields = [
                 match.teams.home.name,
                 match.teams.away.name,
@@ -687,7 +966,8 @@
                 match.fixture.venue?.city,
                 match.league.round,
                 match.league.name,
-                match.fixture.referee
+                match.fixture.referee,
+                tvChannel
             ];
 
             return [
@@ -718,6 +998,8 @@
             const referee = fixture.referee || "Domare ej utsedd";
             const elapsed = fixture.status.elapsed ? `${fixture.status.elapsed} min` : "Ej startad";
             const group = matchGroupLabel(match);
+            const tipSummary = buildTipSummary(match);
+            const tvChannel = tvChannelForMatch(match);
             const fixtureId = fixture.id;
             const href = `FIFA2026-match-details.html?fixture=${fixtureId}&home=${home.id}&away=${away.id}&back=FIFA2026-matcher-plus.html`;
 
@@ -728,6 +1010,7 @@
                             <span class="badge ${state === "live" ? "live" : state === "finished" ? "done" : ""}">${stateLabel(state)}</span>
                             <span class="badge">${escapeHtml(group)}</span>
                             <span class="badge">${escapeHtml(roundLabel(match))}</span>
+                            <span class="badge tv">${escapeHtml(tvChannel)}</span>
                             ${lineupBadge(match)}
                             <span class="kickoff">${escapeHtml(formatDate(fixture.date))}</span>
                         </div>
@@ -750,10 +1033,13 @@
 
                         <div class="fact-grid">
                             <div class="fact"><span>Status</span><strong>${escapeHtml(fixtureStatusLabel(fixture.status))}</strong></div>
+                            <div class="fact"><span>TV-kanal</span><strong>${escapeHtml(tvChannel)}</strong></div>
                             <div class="fact"><span>Grupp</span><strong>${escapeHtml(group)}</strong></div>
+                            <div class="fact"><span>Tipsfavorit</span><strong>${escapeHtml(tipSummary.favorite)}</strong></div>
+                            <div class="fact"><span>Utmanare</span><strong>${escapeHtml(tipSummary.challenger)}</strong></div>
+                            <div class="fact"><span>Ditt tips</span><strong>${escapeHtml(tipSummary.selected)}</strong></div>
                             <div class="fact"><span>Spelminut</span><strong>${escapeHtml(elapsed)}</strong></div>
                             <div class="fact"><span>Domare</span><strong>${escapeHtml(referee)}</strong></div>
-                            <div class="fact"><span>Match ID</span><strong>${escapeHtml(fixtureId)}</strong></div>
                         </div>
                     </article>
                 </a>
@@ -777,11 +1063,20 @@
 
             let matches = allMatches.filter(match => {
                 const matchesSearch = !search || searchableText(match).includes(search);
-                const matchesStatus = statusFilter === "all" || matchState(match) === statusFilter;
+                const state = matchState(match);
+                const matchesStatus = statusFilter === "all"
+                    || state === statusFilter
+                    || (statusFilter === "active" && ["live", "upcoming"].includes(state));
                 return matchesSearch && matchesStatus;
             });
 
             matches = matches.sort((a, b) => {
+                if (statusFilter === "active") {
+                    const statePriority = { live: 0, upcoming: 1 };
+                    const stateDiff = statePriority[matchState(a)] - statePriority[matchState(b)];
+                    if (stateDiff !== 0) return stateDiff;
+                }
+
                 const diff = new Date(a.fixture.date) - new Date(b.fixture.date);
                 return sortOrder === "desc" ? -diff : diff;
             });
@@ -845,7 +1140,13 @@
             const statusBox = document.getElementById("status");
 
             try {
-                const data = await apiFootball(`fixtures?league=${LEAGUE}&season=${SEASON}`);
+                const [data, tipsResponse] = await Promise.all([
+                    apiFootball(`fixtures?league=${LEAGUE}&season=${SEASON}`),
+                    fetch("grupptips.txt", { cache: "no-store" })
+                ]);
+                if (tipsResponse.ok) {
+                    tipImpactRows = parseGroupTips(await tipsResponse.text());
+                }
                 allMatches = data.response || [];
 
                 if (!allMatches.length) {
@@ -868,8 +1169,22 @@
         document.getElementById("searchInput").addEventListener("input", renderMatches);
         document.getElementById("statusFilter").addEventListener("change", renderMatches);
         document.getElementById("sortOrder").addEventListener("change", renderMatches);
+        window.addEventListener("message", event => {
+            if (event.origin !== window.location.origin) return;
+            if (event.data?.type !== "vm2026:selectedParticipant") return;
+            localStorage.setItem(PROFILE_KEY, event.data.name || "");
+            renderMatches();
+        });
 
         loadMatches();
     </script>
+
+  <nav class="mobile-bottom-nav" aria-label="Snabbnavigering">
+    <a href="landing-mobile.html?v=6">Start</a>
+    <a href="poangstallning-mobile.html?v=2">Poäng</a>
+    <a href="FIFA2026-matcher-plus.html?v=7">Matcher</a>
+    <a href="chat.html">Chat</a>
+  </nav>
+
 </body>
 </html>

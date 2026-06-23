@@ -2,8 +2,8 @@
 <html lang="sv">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VM 2026 - Mobilstart</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>VM 2026 - Mobil</title>
     <style>
         * {
             box-sizing: border-box;
@@ -11,176 +11,326 @@
 
         body {
             margin: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            color: #1f2937;
-            background: linear-gradient(180deg, #3b82f6 0%, #9333ea 100%);
-        }
-
-        .page {
             min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            padding: 20px;
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            color: #10243b;
+            background: #eef4fb;
         }
 
-        .topbar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 16px;
-            background: rgba(255, 255, 255, 0.92);
-            border-radius: 24px;
-            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18);
-            margin-bottom: 18px;
-        }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .logo img {
-            width: 44px;
-            height: auto;
-            border-radius: 12px;
-        }
-
-        .logo-text {
-            font-size: 18px;
-            font-weight: 700;
-            color: #111827;
-        }
-
-        .status {
-            font-size: 13px;
-            color: #6b7280;
+        .app {
+            min-height: 100vh;
+            padding: 18px 16px calc(92px + env(safe-area-inset-bottom));
+            background:
+                linear-gradient(145deg, rgba(0, 82, 147, 0.95), rgba(0, 142, 105, 0.86)),
+                #005293;
         }
 
         .hero {
-            background: rgba(255, 255, 255, 0.15);
-            border: 1px solid rgba(255,255,255,0.35);
-            backdrop-filter: blur(18px);
-            border-radius: 28px;
-            padding: 24px;
-            margin-bottom: 22px;
-            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
-        }
-
-        .hero h1 {
-            font-size: 32px;
-            margin-bottom: 12px;
-            color: white;
-            line-height: 1.1;
-        }
-
-        .hero p {
-            color: rgba(255, 255, 255, 0.92);
-            font-size: 16px;
-            line-height: 1.65;
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 14px;
+            align-items: center;
+            color: #ffffff;
             margin-bottom: 18px;
         }
 
-        .hero-image {
+        h1 {
+            margin: 0;
+            font-size: clamp(2rem, 9vw, 3rem);
+            line-height: 0.98;
+            letter-spacing: 0;
+        }
+
+        .lead {
+            margin: 9px 0 0;
+            color: rgba(255, 255, 255, 0.86);
+            line-height: 1.5;
+            font-size: 0.98rem;
+        }
+
+        .logo {
+            width: 76px;
+            height: auto;
+            filter: drop-shadow(0 12px 18px rgba(0, 0, 0, 0.22));
+        }
+
+        .quick-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .profile-card {
+            margin: 0 0 16px;
+            padding: 14px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.96);
+            border: 1px solid rgba(15, 44, 69, 0.1);
+            box-shadow: 0 14px 32px rgba(15, 44, 69, 0.13);
+        }
+
+        .profile-card label {
+            display: block;
+            color: #5f7085;
+            font-size: 0.78rem;
+            font-weight: 900;
+            letter-spacing: 0.04em;
+            margin-bottom: 7px;
+            text-transform: uppercase;
+        }
+
+        .profile-card select {
             width: 100%;
-            display: flex;
-            justify-content: center;
-            margin-top: 10px;
+            min-height: 46px;
+            border: 1px solid rgba(15, 44, 69, 0.16);
+            border-radius: 8px;
+            background: #ffffff;
+            color: #10243b;
+            font: inherit;
+            font-weight: 800;
+            padding: 10px 12px;
         }
 
-        .hero-image img {
-            width: 180px;
-            max-width: 100%;
-            border-radius: 22px;
-            box-shadow: 0 24px 60px rgba(0,0,0,0.25);
+        .profile-card p {
+            margin: 9px 0 0;
+            color: #60738a;
+            font-size: 0.88rem;
+            line-height: 1.4;
         }
 
-        .buttons {
-            display: grid;
-            gap: 14px;
-        }
-
-        .button {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 16px 20px;
-            border-radius: 999px;
-            font-weight: 700;
-            font-size: 15px;
+        .tile,
+        .link-row {
             text-decoration: none;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            color: inherit;
+            background: #ffffff;
+            border: 1px solid rgba(15, 44, 69, 0.08);
+            border-radius: 8px;
+            box-shadow: 0 14px 32px rgba(15, 44, 69, 0.13);
         }
 
-        .button-primary {
-            background: white;
-            color: #3b82f6;
-            box-shadow: 0 10px 25px rgba(59, 130, 246, 0.18);
-        }
-
-        .button-secondary {
-            background: rgba(255, 255, 255, 0.18);
-            color: white;
-            border: 1px solid rgba(255,255,255,0.35);
-        }
-
-        .button:hover {
-            transform: translateY(-2px);
-        }
-
-        .nav-links {
+        .tile {
+            min-height: 104px;
+            padding: 14px;
             display: grid;
-            gap: 14px;
+            align-content: space-between;
         }
 
-        .nav-item {
-            background: rgba(255, 255, 255, 0.22);
-            border: 1px solid rgba(255,255,255,0.24);
-            border-radius: 20px;
-            padding: 16px 18px;
-            color: white;
-            text-decoration: none;
-            font-size: 16px;
-            font-weight: 600;
-            display: flex;
-            justify-content: space-between;
+        .tile span {
+            color: #5f7085;
+            font-size: 0.78rem;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+
+        .tile strong {
+            color: #10243b;
+            font-size: 1.1rem;
+            line-height: 1.15;
+        }
+
+        .section-title {
+            margin: 18px 0 10px;
+            color: rgba(255, 255, 255, 0.82);
+            font-size: 0.78rem;
+            font-weight: 900;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+
+        .link-list {
+            display: grid;
+            gap: 10px;
+        }
+
+        .link-row {
+            min-height: 58px;
+            padding: 13px 14px;
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 12px;
             align-items: center;
         }
 
-        .nav-item span {
-            opacity: 0.9;
+        .link-row strong {
+            display: block;
+            color: #10243b;
+            font-size: 1rem;
         }
 
-        .footer-note {
-            margin-top: auto;
+        .link-row span {
+            display: block;
+            margin-top: 3px;
+            color: #60738a;
+            font-size: 0.86rem;
+            line-height: 1.35;
+        }
+
+        .arrow {
+            color: #005293;
+            font-size: 1.45rem;
+            font-weight: 900;
+        }
+
+        .bottom-nav {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+            padding: 10px 10px calc(10px + env(safe-area-inset-bottom));
+            background: rgba(255, 255, 255, 0.96);
+            border-top: 1px solid rgba(15, 44, 69, 0.12);
+            box-shadow: 0 -14px 30px rgba(15, 44, 69, 0.12);
+        }
+
+        .bottom-nav a {
+            min-height: 48px;
+            display: grid;
+            place-items: center;
+            color: #244761;
+            font-size: 0.78rem;
+            font-weight: 900;
+            text-decoration: none;
+            border-radius: 8px;
+            background: #eef4fb;
+        }
+
+        .desktop-link {
+            margin-top: 16px;
             text-align: center;
-            color: rgba(255, 255, 255, 0.75);
-            font-size: 14px;
-            padding: 20px 10px 10px;
+        }
+
+        .desktop-link a {
+            color: #ffffff;
+            font-weight: 800;
+        }
+
+        @media (min-width: 760px) {
+            .app {
+                width: min(520px, 100%);
+                margin: 0 auto;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="page">
-        
-
+    <main class="app">
         <section class="hero">
-            <div class="hero-image">
-                <img src="2026_FIFA_World_Cup_emblem.svg.webp" alt="VM 2026">
+            <div>
+                <h1>VM-tipset</h1>
             </div>
+            <img class="logo" src="2026_FIFA_World_Cup_emblem.svg.webp" alt="VM 2026">
         </section>
 
-        <div class="buttons">
-            <a href="Spelschema.html" class="button button-primary">Spelschema</a>
-            <a href="Anders_vm_tips.html" class="button button-secondary">Regler</a>
-            <a href="FIFA2026-standings-mobile.html" class="button button-secondary">Gruppställningar</a>
-            <a href="poangstallning-mobile.html" class="button button-secondary">Poängstatus</a>
-        </div>
+        <section class="quick-grid" aria-label="Snabbval">
+            <a class="tile" href="poangstallning-mobile.html?v=2">
+                <span>Live</span>
+                <strong>Poängstatus</strong>
+            </a>
+            <a class="tile" href="FIFA2026-matcher-plus.html?v=7">
+                <span>Matcher</span>
+                <strong>Schema och resultat</strong>
+            </a>
+            <a class="tile" href="FIFA2026-standings-mobile.html">
+                <span>Grupper</span>
+                <strong>Tabeller</strong>
+            </a>
+            <a class="tile" href="chat.html">
+                <span>Snack</span>
+                <strong>VM-chatten</strong>
+            </a>
+        </section>
 
+        <section class="profile-card" aria-label="Min vy">
+            <label for="participantSelect">Min vy</label>
+            <select id="participantSelect">
+                <option value="">Välj deltagare</option>
+            </select>
+            <p>Valet sparas på mobilen och används på poäng- och matchvyerna.</p>
+        </section>
 
-        <div class="footer-note">
-            Tips: öppna sidan på telefon för bästa upplevelse.
-        </div>
-    </div>
+        <h2 class="section-title">Mer i tipset</h2>
+        <section class="link-list" aria-label="Mobilmeny">
+            <a class="link-row" href="grupptips.html?v=2">
+                <span><strong>Gruppspelstips</strong><span>Alla deltagares gruppvinnare och tvåor.</span></span>
+                <span class="arrow">›</span>
+            </a>
+            <a class="link-row" href="slutspelstips.html?v=2">
+                <span><strong>Slutspelstips</strong><span>Världsmästare, brons och skyttekung.</span></span>
+                <span class="arrow">›</span>
+            </a>
+            <a class="link-row" href="FIFA2026-topscorers.html?v=12">
+                <span><strong>Skytteliga</strong><span>Topplistan enligt Golden Boot-sortering.</span></span>
+                <span class="arrow">›</span>
+            </a>
+            <a class="link-row" href="slutspelstrad.html?v=2">
+                <span><strong>Slutspelsträd</strong><span>Utslagsmatcher när de finns tillgängliga.</span></span>
+                <span class="arrow">›</span>
+            </a>
+            <a class="link-row" href="Anders_vm_tips.html?v=5">
+                <span><strong>Regler</strong><span>Poängsystem, priser och upplägg.</span></span>
+                <span class="arrow">›</span>
+            </a>
+            <a class="link-row" href="push.html">
+                <span><strong>Notiser</strong><span>Aktivera push på den här enheten.</span></span>
+                <span class="arrow">›</span>
+            </a>
+        </section>
+
+        <p class="desktop-link"><a href="tips8.html?v=10">Öppna vanliga sidan</a></p>
+    </main>
+
+    <nav class="bottom-nav" aria-label="Snabbnavigering">
+        <a href="landing-mobile.html?v=6">Start</a>
+        <a href="poangstallning-mobile.html?v=2">Poäng</a>
+        <a href="FIFA2026-matcher-plus.html?v=7">Matcher</a>
+        <a href="chat.html">Chat</a>
+    </nav>
+    <script>
+        const PROFILE_KEY = "vm2026-selected-participant";
+
+        function escapeOption(value) {
+            return String(value).replace(/[&<>"']/g, char => ({
+                "&": "&amp;",
+                "<": "&lt;",
+                ">": "&gt;",
+                '"': "&quot;",
+                "'": "&#039;"
+            }[char]));
+        }
+
+        async function loadParticipantPicker() {
+            const select = document.getElementById("participantSelect");
+            if (!select) return;
+
+            try {
+                const response = await fetch("grupptips.txt", { cache: "no-store" });
+                if (!response.ok) throw new Error("Kunde inte läsa deltagare.");
+                const text = await response.text();
+                const names = [...new Set(text
+                    .split(/\r?\n/)
+                    .map(line => line.split(/\t+/)[0]?.trim())
+                    .filter(Boolean))]
+                    .sort((a, b) => a.localeCompare(b, "sv"));
+
+                select.innerHTML = '<option value="">Välj deltagare</option>' + names
+                    .map(name => `<option value="${escapeOption(name)}">${escapeOption(name)}</option>`)
+                    .join("");
+                select.value = localStorage.getItem(PROFILE_KEY) || "";
+            } catch (error) {
+                console.warn("Kunde inte ladda deltagare:", error);
+            }
+
+            select.addEventListener("change", () => {
+                localStorage.setItem(PROFILE_KEY, select.value);
+            });
+        }
+
+        loadParticipantPicker();
+    </script>
 </body>
 </html>

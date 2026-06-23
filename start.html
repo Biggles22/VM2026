@@ -30,9 +30,13 @@
         .chat-link:hover{transform:translateY(-2px);box-shadow:0 18px 42px rgba(0,0,0,.22);background:#f8fbff}
         .chat-icon{width:22px;height:22px;border-radius:50%;background:#005293;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:14px;line-height:1}
         .chat-sub{display:block;margin-top:7px;font-size:13px;opacity:.86}
+        .personal-card{display:none;margin:14px auto 0;width:min(620px,100%);padding:14px 16px;border-radius:12px;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.24);box-shadow:0 10px 28px rgba(0,0,0,.12);text-align:left;backdrop-filter:blur(6px)}
+        .personal-card.active{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+        .personal-card span{display:block;font-size:11px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;opacity:.78}
+        .personal-card strong{display:block;margin-top:5px;font-size:20px;color:#fff}
         .score-frame{position:absolute;width:1px;height:1px;border:0;clip-path:inset(50%);overflow:hidden}
         @media (max-width:860px){.hero{min-height:0;display:flex;flex-direction:column;gap:14px}.score-card,.info-card{position:static;transform:none;max-width:100%;width:min(360px,100%)}}
-        @media (max-width:600px){body{align-items:flex-start}.wrap{padding:18px 14px 24px}.topbar{justify-content:center}h1{font-size:28px}.logo{width:180px}.info-card{padding:14px 16px}.chat-link{width:100%;justify-content:center}.chat-sub{font-size:12px}}
+        @media (max-width:600px){body{align-items:flex-start}.wrap{padding:18px 14px 24px}.topbar{justify-content:center}h1{font-size:28px}.logo{width:180px}.info-card{padding:14px 16px}.chat-link{width:100%;justify-content:center}.chat-sub{font-size:12px}.personal-card.active{grid-template-columns:1fr}}
     </style>
 </head>
 <body>
@@ -49,13 +53,14 @@
                 </span>
             </a>
         </section>
+        <section class="personal-card" id="personalCard" aria-live="polite"></section>
         <div class="hero">
             <section class="score-card" aria-label="Topp 5 grundspelspoäng">
                 <h2>Topp 5 grundspel</h2>
                 <ol class="score-list" id="topScores">
                     <li><span class="score-rank">-</span><span class="score-name">Laddar poäng...</span><span class="score-points"></span></li>
                 </ol>
-                <a class="score-link" href="poangstallning_ny.html?v=3" target="contentFrame">Visa alla poäng</a>
+                <a class="score-link" href="poangstallning_ny.html?v=5" target="contentFrame">Visa alla poäng</a>
             </section>
             <img class="logo" src="2026_FIFA_World_Cup_emblem.svg.webp" alt="VM 2026 logga">
             <section class="info-card" aria-label="Tävlingsinformation">
@@ -68,11 +73,13 @@
                 </ul>
             </section>
         </div>
-        <iframe class="score-frame" id="scoreFrame" src="poangstallning_ny.html?v=3" title="Poängdata" aria-hidden="true"></iframe>
+        <iframe class="score-frame" id="scoreFrame" src="poangstallning_ny.html?v=5" title="Poängdata" aria-hidden="true"></iframe>
     </div>
     <script>
         const topScores = document.getElementById("topScores");
         const scoreFrame = document.getElementById("scoreFrame");
+        const personalCard = document.getElementById("personalCard");
+        const PROFILE_KEY = "vm2026-selected-participant";
 
         function escapeHtml(value) {
             return String(value).replace(/[&<>"']/g, char => ({
@@ -99,20 +106,44 @@
             `).join("");
         }
 
+        function renderPersonalCard(rows) {
+            const selectedName = localStorage.getItem(PROFILE_KEY) || "";
+            const row = rows.find(item => item.name === selectedName);
+
+            if (!selectedName || !row) {
+                personalCard.classList.remove("active");
+                personalCard.innerHTML = "";
+                return;
+            }
+
+            const leader = rows[0];
+            const behind = Math.max(0, Number(leader?.points || 0) - Number(row.points || 0));
+            const change = row.change || "0 p";
+            personalCard.classList.add("active");
+            personalCard.innerHTML = `
+                <div><span>Min placering</span><strong>#${escapeHtml(row.rank)}</strong></div>
+                <div><span>Mina poäng</span><strong>${escapeHtml(row.points)} p (${escapeHtml(change)})</strong></div>
+                <div><span>Bakom ledaren</span><strong>${behind} p</strong></div>
+            `;
+        }
+
         function readScoresFromFrame() {
             try {
                 const rows = Array.from(scoreFrame.contentDocument.querySelectorAll("#tipsTable tbody tr"))
                     .map(row => {
                         const cells = row.querySelectorAll("td");
                         return {
+                            rank: cells[0]?.textContent.trim() || "",
                             name: cells[1]?.textContent.trim() || "",
                             points: cells[2]?.textContent.trim() || "0",
+                            change: cells[3]?.textContent.trim() || "0 p",
                         };
                     })
                     .filter(row => row.name);
 
                 if (rows.length) {
                     renderTopScores(rows);
+                    renderPersonalCard(rows);
                     return true;
                 }
             } catch {
@@ -131,6 +162,13 @@
                     clearInterval(timer);
                 }
             }, 400);
+        });
+
+        window.addEventListener("message", event => {
+            if (event.origin !== window.location.origin) return;
+            if (event.data?.type !== "vm2026:selectedParticipant") return;
+            localStorage.setItem(PROFILE_KEY, event.data.name || "");
+            readScoresFromFrame();
         });
     </script>
 </body>

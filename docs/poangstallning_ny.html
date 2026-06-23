@@ -103,6 +103,206 @@
       font-weight: 700;
     }
 
+    .profile-card {
+      display: none;
+      margin: 0 0 18px;
+      padding: 18px 22px;
+      border-radius: 18px;
+      background: #ffffff;
+      border: 1px solid rgba(31, 78, 120, 0.14);
+      box-shadow: 0 18px 42px rgba(18, 37, 71, 0.08);
+      color: #0f2a4d;
+    }
+
+    .profile-card.active {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .movement-card {
+      display: none;
+      margin: 0 0 18px;
+      padding: 18px 22px;
+      border-radius: 18px;
+      background: linear-gradient(135deg, #0f2a4d, #2566a8);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      box-shadow: 0 20px 48px rgba(18, 37, 71, 0.16);
+      color: #ffffff;
+    }
+
+    .movement-card.active {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) repeat(3, minmax(0, 0.8fr));
+      gap: 12px;
+      align-items: center;
+    }
+
+    .movement-card span {
+      display: block;
+      color: rgba(255, 255, 255, 0.75);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .movement-card strong {
+      display: block;
+      margin-top: 6px;
+      font-size: clamp(1.2rem, 2vw, 1.65rem);
+      color: #ffffff;
+    }
+
+    .movement-card .movement-title strong {
+      font-size: clamp(1.45rem, 2.4vw, 2rem);
+    }
+
+    .daily-comment {
+      margin: 0 0 18px;
+      padding: 18px 22px;
+      border-radius: 18px;
+      background: #fffdf4;
+      border: 1px solid rgba(246, 184, 0, 0.28);
+      box-shadow: 0 18px 42px rgba(18, 37, 71, 0.07);
+      color: #0f2a4d;
+      line-height: 1.65;
+    }
+
+    .daily-comment span {
+      display: block;
+      color: #8a6400;
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .daily-comment strong {
+      display: block;
+      margin-top: 6px;
+      font-size: clamp(1.2rem, 2vw, 1.55rem);
+      color: #0f2a4d;
+    }
+
+    .daily-comment p {
+      margin: 8px 0 0;
+      color: #42526a;
+    }
+
+    .daily-summary {
+      margin: 0 0 18px;
+      background: #ffffff;
+      border-radius: 18px;
+      border: 1px solid rgba(31, 78, 120, 0.14);
+      box-shadow: 0 18px 42px rgba(18, 37, 71, 0.07);
+      overflow: hidden;
+    }
+
+    .daily-summary h2 {
+      margin: 0;
+      padding: 20px 22px 6px;
+      color: #0f2a4d;
+      font-size: 1.35rem;
+    }
+
+    .day-summary {
+      display: grid;
+      grid-template-columns: minmax(150px, 0.7fr) repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      padding: 18px 22px;
+      border-top: 1px solid rgba(18, 37, 71, 0.08);
+      color: #0f2a4d;
+    }
+
+    .day-summary span {
+      display: block;
+      color: #60738a;
+      font-size: 0.75rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .day-summary strong {
+      display: block;
+      margin-top: 5px;
+      color: #0f2a4d;
+    }
+
+    .day-summary p {
+      margin: 6px 0 0;
+      color: #42526a;
+      line-height: 1.5;
+    }
+
+    .profile-card span {
+      display: block;
+      color: #60738a;
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .profile-card strong {
+      display: block;
+      margin-top: 6px;
+      font-size: clamp(1.25rem, 2vw, 1.75rem);
+      color: #0f2a4d;
+    }
+
+    tr.selected-participant {
+      background: #fff7d6 !important;
+      box-shadow: inset 4px 0 0 #f6b800;
+    }
+
+    .change-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      min-width: 112px;
+      min-height: 28px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      background: #eef4fb;
+      color: #42526a;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .change-badge.up {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .change-badge.down {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .change-arrow {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 18px;
+      height: 18px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.7);
+      font-size: 0.72rem;
+      line-height: 1;
+    }
+
+    .change-meta {
+      color: #60738a;
+      display: block;
+      font-size: 0.78rem;
+      font-weight: 700;
+      margin-top: 4px;
+      white-space: nowrap;
+    }
+
     .notes {
       margin-top: 18px;
       color: #4d657f;
@@ -129,6 +329,18 @@
       .page {
         padding: 24px 0 32px;
       }
+
+      .profile-card.active {
+        grid-template-columns: 1fr;
+      }
+
+      .movement-card.active {
+        grid-template-columns: 1fr;
+      }
+
+      .day-summary {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
@@ -137,6 +349,22 @@
     <header>
       <p class="lead">Här visas nuvarande poängställning för VM 2026-grundspelstipset. Alla tips jämförs med en aktuell grupptabell som räknas fram från spelade matcher.</p>
     </header>
+
+    <section class="profile-card" id="profileCard" aria-live="polite"></section>
+
+    <section class="movement-card" id="movementCard" aria-live="polite"></section>
+
+    <section class="daily-comment" id="dailyComment" aria-live="polite">
+      <span>Dagens kommentar</span>
+      <strong>Laddar dagens läge...</strong>
+    </section>
+
+    <section class="daily-summary" id="dailySummary" aria-live="polite">
+      <h2>Dagsammanställning</h2>
+      <div class="day-summary">
+        <div><span>Status</span><strong>Laddar dagar...</strong></div>
+      </div>
+    </section>
 
     <section class="card" id="statusCard">
       <div id="statusText" style="padding:18px 24px; font-size:1rem; color:#122547;">Laddar tips och aktuell ställning...</div>
@@ -167,6 +395,9 @@
     const LEAGUE = 1;
     const SEASON = 2026;
     const FINISHED_STATUSES = new Set(["FT", "AET", "PEN"]);
+    const PROFILE_KEY = "vm2026-selected-participant";
+
+    let latestRows = [];
 
     const TEAM_NAME_ALIASES = {
       "algeriet": "algeria",
@@ -262,6 +493,16 @@
       return TEAM_NAME_ALIASES[normalized] || normalized;
     }
 
+    function escapeHtml(value) {
+      return String(value ?? "").replace(/[&<>"']/g, char => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#039;"
+      }[char]));
+    }
+
     function getGroupLetter(groupName) {
       const match = String(groupName || "").match(/(?:Group|Grupp)\s*([A-L])\b/i);
       return match ? match[1].toUpperCase() : "";
@@ -287,7 +528,7 @@
       return { participants: Object.values(participants), groups: groups.sort() };
     }
 
-    function renderTips(participants, actualGroups) {
+    function calculateRows(participants, actualGroups) {
       const groupMap = Object.fromEntries(actualGroups.map(g => [g.group, g.teams.map(canonicalTeamName)]));
 
       const rows = participants.map(participant => {
@@ -303,15 +544,290 @@
       });
 
       rows.sort((a, b) => b.points - a.points || a.name.localeCompare(b.name, "sv"));
+      return rows.map((row, index) => ({ ...row, rank: index + 1 }));
+    }
 
-      const htmlRows = rows.map((participant, index) => `
-        <tr>
-          <td class="rank">${index + 1}</td>
+    function formatPointChange(change) {
+      if (change > 0) return `+${change} p`;
+      if (change < 0) return `${change} p`;
+      return "0 p";
+    }
+
+    function formatRankChange(change) {
+      if (change > 0) return `Upp ${change}`;
+      if (change < 0) return `Ner ${Math.abs(change)}`;
+      return "Oförändrad";
+    }
+
+    function pointChangeClass(change) {
+      if (change > 0) return "up";
+      if (change < 0) return "down";
+      return "";
+    }
+
+    function pointChangeArrow(change) {
+      if (change > 0) return "▲";
+      if (change < 0) return "▼";
+      return "•";
+    }
+
+    function rankMovementText(change) {
+      if (change > 0) return `${change} placeringar upp`;
+      if (change < 0) return `${Math.abs(change)} placeringar ner`;
+      return "samma placering";
+    }
+
+    function renderMovementCard(rows) {
+      const card = document.getElementById("movementCard");
+      if (!card) return;
+
+      const climbers = rows
+        .filter(row => row.pointChange > 0 || row.rankChange > 0)
+        .sort((a, b) =>
+          b.rankChange - a.rankChange ||
+          b.pointChange - a.pointChange ||
+          a.rank - b.rank ||
+          a.name.localeCompare(b.name, "sv")
+        );
+
+      if (!climbers.length) {
+        card.classList.remove("active");
+        card.innerHTML = "";
+        return;
+      }
+
+      const top = climbers[0];
+      card.classList.add("active");
+      card.innerHTML = `
+        <div class="movement-title"><span>Dagens klättrare</span><strong>${top.name}</strong></div>
+        <div><span>Poäng</span><strong>${formatPointChange(top.pointChange)}</strong></div>
+        <div><span>Placering</span><strong>${rankMovementText(top.rankChange)}</strong></div>
+        <div><span>Nuvarande plats</span><strong>#${top.rank}</strong></div>
+      `;
+    }
+
+    function matchLabel(match) {
+      if (!match) return "";
+      const home = match.teams?.home?.name || "";
+      const away = match.teams?.away?.name || "";
+      const homeGoals = match.goals?.home;
+      const awayGoals = match.goals?.away;
+      if (!home || !away || homeGoals == null || awayGoals == null) return "";
+      return `${home} - ${away} ${homeGoals}-${awayGoals}`;
+    }
+
+    function fixtureDateKey(match) {
+      const timestamp = match.fixture?.timestamp;
+      if (!timestamp) return "";
+      return new Intl.DateTimeFormat("sv-SE", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit"
+      }).format(new Date(timestamp * 1000));
+    }
+
+    function fixtureDateLabel(dateKey) {
+      const [year, month, day] = String(dateKey || "").split("-").map(Number);
+      if (!year || !month || !day) return dateKey || "";
+      return new Intl.DateTimeFormat("sv-SE", {
+        weekday: "long",
+        day: "numeric",
+        month: "long"
+      }).format(new Date(year, month - 1, day));
+    }
+
+    function finishedGroupMatches(fixtures) {
+      return fixtures
+        .filter(match =>
+          FINISHED_STATUSES.has(match.fixture?.status?.short) &&
+          /^Group Stage\b/i.test(match.league?.round || "") &&
+          match.goals?.home != null &&
+          match.goals?.away != null &&
+          fixtureDateKey(match)
+        )
+        .sort((a, b) => (a.fixture?.timestamp || 0) - (b.fixture?.timestamp || 0));
+    }
+
+    function rowsWithChanges(participants, currentGroups, previousGroups) {
+      const previousByName = new Map(calculateRows(participants, previousGroups).map(row => [row.name, row]));
+      return calculateRows(participants, currentGroups).map(row => {
+        const previous = previousByName.get(row.name);
+        return {
+          ...row,
+          previousPoints: previous?.points ?? row.points,
+          previousRank: previous?.rank ?? row.rank,
+          pointChange: row.points - (previous?.points ?? row.points),
+          rankChange: (previous?.rank ?? row.rank) - row.rank
+        };
+      });
+    }
+
+    function buildDailySummaries(participants, standings, fixtures) {
+      const matches = finishedGroupMatches(fixtures);
+      const dayKeys = [...new Set(matches.map(fixtureDateKey))].sort();
+
+      return dayKeys.map(dayKey => {
+        const dayMatches = matches.filter(match => fixtureDateKey(match) === dayKey);
+        const previousFixtures = matches.filter(match => fixtureDateKey(match) < dayKey);
+        const throughDayFixtures = matches.filter(match => fixtureDateKey(match) <= dayKey);
+        const previousGroups = buildGroupsFromStandingsAndFixtures(standings, previousFixtures);
+        const currentGroups = buildGroupsFromStandingsAndFixtures(standings, throughDayFixtures);
+        const rows = rowsWithChanges(participants, currentGroups, previousGroups);
+        const pointWinners = rows
+          .filter(row => row.pointChange > 0)
+          .sort((a, b) => b.pointChange - a.pointChange || a.rank - b.rank || a.name.localeCompare(b.name, "sv"));
+        const climbers = rows
+          .filter(row => row.rankChange > 0)
+          .sort((a, b) => b.rankChange - a.rankChange || b.pointChange - a.pointChange || a.rank - b.rank || a.name.localeCompare(b.name, "sv"));
+
+        return {
+          dateKey: dayKey,
+          label: fixtureDateLabel(dayKey),
+          matches: dayMatches,
+          rows,
+          leader: rows[0],
+          pointWinner: pointWinners[0],
+          climber: climbers[0],
+          pointsChanged: pointWinners.length
+        };
+      }).reverse();
+    }
+
+    function renderDailySummary(summaries) {
+      const card = document.getElementById("dailySummary");
+      if (!card) return;
+
+      if (!summaries.length) {
+        card.innerHTML = `
+          <h2>Dagsammanställning</h2>
+          <div class="day-summary">
+            <div><span>Status</span><strong>Inga spelade gruppmatcher ännu</strong></div>
+            <div><span>Kommentar</span><p>Dagsrapporten fylls på automatiskt när första matchdagen är färdigspelad.</p></div>
+          </div>
+        `;
+        return;
+      }
+
+      const rows = summaries.slice(0, 7).map(day => {
+        const matchText = day.matches.map(matchLabel).filter(Boolean).join(", ") || "Matcher saknas";
+        const pointText = day.pointWinner
+          ? `${day.pointWinner.name} ${formatPointChange(day.pointWinner.pointChange)}`
+          : "Inga nya poäng";
+        const climbText = day.climber
+          ? `${day.climber.name}, ${rankMovementText(day.climber.rankChange)}`
+          : "Ingen klättrare";
+        const leaderText = day.leader ? `${day.leader.name}, ${day.leader.points} p` : "-";
+        return `
+          <div class="day-summary">
+            <div>
+              <span>${escapeHtml(day.label)}</span>
+              <strong>${escapeHtml(day.matches.length)} match${day.matches.length === 1 ? "" : "er"}</strong>
+              <p>${escapeHtml(matchText)}</p>
+            </div>
+            <div><span>Dagens poäng</span><strong>${escapeHtml(pointText)}</strong></div>
+            <div><span>Dagens klättrare</span><strong>${escapeHtml(climbText)}</strong></div>
+            <div><span>Ledare efter dagen</span><strong>${escapeHtml(leaderText)}</strong></div>
+          </div>
+        `;
+      }).join("");
+
+      card.innerHTML = `<h2>Dagsammanställning</h2>${rows}`;
+    }
+
+    function renderDailyComment(rows, latestDay, finishedMatches) {
+      const card = document.getElementById("dailyComment");
+      if (!card) return;
+
+      if (!finishedMatches) {
+        card.innerHTML = `
+          <span>Dagens kommentar</span>
+          <strong>Vi väntar fortfarande på första gruppspelsresultatet.</strong>
+          <p>När matcherna börjar räknas poängen här automatiskt och kommentaren lyfter dagens rörelse i tabellen.</p>
+        `;
+        return;
+      }
+
+      const leader = rows[0];
+      const climbers = latestDay?.rows
+        ?.filter(row => row.pointChange > 0 || row.rankChange > 0)
+        .sort((a, b) =>
+          b.pointChange - a.pointChange ||
+          b.rankChange - a.rankChange ||
+          a.rank - b.rank ||
+          a.name.localeCompare(b.name, "sv")
+        ) || [];
+      const latestText = latestDay?.matches?.map(matchLabel).filter(Boolean).join(", ") || "";
+
+      if (climbers.length) {
+        const top = climbers[0];
+        card.innerHTML = `
+          <span>Dagens kommentar</span>
+          <strong>${escapeHtml(top.name)} fick bäst fart under senaste speldagen.</strong>
+          <p>${latestText ? `Matcher: ${escapeHtml(latestText)}. ` : ""}${escapeHtml(top.name)} tog ${escapeHtml(formatPointChange(top.pointChange))} och är nu på plats #${escapeHtml(top.rank)}. Ledaren är ${escapeHtml(leader.name)} med ${escapeHtml(leader.points)} p.</p>
+        `;
+        return;
+      }
+
+      card.innerHTML = `
+        <span>Dagens kommentar</span>
+        <strong>Tabellen står still efter senaste speldagen.</strong>
+        <p>${latestText ? `Matcher: ${escapeHtml(latestText)}. ` : ""}Ingen deltagare fick nya poäng den här dagen. ${leader ? `${escapeHtml(leader.name)} leder fortsatt på ${escapeHtml(leader.points)} p.` : ""}</p>
+      `;
+    }
+
+    function renderProfileCard(rows) {
+      const selectedName = localStorage.getItem(PROFILE_KEY) || "";
+      const card = document.getElementById("profileCard");
+      if (!card) return;
+
+      const row = rows.find(item => item.name === selectedName);
+      if (!selectedName || !row) {
+        card.classList.remove("active");
+        card.innerHTML = "";
+        return;
+      }
+
+      const leader = rows[0];
+      const behind = Math.max(0, (leader?.points || 0) - row.points);
+      card.classList.add("active");
+      card.innerHTML = `
+        <div><span>Min placering</span><strong>#${row.rank}</strong></div>
+        <div><span>Mina poäng</span><strong>${row.points} p (${formatPointChange(row.pointChange || 0)})</strong></div>
+        <div><span>Avstånd till ledaren</span><strong>${behind} p</strong></div>
+      `;
+    }
+
+    function applySelectedParticipant(rows = latestRows) {
+      const selectedName = localStorage.getItem(PROFILE_KEY) || "";
+      document.querySelectorAll("#tipsTable tbody tr").forEach(row => {
+        row.classList.toggle("selected-participant", row.dataset.name === selectedName && Boolean(selectedName));
+      });
+      renderProfileCard(rows);
+      renderMovementCard(rows);
+    }
+
+    function renderTips(participants, actualGroups, previousActualGroups = []) {
+      const rows = rowsWithChanges(participants, actualGroups, previousActualGroups);
+
+      latestRows = rows;
+
+      const htmlRows = rows.map(participant => `
+        <tr data-name="${participant.name.replace(/"/g, "&quot;")}">
+          <td class="rank">${participant.rank}</td>
           <td>${participant.name}</td>
           <td>${participant.points}</td>
+          <td>
+            <span class="change-badge ${pointChangeClass(participant.pointChange)}" title="${formatRankChange(participant.rankChange)} sedan senaste speldagen">
+              <span class="change-arrow">${pointChangeArrow(participant.pointChange)}</span>
+              <span>${formatPointChange(participant.pointChange)}</span>
+            </span>
+            <span class="change-meta">${rankMovementText(participant.rankChange)}</span>
+          </td>
           <td>${participant.details || "-"}</td>
         </tr>
       `).join("");
+
+      requestAnimationFrame(() => applySelectedParticipant(rows));
 
       return `
         <table>
@@ -320,6 +836,7 @@
               <th>Placering</th>
               <th>Deltagare</th>
               <th>Poäng</th>
+              <th>Senaste</th>
               <th>Kommentar</th>
             </tr>
           </thead>
@@ -454,13 +971,20 @@
         const { participants } = parseTips(tipsText);
         const standings = standingsData.response[0]?.league?.standings || [];
         const fixtures = fixturesData.response || [];
+        const finishedMatchesList = finishedGroupMatches(fixtures);
+        const dailySummaries = buildDailySummaries(participants, standings, fixtures);
+        const latestDay = dailySummaries[0];
         const actualGroups = buildGroupsFromStandingsAndFixtures(standings, fixtures);
+        const latestDayKey = latestDay?.dateKey || "";
+        const fixturesBeforeLatestDay = latestDayKey
+          ? finishedMatchesList.filter(match => fixtureDateKey(match) < latestDayKey)
+          : fixtures;
+        const previousActualGroups = buildGroupsFromStandingsAndFixtures(standings, fixturesBeforeLatestDay);
 
-        tipsTable.innerHTML = renderTips(participants, actualGroups);
-        const finishedMatches = fixtures.filter(match =>
-          FINISHED_STATUSES.has(match.fixture?.status?.short) &&
-          /^Group Stage\b/i.test(match.league?.round || "")
-        ).length;
+        tipsTable.innerHTML = renderTips(participants, actualGroups, previousActualGroups);
+        renderDailySummary(dailySummaries);
+        const finishedMatches = finishedMatchesList.length;
+        renderDailyComment(latestRows, latestDay, finishedMatches);
         const successMessage = `Uppdaterat från grupptips och ${finishedMatches} spelade gruppmatcher. ${participants.length} deltagare och ${actualGroups.length} grupper jämförda.`;
         statusText.textContent = successMessage;
         footerStatus.textContent = formatStatusText(successMessage);
@@ -474,6 +998,13 @@
     }
 
     loadData();
+
+    window.addEventListener("message", event => {
+      if (event.origin !== window.location.origin) return;
+      if (event.data?.type !== "vm2026:selectedParticipant") return;
+      localStorage.setItem(PROFILE_KEY, event.data.name || "");
+      applySelectedParticipant();
+    });
   </script>
 </body>
 </html>

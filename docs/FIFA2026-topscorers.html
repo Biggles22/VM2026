@@ -6,7 +6,7 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VM 2026 Skytteligaledare</title>
+    <title>VM 2026 Golden Boot</title>
     <style>
         body {
             margin: 0;
@@ -48,6 +48,26 @@
             border: 1px solid #dbe3ea;
             color: #334e68;
             line-height: 1.6;
+        }
+        .rule-note {
+            margin: 0 0 18px;
+            padding: 14px 16px;
+            border-radius: 8px;
+            background: #ffffff;
+            border: 1px solid #dbe3ea;
+            color: #334e68;
+            line-height: 1.55;
+        }
+        .rule-note strong {
+            color: #0f4c81;
+        }
+        .rule-note a {
+            color: #0f4c81;
+            font-weight: 700;
+            text-decoration: none;
+        }
+        .rule-note a:hover {
+            text-decoration: underline;
         }
         .topscorers-table {
             width: 100%;
@@ -107,15 +127,57 @@
                 padding: 12px 10px;
             }
         }
-    </style>
+
+    .mobile-bottom-nav {
+      display: none;
+    }
+
+    @media (max-width: 820px) {
+      body {
+        padding-bottom: calc(78px + env(safe-area-inset-bottom));
+      }
+
+      .mobile-bottom-nav {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 1000;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 6px;
+        padding: 10px 10px calc(10px + env(safe-area-inset-bottom));
+        background: rgba(255, 255, 255, 0.96);
+        border-top: 1px solid rgba(15, 44, 69, 0.12);
+        box-shadow: 0 -14px 30px rgba(15, 44, 69, 0.12);
+      }
+
+      .mobile-bottom-nav a {
+        min-height: 48px;
+        display: grid;
+        place-items: center;
+        color: #244761;
+        font-size: 0.78rem;
+        font-weight: 900;
+        text-decoration: none;
+        border-radius: 8px;
+        background: #eef4fb;
+      }
+    }
+
+  </style>
 </head>
 <body>
     <header>
-        <h1>VM 2026 - Skytteligaledare</h1>
+        <h1>VM 2026 - Golden Boot</h1>
     </header>
     <div class="container">
  
         <div class="status-box" id="status">Laddar toppskyttar...</div>
+        <div class="rule-note">
+            <strong>Golden Boot-sortering:</strong> flest mål, därefter flest assist, därefter färre spelade minuter.
+            Samma logik som FIFA:s <a id="officialGoldenBootLink" href="https://www.fifa.com/en/tournaments/mens/worldcup/canadamexicousa2026/articles/adidas-golden-boot-race-top-scorer" target="_blank" rel="noopener noreferrer">officiella Golden Boot-race</a>.
+        </div>
         <div id="topscorers">
             <div class="loading">Hämtar data från API...</div>
         </div>
@@ -126,7 +188,19 @@
         const LEAGUE = 1;
         const SEASON = 2026;
         const MAX_PLAYERS = 20;
+        const OFFICIAL_GOLDEN_BOOT_URL = "https://www.fifa.com/en/tournaments/mens/worldcup/canadamexicousa2026/articles/adidas-golden-boot-race-top-scorer";
+        const FIFA_GOLDEN_BOOT_ARTICLE_ENDPOINT = "https://cxm-api.fifa.com/fifaplusweb/api/sections/article/6z1agAwt7pwNgagXvawwK7?locale=en";
+        const FIFA_REFRESH_INTERVAL_MS = 10 * 60 * 1000;
         const FINISHED_STATUSES = new Set(["FT", "AET", "PEN"]);
+        const FALLBACK_GOLDEN_BOOT_PLAYERS = [
+            createOfficialGoldenBootEntry("Lionel Messi", "Argentina", 3, 0, 83),
+            createOfficialGoldenBootEntry("Folarin Balogun", "USA", 2, 0, 77),
+            createOfficialGoldenBootEntry("Yasin Ayari", "Sweden", 2, 0, 100),
+            createOfficialGoldenBootEntry("Kai Havertz", "Germany", 2, 0, 100),
+            createOfficialGoldenBootEntry("Elijah Just", "New Zealand", 2, 0, 101),
+            createOfficialGoldenBootEntry("Erling Haaland", "Norway", 2, 0, 103),
+            createOfficialGoldenBootEntry("Kylian Mbappé", "France", 2, 0, 106)
+        ];
 
         async function apiFootball(endpoint) {
             const separator = endpoint.includes("?") ? "&" : "?";
@@ -140,7 +214,11 @@
                 const text = await response.text();
                 throw new Error(`API-fel ${response.status}: ${response.statusText} ${text}`);
             }
-            return response.json();
+            const data = await response.json();
+            if (data.errors && Object.keys(data.errors).length) {
+                throw new Error(`API-fel: ${JSON.stringify(data.errors)}`);
+            }
+            return data;
         }
 
         function escapeHtml(value) {
@@ -168,13 +246,35 @@
                     name: team.name || "-"
                 },
                 statistics: [{
-                    games: { scoringMatches: 0, minutes: 0 },
+                    games: { scoringMatches: 0, minutes: 0, hasMinutes: false },
                     goals: { total: 0, assists: 0 },
                     penalties: { total: 0 },
                     fixtureIds: new Set(),
                     minutesFixtureIds: new Set()
                 }]
             };
+        }
+
+        function createOfficialGoldenBootEntry(name, country, goals, assists, minutes) {
+            return {
+                player: { name, nationality: country },
+                team: { name: country },
+                statistics: [{
+                    games: { minutes, hasMinutes: true },
+                    goals: { total: goals, assists },
+                    penalties: { total: null },
+                    source: "FIFA"
+                }]
+            };
+        }
+
+        async function fifaContent(endpoint) {
+            const response = await fetch(endpoint, { cache: "no-store" });
+            if (!response.ok) {
+                const text = await response.text();
+                throw new Error(`FIFA-fel ${response.status}: ${response.statusText} ${text}`);
+            }
+            return response.json();
         }
 
         async function loadFinishedFixtures() {
@@ -206,8 +306,11 @@
             const stats = entries.get(key).statistics[0];
             if (stats.minutesFixtureIds.has(fixtureId)) return;
 
-            const minutes = Number(playerStats.games?.minutes ?? 0);
-            stats.games.minutes += Number.isFinite(minutes) ? minutes : 0;
+            const minutes = Number(playerStats.games?.minutes);
+            if (Number.isFinite(minutes) && minutes > 0) {
+                stats.games.minutes += minutes;
+                stats.games.hasMinutes = true;
+            }
             stats.minutesFixtureIds.add(fixtureId);
         }
 
@@ -264,39 +367,169 @@
         async function loadTopscorersFromEvents(fixtures) {
             const entries = new Map();
 
-            await mapWithConcurrency(fixtures, 4, async match => {
-                try {
-                    await Promise.all([
-                        addFixturePlayerStatistics(entries, match),
-                        addFixtureEvents(entries, match)
-                    ]);
-                } catch (error) {
-                    console.warn(`Kunde inte hämta mål-events för match ${match.fixture.id}:`, error);
+            await mapWithConcurrency(fixtures, 2, async match => {
+                const [playerStatsResult, eventsResult] = await Promise.allSettled([
+                    addFixturePlayerStatistics(entries, match),
+                    addFixtureEvents(entries, match)
+                ]);
+
+                if (playerStatsResult.status === "rejected") {
+                    console.warn(`Kunde inte hämta spelarstatistik för match ${match.fixture.id}:`, playerStatsResult.reason);
+                }
+                if (eventsResult.status === "rejected") {
+                    console.warn(`Kunde inte hämta mål-events för match ${match.fixture.id}:`, eventsResult.reason);
                 }
             });
 
-            return Array.from(entries.values()).filter(item =>
+            return normalizeTopscorers(Array.from(entries.values()).filter(item =>
                 (item.statistics?.[0]?.goals?.total ?? 0) > 0
-            ).sort((a, b) => {
-                const aStats = a.statistics?.[0] || {};
-                const bStats = b.statistics?.[0] || {};
-                const goalDiff = (bStats.goals?.total ?? 0) - (aStats.goals?.total ?? 0);
-                if (goalDiff) return goalDiff;
-                const assistDiff = (bStats.goals?.assists ?? 0) - (aStats.goals?.assists ?? 0);
-                if (assistDiff) return assistDiff;
-                const aMinutes = aStats.games?.minutes ?? Number.MAX_SAFE_INTEGER;
-                const bMinutes = bStats.games?.minutes ?? Number.MAX_SAFE_INTEGER;
-                const minutesDiff = aMinutes - bMinutes;
-                if (minutesDiff) return minutesDiff;
-                return (a.player?.name || "").localeCompare(b.player?.name || "", "sv");
-            });
+            ));
         }
 
-        async function loadTopscorersFromStats() {
+        async function loadTopscorersFromApi() {
             const data = await apiFootball(`players/topscorers?league=${LEAGUE}&season=${SEASON}`);
-            return (data.response || []).filter(item =>
-                (item.statistics?.[0]?.goals?.total ?? 0) > 0
+            return data.response || [];
+        }
+
+        function compareByGoldenBootRules(a, b) {
+            const aStats = a.statistics?.[0] || {};
+            const bStats = b.statistics?.[0] || {};
+            const goalDiff = (bStats.goals?.total ?? 0) - (aStats.goals?.total ?? 0);
+            if (goalDiff) return goalDiff;
+            const assistDiff = (bStats.goals?.assists ?? 0) - (aStats.goals?.assists ?? 0);
+            if (assistDiff) return assistDiff;
+            const minutesDiff = knownMinutes(aStats) - knownMinutes(bStats);
+            if (minutesDiff) return minutesDiff;
+            return (a.player?.name || "").localeCompare(b.player?.name || "", "sv");
+        }
+
+        function normalizeTopscorers(players) {
+            return players.sort(compareByGoldenBootRules);
+        }
+
+        function knownMinutes(statistics) {
+            const minutes = Number(statistics.games?.minutes);
+            return Number.isFinite(minutes) && minutes > 0
+                ? minutes
+                : Number.MAX_SAFE_INTEGER;
+        }
+
+        function configureOfficialLink() {
+            const link = document.getElementById("officialGoldenBootLink");
+            if (link) link.href = OFFICIAL_GOLDEN_BOOT_URL;
+        }
+
+        function richTextToText(node) {
+            if (!node) return "";
+            if (node.nodeType === "text") return node.value || "";
+            return (node.content || []).map(richTextToText).join("");
+        }
+
+        function goalsFromHeading(value) {
+            const normalized = String(value || "").toLowerCase();
+            const numberWords = {
+                one: 1,
+                two: 2,
+                three: 3,
+                four: 4,
+                five: 5,
+                six: 6,
+                seven: 7,
+                eight: 8,
+                nine: 9,
+                ten: 10
+            };
+            const digitMatch = normalized.match(/(\d+)\s+goals?/);
+            if (digitMatch) return Number(digitMatch[1]);
+            const wordMatch = normalized.match(/\b(one|two|three|four|five|six|seven|eight|nine|ten)\s+goals?\b/);
+            return wordMatch ? numberWords[wordMatch[1]] : null;
+        }
+
+        function parseAssistCount(value) {
+            const normalized = String(value || "").toLowerCase();
+            if (normalized.includes("zero")) return 0;
+            const numberWords = {
+                one: 1,
+                two: 2,
+                three: 3,
+                four: 4,
+                five: 5,
+                six: 6,
+                seven: 7,
+                eight: 8,
+                nine: 9,
+                ten: 10
+            };
+            if (numberWords[normalized] !== undefined) return numberWords[normalized];
+            const number = Number(normalized);
+            return Number.isFinite(number) ? number : 0;
+        }
+
+        function parseGoldenBootLine(line, goals) {
+            const match = String(line || "").trim().match(/^(.+?)\s*\((.+?)\)\s*[-–]\s*(.+?)\s+assists?,\s*(\d+)\s+minutes?\s+played/i);
+            if (!match || !Number.isFinite(goals)) return null;
+            return createOfficialGoldenBootEntry(
+                match[1].trim(),
+                match[2].trim(),
+                goals,
+                parseAssistCount(match[3]),
+                Number(match[4])
             );
+        }
+
+        function parseOfficialGoldenBootArticle(article) {
+            const content = article?.richtext?.content || [];
+            const players = [];
+            let currentGoals = null;
+            let inStandings = false;
+            let lastUpdated = "";
+
+            content.forEach(node => {
+                const text = richTextToText(node).trim();
+                if (!text) return;
+
+                if (/adidas golden boot standings/i.test(text)) {
+                    inStandings = true;
+                    return;
+                }
+                if (/adidas golden boot criteria/i.test(text)) {
+                    inStandings = false;
+                    currentGoals = null;
+                    return;
+                }
+                if (!inStandings) return;
+
+                if (/^last updated/i.test(text)) {
+                    lastUpdated = text;
+                    return;
+                }
+
+                if (/^heading-/.test(node.nodeType)) {
+                    currentGoals = goalsFromHeading(text);
+                    return;
+                }
+
+                if (node.nodeType === "paragraph" && currentGoals !== null) {
+                    text.split(/\n+/)
+                        .map(line => line.trim())
+                        .filter(Boolean)
+                        .forEach(line => {
+                            const player = parseGoldenBootLine(line, currentGoals);
+                            if (player) players.push(player);
+                        });
+                }
+            });
+
+            return { players, lastUpdated };
+        }
+
+        async function loadOfficialGoldenBootPlayers() {
+            const article = await fifaContent(FIFA_GOLDEN_BOOT_ARTICLE_ENDPOINT);
+            const parsed = parseOfficialGoldenBootArticle(article);
+            if (!parsed.players.length) {
+                throw new Error("FIFA-listan kunde inte tolkas.");
+            }
+            return parsed;
         }
 
         function renderTopscorers(players) {
@@ -306,8 +539,9 @@
                 const team = item.team || statistics.team || {};
                 const goals = statistics.goals?.total ?? 0;
                 const assists = statistics.goals?.assists ?? 0;
-                const penalties = statistics.penalties?.total ?? statistics.penalty?.scored ?? 0;
-                const minutes = statistics.games?.minutes ?? 0;
+                const penaltiesValue = statistics.penalties?.total ?? statistics.penalty?.scored;
+                const penalties = penaltiesValue == null ? "-" : penaltiesValue;
+                const minutes = knownMinutes(statistics) === Number.MAX_SAFE_INTEGER ? "-" : statistics.games.minutes;
                 const nationality = player.nationality || "-";
                 return `
                     <tr>
@@ -333,7 +567,7 @@
                             <th>Mål</th>
                             <th>Assist</th>
                             <th>Straffmål</th>
-                            <th>Minuter</th>
+                            <th title="Vid lika mål och assist rankas färre spelade minuter högre enligt FIFA:s Golden Boot-regel.">Minuter*</th>
                         </tr>
                     </thead>
                     <tbody>${rows}</tbody>
@@ -342,13 +576,29 @@
         }
 
         async function loadTopscorers() {
+            configureOfficialLink();
             const container = document.getElementById("topscorers");
             const status = document.getElementById("status");
             try {
-                let players = await loadTopscorersFromStats();
-                if (players.length === 0) {
-                    const fixtures = await loadFinishedFixtures();
-                    players = await loadTopscorersFromEvents(fixtures);
+                const official = await loadOfficialGoldenBootPlayers();
+                if (official.players.length) {
+                    container.innerHTML = renderTopscorers(official.players);
+                    status.textContent = `Visar ${Math.min(official.players.length, MAX_PLAYERS)} spelare från FIFA:s officiella Golden Boot-lista${official.lastUpdated ? ` (${official.lastUpdated})` : ""}.`;
+                    return;
+                }
+
+                const apiPlayersPromise = loadTopscorersFromApi().catch(error => {
+                    console.warn("Kunde inte hämta färdig skytteliga:", error);
+                    return [];
+                });
+
+                const fixtures = await loadFinishedFixtures();
+                const eventPlayers = await loadTopscorersFromEvents(fixtures);
+                const apiPlayers = await apiPlayersPromise;
+                const players = eventPlayers.length ? eventPlayers : normalizeTopscorers(apiPlayers);
+
+                if (eventPlayers.length && apiPlayers.length) {
+                    console.info("Skytteligan visas från matchhändelser och sorteras enligt FIFA:s Golden Boot-regel.");
                 }
                 if (players.length === 0) {
                     container.innerHTML = `<div class="error">Inga topplista-data hittades.</div>`;
@@ -356,15 +606,33 @@
                     return;
                 }
                 container.innerHTML = renderTopscorers(players);
-                status.textContent = `Visar de ${Math.min(players.length, MAX_PLAYERS)} bästa målskyttarna i VM 2026.`;
+                status.textContent = eventPlayers.length
+                    ? `Visar top ${Math.min(players.length, MAX_PLAYERS)} från matchhändelser enligt FIFA:s Golden Boot-regel.`
+                    : `Visar top ${Math.min(players.length, MAX_PLAYERS)} från API:s skytteliga enligt FIFA:s Golden Boot-regel.`;
             } catch (error) {
-                console.error(error);
-                container.innerHTML = `<div class="error">Kunde inte hämta toppskyttar. Kontrollera API-nyckeln och att tjänsten är tillgänglig.</div>`;
-                status.textContent = "Fel vid hämtning av toppskyttar.";
+                console.warn("Kunde inte hämta FIFA:s officiella Golden Boot-lista, använder sparad fallback.", error);
+                try {
+                    const fallbackPlayers = FALLBACK_GOLDEN_BOOT_PLAYERS.slice();
+                    container.innerHTML = renderTopscorers(fallbackPlayers);
+                    status.textContent = `Visar sparad FIFA-lista eftersom livehämtningen inte svarade.`;
+                } catch (fallbackError) {
+                    console.error(fallbackError);
+                    container.innerHTML = `<div class="error">Kunde inte hämta toppskyttar. Kontrollera API-nyckeln och att tjänsten är tillgänglig.</div>`;
+                    status.textContent = "Fel vid hämtning av toppskyttar.";
+                }
             }
         }
 
         loadTopscorers();
+        setInterval(loadTopscorers, FIFA_REFRESH_INTERVAL_MS);
     </script>
+
+  <nav class="mobile-bottom-nav" aria-label="Snabbnavigering">
+    <a href="landing-mobile.html?v=6">Start</a>
+    <a href="poangstallning-mobile.html?v=2">Poäng</a>
+    <a href="FIFA2026-matcher-plus.html?v=7">Matcher</a>
+    <a href="chat.html">Chat</a>
+  </nav>
+
 </body>
 </html>
