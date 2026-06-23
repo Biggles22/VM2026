@@ -49,11 +49,17 @@ type RequestBody = {
 type WorkerEnv = Env & {
 	SUBSCRIPTIONS: KVNamespace;
 	CHAT_MESSAGES?: KVNamespace;
+	APISPORTS_KEY?: string;
 	VAPID_PUBLIC_KEY?: string;
 	VAPID_PRIVATE_KEY?: string;
 	VAPID_SUBJECT?: string;
 	ADMIN_PUSH_TOKEN?: string;
 };
+
+const APISPORTS_KEY_FALLBACK = "170d2afb853fb860d9432d14d7eaaaa5";
+const APISPORTS_BASE_URL = "https://v3.football.api-sports.io";
+const WORLD_CUP_LEAGUE = 1;
+const WORLD_CUP_SEASON = 2026;
 
 const JSON_HEADERS = {
 	"content-type": "application/json; charset=utf-8",
@@ -104,6 +110,10 @@ export default {
 
 			if (url.pathname.endsWith("/presence") && request.method === "POST") {
 				return await handlePresencePing(request, workerEnv);
+			}
+
+			if (url.pathname.endsWith("/football/topscorers") && request.method === "GET") {
+				return await handleFootballTopscorers(request, workerEnv);
 			}
 
 			return json(request, { error: "Not found" }, 404);
@@ -269,6 +279,40 @@ async function handlePresencePing(request: Request, env: WorkerEnv): Promise<Res
 	return handlePresenceCount(request, env);
 }
 
+async function handleFootballTopscorers(request: Request, env: WorkerEnv): Promise<Response> {
+	const apiKey = env.APISPORTS_KEY || APISPORTS_KEY_FALLBACK;
+	const endpoint = `${APISPORTS_BASE_URL}/players/topscorers?league=${WORLD_CUP_LEAGUE}&season=${WORLD_CUP_SEASON}`;
+	const response = await fetch(endpoint, {
+		headers: {
+			"x-apisports-key": apiKey,
+		},
+	});
+
+	const text = await response.text();
+	if (!response.ok) {
+		throw new HttpError(`API-Football svarade ${response.status}: ${text}`, response.status);
+	}
+
+	let data: unknown;
+	try {
+		data = JSON.parse(text);
+	} catch {
+		throw new HttpError("API-Football svarade inte med giltig JSON.", 502);
+	}
+
+	const payload = data as { errors?: unknown; response?: unknown[] };
+	if (payload.errors && hasApiErrors(payload.errors)) {
+		throw new HttpError(`API-Football-fel: ${JSON.stringify(payload.errors)}`, 502);
+	}
+
+	return json(request, {
+		ok: true,
+		source: "api-football",
+		updatedAt: new Date().toISOString(),
+		response: Array.isArray(payload.response) ? payload.response : [],
+	});
+}
+
 async function handlePresenceCount(request: Request, env: WorkerEnv): Promise<Response> {
 	assertKv(env);
 
@@ -287,6 +331,13 @@ async function countPresence(env: WorkerEnv): Promise<number> {
 	} while (cursor);
 
 	return active;
+}
+
+function hasApiErrors(errors: unknown): boolean {
+	if (!errors) return false;
+	if (Array.isArray(errors)) return errors.length > 0;
+	if (typeof errors === "object") return Object.keys(errors).length > 0;
+	return Boolean(errors);
 }
 
 async function listChatMessages(env: WorkerEnv): Promise<ChatMessage[]> {
