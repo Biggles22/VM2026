@@ -2,6 +2,9 @@
 <html lang="sv">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VM 2026 Skytteligaledare</title>
     <style>
@@ -126,7 +129,9 @@
         const FINISHED_STATUSES = new Set(["FT", "AET", "PEN"]);
 
         async function apiFootball(endpoint) {
-            const response = await fetch(`${BASE_URL}/${endpoint}`, {
+            const separator = endpoint.includes("?") ? "&" : "?";
+            const response = await fetch(`${BASE_URL}/${endpoint}${separator}_=${Date.now()}`, {
+                cache: "no-store",
                 headers: {
                     "x-apisports-key": API_KEY
                 }
@@ -287,14 +292,21 @@
             });
         }
 
+        async function loadTopscorersFromStats() {
+            const data = await apiFootball(`players/topscorers?league=${LEAGUE}&season=${SEASON}`);
+            return (data.response || []).filter(item =>
+                (item.statistics?.[0]?.goals?.total ?? 0) > 0
+            );
+        }
+
         function renderTopscorers(players) {
             const rows = players.slice(0, MAX_PLAYERS).map((item, index) => {
                 const player = item.player || {};
-                const team = item.team || {};
                 const statistics = item.statistics?.[0] || {};
+                const team = item.team || statistics.team || {};
                 const goals = statistics.goals?.total ?? 0;
                 const assists = statistics.goals?.assists ?? 0;
-                const penalties = statistics.penalties?.total ?? 0;
+                const penalties = statistics.penalties?.total ?? statistics.penalty?.scored ?? 0;
                 const minutes = statistics.games?.minutes ?? 0;
                 const nationality = player.nationality || "-";
                 return `
@@ -333,8 +345,11 @@
             const container = document.getElementById("topscorers");
             const status = document.getElementById("status");
             try {
-                const fixtures = await loadFinishedFixtures();
-                const players = await loadTopscorersFromEvents(fixtures);
+                let players = await loadTopscorersFromStats();
+                if (players.length === 0) {
+                    const fixtures = await loadFinishedFixtures();
+                    players = await loadTopscorersFromEvents(fixtures);
+                }
                 if (players.length === 0) {
                     container.innerHTML = `<div class="error">Inga topplista-data hittades.</div>`;
                     status.textContent = "Inga toppskyttar hittades.";
