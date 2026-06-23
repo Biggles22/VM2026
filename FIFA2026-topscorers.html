@@ -532,6 +532,27 @@
             return parsed;
         }
 
+        async function loadLiveTopscorers() {
+            const apiPlayers = await loadTopscorersFromApi().catch(error => {
+                console.warn("Kunde inte hämta färdig skytteliga:", error);
+                return [];
+            });
+
+            if (apiPlayers.length) {
+                return { players: normalizeTopscorers(apiPlayers), source: "api", hasApiPlayers: true };
+            }
+
+            let eventPlayers = [];
+            try {
+                const fixtures = await loadFinishedFixtures();
+                eventPlayers = await loadTopscorersFromEvents(fixtures);
+            } catch (error) {
+                console.warn("Kunde inte bygga skytteliga från matchhändelser:", error);
+            }
+
+            return { players: eventPlayers, source: "events", hasApiPlayers: false };
+        }
+
         function renderTopscorers(players) {
             const rows = players.slice(0, MAX_PLAYERS).map((item, index) => {
                 const player = item.player || {};
@@ -579,6 +600,23 @@
             configureOfficialLink();
             const container = document.getElementById("topscorers");
             const status = document.getElementById("status");
+
+            try {
+                const live = await loadLiveTopscorers();
+                if (live.source === "events" && live.hasApiPlayers) {
+                    console.info("Skytteligan visas från matchhändelser och sorteras enligt FIFA:s Golden Boot-regel.");
+                }
+                if (live.players.length) {
+                    container.innerHTML = renderTopscorers(live.players);
+                    status.textContent = live.source === "events"
+                        ? `Visar top ${Math.min(live.players.length, MAX_PLAYERS)} från matchhändelser enligt FIFA:s Golden Boot-regel.`
+                        : `Visar top ${Math.min(live.players.length, MAX_PLAYERS)} från API:s skytteliga enligt FIFA:s Golden Boot-regel.`;
+                    return;
+                }
+            } catch (error) {
+                console.warn("Kunde inte hämta live-skytteliga från API-Football, provar FIFA:s officiella lista.", error);
+            }
+
             try {
                 const official = await loadOfficialGoldenBootPlayers();
                 if (official.players.length) {
@@ -586,35 +624,12 @@
                     status.textContent = `Visar ${Math.min(official.players.length, MAX_PLAYERS)} spelare från FIFA:s officiella Golden Boot-lista${official.lastUpdated ? ` (${official.lastUpdated})` : ""}.`;
                     return;
                 }
-
-                const apiPlayersPromise = loadTopscorersFromApi().catch(error => {
-                    console.warn("Kunde inte hämta färdig skytteliga:", error);
-                    return [];
-                });
-
-                const fixtures = await loadFinishedFixtures();
-                const eventPlayers = await loadTopscorersFromEvents(fixtures);
-                const apiPlayers = await apiPlayersPromise;
-                const players = eventPlayers.length ? eventPlayers : normalizeTopscorers(apiPlayers);
-
-                if (eventPlayers.length && apiPlayers.length) {
-                    console.info("Skytteligan visas från matchhändelser och sorteras enligt FIFA:s Golden Boot-regel.");
-                }
-                if (players.length === 0) {
-                    container.innerHTML = `<div class="error">Inga topplista-data hittades.</div>`;
-                    status.textContent = "Inga toppskyttar hittades.";
-                    return;
-                }
-                container.innerHTML = renderTopscorers(players);
-                status.textContent = eventPlayers.length
-                    ? `Visar top ${Math.min(players.length, MAX_PLAYERS)} från matchhändelser enligt FIFA:s Golden Boot-regel.`
-                    : `Visar top ${Math.min(players.length, MAX_PLAYERS)} från API:s skytteliga enligt FIFA:s Golden Boot-regel.`;
             } catch (error) {
                 console.warn("Kunde inte hämta FIFA:s officiella Golden Boot-lista, använder sparad fallback.", error);
                 try {
                     const fallbackPlayers = FALLBACK_GOLDEN_BOOT_PLAYERS.slice();
                     container.innerHTML = renderTopscorers(fallbackPlayers);
-                    status.textContent = `Visar sparad FIFA-lista eftersom livehämtningen inte svarade.`;
+                    status.textContent = `Visar sparad FIFA-lista eftersom varken FIFA eller API-Football svarade.`;
                 } catch (fallbackError) {
                     console.error(fallbackError);
                     container.innerHTML = `<div class="error">Kunde inte hämta toppskyttar. Kontrollera API-nyckeln och att tjänsten är tillgänglig.</div>`;
