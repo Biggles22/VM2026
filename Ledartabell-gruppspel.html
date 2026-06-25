@@ -129,6 +129,43 @@
       line-height: 1.1;
     }
 
+    .goal-forecast {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin: -6px 0 18px;
+      padding: 14px;
+      border-radius: 8px;
+      background: var(--paper);
+      border: 1px solid rgba(16, 34, 53, 0.08);
+      box-shadow: 0 14px 36px rgba(16, 34, 53, 0.07);
+    }
+
+    .goal-forecast div {
+      min-height: 72px;
+      padding: 12px;
+      border-radius: 8px;
+      background: #f4f8fb;
+      border: 1px solid rgba(16, 34, 53, 0.08);
+    }
+
+    .goal-forecast span {
+      display: block;
+      color: var(--muted);
+      font-size: 0.74rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .goal-forecast strong {
+      display: block;
+      margin-top: 6px;
+      color: var(--navy);
+      font-size: clamp(1.15rem, 2vw, 1.55rem);
+      line-height: 1.15;
+    }
+
     .toolbar {
       display: flex;
       flex-wrap: wrap;
@@ -176,7 +213,7 @@
 
     table {
       width: 100%;
-      min-width: 980px;
+      min-width: 1180px;
       border-collapse: collapse;
     }
 
@@ -274,10 +311,15 @@
       .summary {
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
+
+      .goal-forecast {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
     }
 
     @media (max-width: 560px) {
-      .summary {
+      .summary,
+      .goal-forecast {
         grid-template-columns: 1fr;
       }
 
@@ -296,17 +338,24 @@
       </div>
       <div>
         <h1>Ledartabell</h1>
-        <p class="lead">Samlad poängställning för gruppspelet med reserverad plats för slutspelspoäng.</p>
+        <p class="lead">Samlad poängställning med gruppspelspoäng och slutspelspoäng i samma tabell.</p>
       </div>
     </header>
 
-    <p class="status" id="status">Laddar deltagare, gruppspelstips och aktuella resultat...</p>
+    <p class="status" id="status">Laddar gruppspelspoäng, slutspelspoäng och aktuella resultat...</p>
 
     <section class="summary" aria-label="Sammanfattning">
       <div class="metric"><span>Deltagare</span><strong id="participantCount">-</strong></div>
-      <div class="metric"><span>Spelade gruppmatcher</span><strong id="finishedCount">-</strong></div>
+      <div class="metric"><span>Matcher räknade</span><strong id="finishedCount">-</strong></div>
       <div class="metric"><span>Ledare</span><strong id="leaderName">-</strong></div>
       <div class="metric"><span>Ledande poäng</span><strong id="leaderPoints">-</strong></div>
+    </section>
+
+    <section class="goal-forecast" aria-label="Målprognos">
+      <div><span>Mål hittills</span><strong id="goalsSoFar">-</strong></div>
+      <div><span>Snitt per match</span><strong id="goalsPerMatch">-</strong></div>
+      <div><span>Prognos totalt</span><strong id="projectedGoals">-</strong></div>
+      <div><span>Matcher med resultat</span><strong id="goalMatchCount">-</strong></div>
     </section>
 
     <section class="toolbar" aria-label="Filtrera ledartabellen">
@@ -328,8 +377,8 @@
     </section>
 
     <section class="notes">
-      <p><strong>Gruppspel:</strong> 5 poäng för rätt gruppvinnare och 3 poäng för rätt grupptvåa.</p>
-      <p><strong>Slutspel:</strong> kolumnen är förberedd men står på 0 poäng tills slutspelsräkningen kopplas på.</p>
+      <p><strong>Gruppspel:</strong> hämtas och räknas på samma sätt som poangstallning_ny.html.</p>
+      <p><strong>Slutspel:</strong> hämtas och räknas på samma sätt som poangstallning_slutspel.html.</p>
       <p id="updatedAt">Senast uppdaterad: väntar på data.</p>
     </section>
   </main>
@@ -337,12 +386,25 @@
   <script>
     const API_KEY = "170d2afb853fb860d9432d14d7eaaaa5";
     const BASE_URL = "https://v3.football.api-sports.io";
+    const TOPSCORERS_PROXY_URL = "https://vm2026-worker.anders-h-engstrom.workers.dev/api/football/topscorers";
     const LEAGUE = 1;
     const SEASON = 2026;
     const FINISHED_STATUSES = new Set(["FT", "AET", "PEN"]);
+    const TOTAL_WORLD_CUP_MATCHES = 104;
     const GROUP_WINNER_POINTS = 5;
     const GROUP_RUNNER_UP_POINTS = 3;
-    const PLAYOFF_POINTS = {};
+    const PLAYOFF_STAGES = [
+      { key: "r16", label: "Åttondelsfinalister", start: 0, count: 16, points: 2 },
+      { key: "qf", label: "Kvartsfinalister", start: 16, count: 8, points: 5 },
+      { key: "sf", label: "Semifinalister", start: 24, count: 4, points: 10 },
+      { key: "final", label: "Finalister", start: 28, count: 2, points: 15 }
+    ];
+    const SPECIAL_PICKS = {
+      champion: { index: 30, points: 25 },
+      bronze: { index: 31, points: 20 },
+      scorer: { index: 32, points: 15 },
+      tieBreaker: { index: 33, points: 0 }
+    };
 
     let latestRows = [];
 
@@ -440,6 +502,25 @@
       "uzbekistan": "uzbekistan"
     };
 
+    const PLAYER_NAME_ALIASES = {
+      "e haaland": "erling haaland",
+      "erling haaland": "erling haaland",
+      "h kane": "harry kane",
+      "harry kane": "harry kane",
+      "j alvarez": "julian alvarez",
+      "julian alvarez": "julian alvarez",
+      "julián álvarez": "julian alvarez",
+      "kai havertz": "kai havertz",
+      "k havertz": "kai havertz",
+      "k mbappe": "kylian mbappe",
+      "kylian mbappe": "kylian mbappe",
+      "kylian mbape": "kylian mbappe",
+      "l messi": "lionel messi",
+      "lamine yamal": "lamine yamal",
+      "lionel messi": "lionel messi",
+      "l yamal": "lamine yamal"
+    };
+
     function normalizeName(value) {
       return String(value || "")
         .trim()
@@ -454,6 +535,11 @@
     function canonicalTeamName(value) {
       const normalized = normalizeName(value);
       return TEAM_NAME_ALIASES[normalized] || normalized;
+    }
+
+    function canonicalPlayerName(value) {
+      const normalized = normalizeName(value);
+      return PLAYER_NAME_ALIASES[normalized] || normalized;
     }
 
     function escapeHtml(value) {
@@ -475,14 +561,18 @@
       return /^Group Stage\b/i.test(match.league?.round || "");
     }
 
+    function isFinished(match) {
+      return FINISHED_STATUSES.has(match.fixture?.status?.short);
+    }
+
     function isFinishedGroupMatch(match) {
       return isGroupStageMatch(match)
-        && FINISHED_STATUSES.has(match.fixture?.status?.short)
+        && isFinished(match)
         && match.goals?.home != null
         && match.goals?.away != null;
     }
 
-    function parseTips(text) {
+    function parseGroupTips(text) {
       const participants = new Map();
 
       text.split(/\r?\n/).forEach(line => {
@@ -498,6 +588,22 @@
       });
 
       return [...participants.values()];
+    }
+
+    function parsePlayoffTips(text) {
+      const lines = text.split(/\r?\n/).filter(line => line.trim());
+      const headers = (lines.shift() || "").split("\t").map(cell => cell.trim());
+
+      return lines.map(line => {
+        const cells = line.split("\t").map(cell => cell.trim());
+        return {
+          name: cells[0] || "",
+          values: headers.slice(1).map((header, index) => ({
+            header,
+            value: cells[index + 1] || ""
+          }))
+        };
+      }).filter(participant => participant.name);
     }
 
     function createSeedGroups(standings) {
@@ -587,15 +693,13 @@
         .sort((a, b) => a.group.localeCompare(b.group, "sv"));
     }
 
-    function calculateRows(participants, actualGroups) {
+    function calculateGroupScores(participants, actualGroups) {
       const actualByGroup = Object.fromEntries(
         actualGroups.map(group => [group.group, group.teams.map(team => canonicalTeamName(team.name))])
       );
 
-      const rows = participants.map(participant => {
+      return new Map(participants.map(participant => {
         let groupPoints = 0;
-        let winnerHits = 0;
-        let runnerUpHits = 0;
         const hits = [];
 
         Object.entries(participant.predictions).forEach(([group, prediction]) => {
@@ -604,35 +708,260 @@
 
           if (winner && winner === actual[0]) {
             groupPoints += GROUP_WINNER_POINTS;
-            winnerHits += 1;
             hits.push(`${group} vinnare`);
           }
 
           if (runnerUp && runnerUp === actual[1]) {
             groupPoints += GROUP_RUNNER_UP_POINTS;
-            runnerUpHits += 1;
             hits.push(`${group} tvåa`);
           }
         });
 
-        const playoffPoints = Number(PLAYOFF_POINTS[participant.name] || 0);
-        const totalPoints = groupPoints + playoffPoints;
+        return [participant.name, {
+          name: participant.name,
+          groupPoints,
+          groupHits: hits
+        }];
+      }));
+    }
+
+    function normalizeRound(round) {
+      return String(round || "").toLowerCase();
+    }
+
+    function isRoundOf32(match) {
+      const round = normalizeRound(match.league?.round);
+      return round.includes("round of 32") || round.includes("1/16") || round.includes("sixteenth");
+    }
+
+    function isRoundOf16(match) {
+      const round = normalizeRound(match.league?.round);
+      return round.includes("round of 16") || round.includes("8th finals") || round.includes("eighth") || round.includes("1/8");
+    }
+
+    function isQuarterFinal(match) {
+      return normalizeRound(match.league?.round).includes("quarter");
+    }
+
+    function isSemiFinal(match) {
+      return normalizeRound(match.league?.round).includes("semi");
+    }
+
+    function isThirdPlace(match) {
+      const round = normalizeRound(match.league?.round);
+      return round.includes("3rd") || round.includes("third") || round.includes("bronze");
+    }
+
+    function isFinal(match) {
+      const round = normalizeRound(match.league?.round);
+      return round.includes("final") && !isThirdPlace(match);
+    }
+
+    function addTeam(set, team) {
+      if (team?.name) set.add(canonicalTeamName(team.name));
+    }
+
+    function teamsInRound(fixtures, predicate) {
+      const teams = new Set();
+      fixtures.filter(predicate).forEach(match => {
+        addTeam(teams, match.teams?.home);
+        addTeam(teams, match.teams?.away);
+      });
+      return teams;
+    }
+
+    function matchWinner(match) {
+      if (!isFinished(match)) return null;
+      if (match.teams?.home?.winner === true) return match.teams.home;
+      if (match.teams?.away?.winner === true) return match.teams.away;
+
+      const homeGoals = Number(match.goals?.home);
+      const awayGoals = Number(match.goals?.away);
+      if (!Number.isFinite(homeGoals) || !Number.isFinite(awayGoals)) return null;
+      if (homeGoals > awayGoals) return match.teams?.home || null;
+      if (awayGoals > homeGoals) return match.teams?.away || null;
+
+      const homePenalties = Number(match.score?.penalty?.home);
+      const awayPenalties = Number(match.score?.penalty?.away);
+      if (Number.isFinite(homePenalties) && Number.isFinite(awayPenalties)) {
+        if (homePenalties > awayPenalties) return match.teams?.home || null;
+        if (awayPenalties > homePenalties) return match.teams?.away || null;
+      }
+
+      return null;
+    }
+
+    function winnersOfRound(fixtures, predicate) {
+      const winners = new Set();
+      fixtures.filter(predicate).forEach(match => addTeam(winners, matchWinner(match)));
+      return winners;
+    }
+
+    function unionSets(...sets) {
+      const result = new Set();
+      sets.forEach(set => set.forEach(value => result.add(value)));
+      return result;
+    }
+
+    function buildActualPlayoffStages(fixtures, scorerLeaders) {
+      return {
+        r16: unionSets(teamsInRound(fixtures, isRoundOf16), winnersOfRound(fixtures, isRoundOf32)),
+        qf: unionSets(teamsInRound(fixtures, isQuarterFinal), winnersOfRound(fixtures, isRoundOf16)),
+        sf: unionSets(teamsInRound(fixtures, isSemiFinal), winnersOfRound(fixtures, isQuarterFinal)),
+        final: unionSets(teamsInRound(fixtures, isFinal), winnersOfRound(fixtures, isSemiFinal)),
+        champion: winnersOfRound(fixtures, isFinal),
+        bronze: winnersOfRound(fixtures, isThirdPlace),
+        scorer: new Set(scorerLeaders.map(player => canonicalPlayerName(player.player?.name || player.name || "")))
+      };
+    }
+
+    function pickValue(participant, index) {
+      return participant.values[index]?.value || "";
+    }
+
+    function stagePicks(participant, stage) {
+      return participant.values
+        .slice(stage.start, stage.start + stage.count)
+        .map(item => item.value)
+        .filter(Boolean);
+    }
+
+    function scorerStats(player) {
+      return player.statistics?.[0] || {};
+    }
+
+    function compareTopscorers(a, b) {
+      const aStats = scorerStats(a);
+      const bStats = scorerStats(b);
+      const goalDiff = (bStats.goals?.total ?? 0) - (aStats.goals?.total ?? 0);
+      if (goalDiff) return goalDiff;
+      const assistDiff = (bStats.goals?.assists ?? 0) - (aStats.goals?.assists ?? 0);
+      if (assistDiff) return assistDiff;
+      const aMinutes = Number(aStats.games?.minutes) || Number.MAX_SAFE_INTEGER;
+      const bMinutes = Number(bStats.games?.minutes) || Number.MAX_SAFE_INTEGER;
+      if (aMinutes !== bMinutes) return aMinutes - bMinutes;
+      return (a.player?.name || "").localeCompare(b.player?.name || "", "sv");
+    }
+
+    function sameTopscorerRank(a, b) {
+      const aStats = scorerStats(a);
+      const bStats = scorerStats(b);
+      const aMinutes = Number(aStats.games?.minutes) || Number.MAX_SAFE_INTEGER;
+      const bMinutes = Number(bStats.games?.minutes) || Number.MAX_SAFE_INTEGER;
+      return (aStats.goals?.total ?? 0) === (bStats.goals?.total ?? 0)
+        && (aStats.goals?.assists ?? 0) === (bStats.goals?.assists ?? 0)
+        && aMinutes === bMinutes;
+    }
+
+    async function loadTopscorerLeaders() {
+      try {
+        const response = await fetch(`${TOPSCORERS_PROXY_URL}?_=${Date.now()}`, { cache: "no-store" });
+        if (!response.ok) throw new Error(`Worker-fel ${response.status}`);
+        const data = await response.json();
+        const players = (data.response || [])
+          .filter(player => (scorerStats(player).goals?.total ?? 0) > 0)
+          .sort(compareTopscorers);
+        if (!players.length) return [];
+        const leader = players[0];
+        return players.filter(player => sameTopscorerRank(player, leader));
+      } catch (error) {
+        console.warn("Kunde inte hämta skyttekungar via worker:", error);
+      }
+
+      try {
+        const response = await fetch(`${BASE_URL}/players/topscorers?league=${LEAGUE}&season=${SEASON}`, {
+          cache: "no-store",
+          headers: { "x-apisports-key": API_KEY }
+        });
+        if (!response.ok) throw new Error(`API-fel ${response.status}`);
+        const data = await response.json();
+        if (data.errors && Object.keys(data.errors).length) {
+          throw new Error(JSON.stringify(data.errors));
+        }
+        const players = (data.response || [])
+          .filter(player => (scorerStats(player).goals?.total ?? 0) > 0)
+          .sort(compareTopscorers);
+        if (!players.length) return [];
+        const leader = players[0];
+        return players.filter(player => sameTopscorerRank(player, leader));
+      } catch (error) {
+        console.warn("Kunde inte hämta skyttekungar direkt:", error);
+      }
+
+      return [];
+    }
+
+    function calculatePlayoffScores(participants, actualStages) {
+      return new Map(participants.map(participant => {
+        let playoffPoints = 0;
+        const playoffHits = [];
+
+        PLAYOFF_STAGES.forEach(stage => {
+          const actual = actualStages[stage.key] || new Set();
+          const hits = stagePicks(participant, stage).filter(pick => actual.has(canonicalTeamName(pick)));
+          if (!hits.length) return;
+
+          const points = hits.length * stage.points;
+          playoffPoints += points;
+          playoffHits.push(`${stage.label}: ${hits.length} (${points} p)`);
+        });
+
+        const championPick = pickValue(participant, SPECIAL_PICKS.champion.index);
+        const bronzePick = pickValue(participant, SPECIAL_PICKS.bronze.index);
+        const scorerPick = pickValue(participant, SPECIAL_PICKS.scorer.index);
+        const tieBreaker = pickValue(participant, SPECIAL_PICKS.tieBreaker.index);
+
+        if (championPick && actualStages.champion.has(canonicalTeamName(championPick))) {
+          playoffPoints += SPECIAL_PICKS.champion.points;
+          playoffHits.push(`Världsmästare: ${championPick} (${SPECIAL_PICKS.champion.points} p)`);
+        }
+
+        if (bronzePick && actualStages.bronze.has(canonicalTeamName(bronzePick))) {
+          playoffPoints += SPECIAL_PICKS.bronze.points;
+          playoffHits.push(`Brons: ${bronzePick} (${SPECIAL_PICKS.bronze.points} p)`);
+        }
+
+        if (scorerPick && actualStages.scorer.has(canonicalPlayerName(scorerPick))) {
+          playoffPoints += SPECIAL_PICKS.scorer.points;
+          playoffHits.push(`Skyttekung: ${scorerPick} (${SPECIAL_PICKS.scorer.points} p)`);
+        }
+
+        return [participant.name, {
+          name: participant.name,
+          playoffPoints,
+          playoffHits,
+          tieBreaker
+        }];
+      }));
+    }
+
+    function combineScores(groupParticipants, playoffParticipants, groupScores, playoffScores) {
+      const names = new Set([
+        ...groupParticipants.map(participant => participant.name),
+        ...playoffParticipants.map(participant => participant.name)
+      ]);
+
+      const rows = [...names].map(name => {
+        const group = groupScores.get(name) || {};
+        const playoff = playoffScores.get(name) || {};
+        const groupPoints = group.groupPoints || 0;
+        const playoffPoints = playoff.playoffPoints || 0;
 
         return {
-          ...participant,
+          name,
           groupPoints,
           playoffPoints,
-          totalPoints,
-          winnerHits,
-          runnerUpHits,
-          hits
+          totalPoints: groupPoints + playoffPoints,
+          groupHits: group.groupHits || [],
+          playoffHits: playoff.playoffHits || [],
+          tieBreaker: playoff.tieBreaker || ""
         };
       });
 
       rows.sort((a, b) =>
         b.totalPoints - a.totalPoints ||
         b.groupPoints - a.groupPoints ||
-        b.winnerHits - a.winnerHits ||
+        b.playoffPoints - a.playoffPoints ||
         a.name.localeCompare(b.name, "sv")
       );
 
@@ -665,9 +994,9 @@
               <th>Gruppspel</th>
               <th>Slutspel</th>
               <th>Totalt</th>
-              <th>Rätt vinnare</th>
-              <th>Rätt tvåor</th>
+              <th>Utslagsfråga</th>
               <th>Gruppträffar</th>
+              <th>Slutspelsträffar</th>
             </tr>
           </thead>
           <tbody>
@@ -678,9 +1007,9 @@
                 <td class="num">${row.groupPoints}</td>
                 <td class="num pending">${row.playoffPoints}</td>
                 <td class="num total">${row.totalPoints}</td>
-                <td class="num">${row.winnerHits}</td>
-                <td class="num">${row.runnerUpHits}</td>
-                <td class="details">${row.hits.length ? escapeHtml(row.hits.join(", ")) : "-"}</td>
+                <td class="num">${escapeHtml(row.tieBreaker || "-")}</td>
+                <td class="details">${row.groupHits.length ? escapeHtml(row.groupHits.join(", ")) : "-"}</td>
+                <td class="details">${row.playoffHits.length ? escapeHtml(row.playoffHits.join(", ")) : "-"}</td>
               </tr>
             `).join("")}
           </tbody>
@@ -688,13 +1017,40 @@
       `;
     }
 
+    function knockoutFixtures(fixtures) {
+      return fixtures.filter(match => !isGroupStageMatch(match));
+    }
+
+    function finishedScoredMatches(fixtures) {
+      return fixtures.filter(match =>
+        isFinished(match) &&
+        match.goals?.home != null &&
+        match.goals?.away != null
+      );
+    }
+
+    function updateGoalForecast(fixtures) {
+      const matches = finishedScoredMatches(fixtures);
+      const goals = matches.reduce((sum, match) =>
+        sum + Number(match.goals.home || 0) + Number(match.goals.away || 0), 0);
+      const average = matches.length ? goals / matches.length : 0;
+      const projected = matches.length ? Math.round(average * TOTAL_WORLD_CUP_MATCHES) : 0;
+
+      document.getElementById("goalsSoFar").textContent = String(goals);
+      document.getElementById("goalsPerMatch").textContent = matches.length ? average.toFixed(2) : "-";
+      document.getElementById("projectedGoals").textContent = matches.length ? `${projected} mål` : "-";
+      document.getElementById("goalMatchCount").textContent = `${matches.length} / ${TOTAL_WORLD_CUP_MATCHES}`;
+    }
+
     function updateSummary({ participants, fixtures, rows }) {
       const finishedGroupMatches = fixtures.filter(isFinishedGroupMatch).length;
+      const finishedKnockoutMatches = knockoutFixtures(fixtures).filter(isFinished).length;
       const leader = rows[0];
       document.getElementById("participantCount").textContent = participants.length;
-      document.getElementById("finishedCount").textContent = `${finishedGroupMatches} / 72`;
+      document.getElementById("finishedCount").textContent = `${finishedGroupMatches}/72 grupp, ${finishedKnockoutMatches} slutspel`;
       document.getElementById("leaderName").textContent = leader?.name || "-";
       document.getElementById("leaderPoints").textContent = leader ? `${leader.totalPoints} p` : "-";
+      updateGoalForecast(fixtures);
     }
 
     function setStatus(message, isError = false) {
@@ -712,14 +1068,19 @@
     }
 
     async function loadData() {
-      let participants = [];
+      let groupParticipants = [];
+      let playoffParticipants = [];
 
       try {
-        const tipsResponse = await fetch("grupptips.txt", { cache: "no-store" });
-        if (!tipsResponse.ok) throw new Error("Kunde inte läsa grupptips.txt");
-        participants = parseTips(await tipsResponse.text());
-
-        const [standingsResponse, fixturesResponse] = await Promise.all([
+        const [
+          groupTipsResponse,
+          playoffTipsResponse,
+          standingsResponse,
+          fixturesResponse,
+          scorerLeaders
+        ] = await Promise.all([
+          fetch("grupptips.txt", { cache: "no-store" }),
+          fetch("slutspelstips.txt", { cache: "no-store" }),
           fetch(`${BASE_URL}/standings?league=${LEAGUE}&season=${SEASON}`, {
             headers: { "x-apisports-key": API_KEY },
             cache: "no-store"
@@ -727,30 +1088,47 @@
           fetch(`${BASE_URL}/fixtures?league=${LEAGUE}&season=${SEASON}`, {
             headers: { "x-apisports-key": API_KEY },
             cache: "no-store"
-          })
+          }),
+          loadTopscorerLeaders()
         ]);
 
+        if (!groupTipsResponse.ok) throw new Error("Kunde inte läsa grupptips.txt");
+        if (!playoffTipsResponse.ok) throw new Error("Kunde inte läsa slutspelstips.txt");
         if (!standingsResponse.ok) throw new Error("Kunde inte hämta gruppställningar");
         if (!fixturesResponse.ok) throw new Error("Kunde inte hämta matcher");
+
+        groupParticipants = parseGroupTips(await groupTipsResponse.text());
+        playoffParticipants = parsePlayoffTips(await playoffTipsResponse.text());
 
         const standingsData = await standingsResponse.json();
         const fixturesData = await fixturesResponse.json();
         const standings = standingsData.response[0]?.league?.standings || [];
         const fixtures = fixturesData.response || [];
         const actualGroups = buildGroupsFromStandingsAndFixtures(standings, fixtures);
+        const actualPlayoffStages = buildActualPlayoffStages(fixtures, scorerLeaders);
+        const groupScores = calculateGroupScores(groupParticipants, actualGroups);
+        const playoffScores = calculatePlayoffScores(playoffParticipants, actualPlayoffStages);
 
-        latestRows = calculateRows(participants, actualGroups);
+        latestRows = combineScores(groupParticipants, playoffParticipants, groupScores, playoffScores);
         renderLeaderboard();
-        updateSummary({ participants, fixtures, rows: latestRows });
-        setStatus(`Visar ${participants.length} deltagare med gruppspelspoäng beräknade från aktuell grupptabell.`);
+        updateSummary({ participants: latestRows, fixtures, rows: latestRows });
+
+        const scorerNames = scorerLeaders.map(player => player.player?.name || player.name).filter(Boolean);
+        const scorerText = scorerNames.length ? ` Aktuell skyttekung: ${scorerNames.join(", ")}.` : "";
+        setStatus(`Visar samlad ledartabell från gruppspel och slutspel för ${latestRows.length} deltagare.${scorerText}`);
         updateTimestamp();
       } catch (error) {
         console.error(error);
 
-        if (participants.length) {
-          latestRows = calculateRows(participants, []);
+        if (groupParticipants.length || playoffParticipants.length) {
+          latestRows = combineScores(
+            groupParticipants,
+            playoffParticipants,
+            calculateGroupScores(groupParticipants, []),
+            calculatePlayoffScores(playoffParticipants, buildActualPlayoffStages([], []))
+          );
           renderLeaderboard();
-          updateSummary({ participants, fixtures: [], rows: latestRows });
+          updateSummary({ participants: latestRows, fixtures: [], rows: latestRows });
         }
 
         setStatus(`Fel vid inläsning: ${error.message}`, true);
