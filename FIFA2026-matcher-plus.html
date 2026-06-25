@@ -419,8 +419,8 @@
     <header>
         <div class="hero">
             <div>
-                <h1>VM 2026 matcher</h1>
-                <p class="lead">En mer detaljerad matchvy med arena, stad, grupp, status, omgång och snabb länk till fördjupad matchinformation.</p>
+                <h1>VM 2026 gruppmatcher</h1>
+                <p class="lead">En mer detaljerad gruppspelsvy med arena, stad, grupp, status, omgång och snabb länk till fördjupad matchinformation.</p>
             </div>
             <p class="status-box" id="status">Laddar matcher från api-football...</p>
         </div>
@@ -435,7 +435,7 @@
             <label>
                 Status
                 <select id="statusFilter">
-                    <option value="all">Alla matcher</option>
+                    <option value="all">Alla gruppmatcher</option>
                     <option value="active" selected>Live + kommande</option>
                     <option value="upcoming">Kommande</option>
                     <option value="live">Live</option>
@@ -597,6 +597,11 @@
 
         function roundLabel(match) {
             return match.league.round || match.fixture.status.long || "Omgång saknas";
+        }
+
+        function isGroupStageMatch(match) {
+            const round = normalizeSearch(match.league?.round);
+            return /\b(?:group|grupp)\b/.test(round);
         }
 
         const SEARCH_ALIASES = {
@@ -1147,17 +1152,17 @@
                 if (tipsResponse.ok) {
                     tipImpactRows = parseGroupTips(await tipsResponse.text());
                 }
-                allMatches = data.response || [];
+                allMatches = (data.response || []).filter(isGroupStageMatch);
 
                 if (!allMatches.length) {
-                    container.innerHTML = `<div class="error">Inga matcher hittades för VM 2026.</div>`;
-                    statusBox.textContent = "Ingen data hittad.";
+                    container.innerHTML = `<div class="error">Inga gruppspelsmatcher hittades för VM 2026.</div>`;
+                    statusBox.textContent = "Ingen gruppspelsdata hittad.";
                     updateSummary([]);
                     return;
                 }
 
                 renderMatches();
-                statusBox.textContent = `Visar data för ${allMatches.length} matcher.`;
+                statusBox.textContent = `Visar data för ${allMatches.length} gruppspelsmatcher.`;
             } catch (error) {
                 console.error(error);
                 container.innerHTML = `<div class="error">Kunde inte hämta matcher. Kontrollera API-nyckeln och att api-football är tillgängligt.</div>`;
@@ -1182,7 +1187,7 @@
   <nav class="mobile-bottom-nav" aria-label="Snabbnavigering">
     <a href="landing-mobile.html?v=6">Start</a>
     <a href="poangstallning-mobile.html?v=2">Poäng</a>
-    <a href="FIFA2026-matcher-plus.html?v=7">Matcher</a>
+    <a href="FIFA2026-matcher-plus.html?v=8">Matcher</a>
     <a href="chat.html">Chat</a>
   </nav>
 
