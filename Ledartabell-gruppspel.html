@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ledartabell - VM 2026</title>
+  <style>
+    :root {
+      --ink: #102235;
+      --muted: #607084;
+      --line: #dce6ef;
+      --paper: #ffffff;
+      --soft: #f4f8fb;
+      --navy: #14395b;
+      --green: #247b5b;
+      --gold: #c99018;
+      --red: #b83b4b;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      color: var(--ink);
+      background: var(--soft);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        linear-gradient(180deg, rgba(20, 57, 91, 0.08), rgba(255, 255, 255, 0) 330px),
+        var(--soft);
+    }
+
+    .page {
+      width: min(1220px, 94vw);
+      margin: 0 auto;
+      padding: 28px 0 46px;
+    }
+
+    header {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      gap: 18px;
+      align-items: center;
+      margin-bottom: 22px;
+    }
+
+    .logo {
+      width: 76px;
+      height: 76px;
+      display: grid;
+      place-items: center;
+      border-radius: 8px;
+      background: var(--paper);
+      border: 1px solid rgba(16, 34, 53, 0.08);
+      box-shadow: 0 12px 34px rgba(16, 34, 53, 0.08);
+    }
+
+    .logo img {
+      max-width: 56px;
+      max-height: 56px;
+      object-fit: contain;
+    }
+
+    h1 {
+      margin: 0;
+      color: var(--navy);
+      font-size: clamp(2rem, 4vw, 3.2rem);
+      line-height: 1.05;
+      letter-spacing: 0;
+    }
+
+    .lead {
+      margin: 9px 0 0;
+      max-width: 780px;
+      color: var(--muted);
+      font-size: 1rem;
+      line-height: 1.6;
+    }
+
+    .status {
+      margin: 0 0 18px;
+      padding: 14px 16px;
+      border-radius: 8px;
+      background: #eef5fb;
+      border: 1px solid var(--line);
+      color: var(--navy);
+      font-weight: 700;
+      line-height: 1.5;
+    }
+
+    .status.error {
+      background: #fff1f3;
+      border-color: #f1c6ce;
+      color: var(--red);
+    }
+
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .metric {
+      min-height: 104px;
+      padding: 18px;
+      border-radius: 8px;
+      background: var(--paper);
+      border: 1px solid rgba(16, 34, 53, 0.08);
+      box-shadow: 0 14px 36px rgba(16, 34, 53, 0.07);
+    }
+
+    .metric span {
+      display: block;
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .metric strong {
+      display: block;
+      margin-top: 9px;
+      color: var(--ink);
+      font-size: clamp(1.45rem, 2.6vw, 2.05rem);
+      line-height: 1.1;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: end;
+      margin-bottom: 14px;
+      padding: 14px;
+      border-radius: 8px;
+      background: var(--paper);
+      border: 1px solid rgba(16, 34, 53, 0.08);
+    }
+
+    label {
+      display: grid;
+      gap: 6px;
+      min-width: min(320px, 100%);
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    input,
+    select {
+      min-height: 42px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 9px 12px;
+      background: #fbfdff;
+      color: var(--ink);
+      font: inherit;
+      font-size: 0.96rem;
+      letter-spacing: 0;
+      text-transform: none;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      border-radius: 8px;
+      background: var(--paper);
+      border: 1px solid rgba(16, 34, 53, 0.08);
+      box-shadow: 0 18px 46px rgba(16, 34, 53, 0.08);
+    }
+
+    table {
+      width: 100%;
+      min-width: 980px;
+      border-collapse: collapse;
+    }
+
+    thead {
+      background: var(--navy);
+      color: #ffffff;
+    }
+
+    th,
+    td {
+      padding: 14px 16px;
+      border-bottom: 1px solid rgba(16, 34, 53, 0.08);
+      text-align: left;
+      vertical-align: middle;
+      font-size: 0.95rem;
+    }
+
+    th {
+      font-size: 0.8rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    tbody tr:nth-child(even) {
+      background: rgba(20, 57, 91, 0.035);
+    }
+
+    tbody tr:hover {
+      background: rgba(36, 123, 91, 0.08);
+    }
+
+    .rank {
+      width: 78px;
+      font-weight: 900;
+      color: var(--navy);
+    }
+
+    .name {
+      min-width: 180px;
+      font-weight: 800;
+      color: var(--ink);
+    }
+
+    .num {
+      font-variant-numeric: tabular-nums;
+      font-weight: 800;
+    }
+
+    .total {
+      color: var(--green);
+      font-size: 1.05rem;
+    }
+
+    .pending {
+      color: var(--gold);
+    }
+
+    .details {
+      min-width: 260px;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .empty {
+      padding: 26px;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .notes {
+      margin-top: 16px;
+      display: grid;
+      gap: 10px;
+      color: var(--muted);
+      line-height: 1.6;
+      font-size: 0.94rem;
+    }
+
+    .notes strong {
+      color: var(--ink);
+    }
+
+    @media (max-width: 860px) {
+      .page {
+        width: min(100% - 24px, 1220px);
+        padding-top: 20px;
+      }
+
+      header {
+        grid-template-columns: 1fr;
+      }
+
+      .summary {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 560px) {
+      .summary {
+        grid-template-columns: 1fr;
+      }
+
+      th,
+      td {
+        padding: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header>
+      <div class="logo" aria-hidden="true">
+        <img src="2026_FIFA_World_Cup_emblem.svg.webp" alt="">
+      </div>
+      <div>
+        <h1>Ledartabell</h1>
+        <p class="lead">Samlad poängställning för gruppspelet med reserverad plats för slutspelspoäng.</p>
+      </div>
+    </header>
+
+    <p class="status" id="status">Laddar deltagare, gruppspelstips och aktuella resultat...</p>
+
+    <section class="summary" aria-label="Sammanfattning">
+      <div class="metric"><span>Deltagare</span><strong id="participantCount">-</strong></div>
+      <div class="metric"><span>Spelade gruppmatcher</span><strong id="finishedCount">-</strong></div>
+      <div class="metric"><span>Ledare</span><strong id="leaderName">-</strong></div>
+      <div class="metric"><span>Ledande poäng</span><strong id="leaderPoints">-</strong></div>
+    </section>
+
+    <section class="toolbar" aria-label="Filtrera ledartabellen">
+      <label>
+        Sök deltagare
+        <input id="searchInput" type="search" placeholder="Exempel: Anders, Anna, Monica">
+      </label>
+      <label>
+        Visning
+        <select id="viewFilter">
+          <option value="all">Alla deltagare</option>
+          <option value="points">Endast poängtagare</option>
+        </select>
+      </label>
+    </section>
+
+    <section class="table-wrap" aria-live="polite">
+      <div id="leaderboard" class="empty">Hämtar ledartabell...</div>
+    </section>
+
+    <section class="notes">
+      <p><strong>Gruppspel:</strong> 5 poäng för rätt gruppvinnare och 3 poäng för rätt grupptvåa.</p>
+      <p><strong>Slutspel:</strong> kolumnen är förberedd men står på 0 poäng tills slutspelsräkningen kopplas på.</p>
+      <p id="updatedAt">Senast uppdaterad: väntar på data.</p>
+    </section>
+  </main>
+
+  <script>
+    const API_KEY = "170d2afb853fb860d9432d14d7eaaaa5";
+    const BASE_URL = "https://v3.football.api-sports.io";
+    const LEAGUE = 1;
+    const SEASON = 2026;
+    const FINISHED_STATUSES = new Set(["FT", "AET", "PEN"]);
+    const GROUP_WINNER_POINTS = 5;
+    const GROUP_RUNNER_UP_POINTS = 3;
+    const PLAYOFF_POINTS = {};
+
+    let latestRows = [];
+
+    const TEAM_NAME_ALIASES = {
+      "algeria": "algeria",
+      "algeriet": "algeria",
+      "argentina": "argentina",
+      "australia": "australia",
+      "australien": "australia",
+      "austria": "austria",
+      "osterrike": "austria",
+      "belgien": "belgium",
+      "belgium": "belgium",
+      "bosnia and herzegovina": "bosnia and herzegovina",
+      "bosnia herzegovina": "bosnia and herzegovina",
+      "bosnia & herzegovina": "bosnia and herzegovina",
+      "bosnien": "bosnia and herzegovina",
+      "bosnien och hercegovina": "bosnia and herzegovina",
+      "brasilien": "brazil",
+      "brazil": "brazil",
+      "canada": "canada",
+      "kanada": "canada",
+      "cape verde": "cape verde",
+      "cape verde island": "cape verde",
+      "cape verde islands": "cape verde",
+      "kap verde": "cape verde",
+      "colombia": "colombia",
+      "croatia": "croatia",
+      "kroatien": "croatia",
+      "curacao": "curacao",
+      "czech republic": "czechia",
+      "czechia": "czechia",
+      "tjeckien": "czechia",
+      "d r congo": "dr congo",
+      "demokratiska republiken kongo": "dr congo",
+      "dr congo": "dr congo",
+      "dr kongo": "dr congo",
+      "ecuador": "ecuador",
+      "egypt": "egypt",
+      "egypten": "egypt",
+      "elfenbenskusten": "ivory coast",
+      "england": "england",
+      "france": "france",
+      "frankrike": "france",
+      "germany": "germany",
+      "tyskland": "germany",
+      "ghana": "ghana",
+      "haiti": "haiti",
+      "iran": "iran",
+      "iraq": "iraq",
+      "irak": "iraq",
+      "ivory coast": "ivory coast",
+      "cote d ivoire": "ivory coast",
+      "japan": "japan",
+      "jordan": "jordan",
+      "jordanien": "jordan",
+      "mexico": "mexico",
+      "mexiko": "mexico",
+      "morocco": "morocco",
+      "marocko": "morocco",
+      "netherlands": "netherlands",
+      "nederlanderna": "netherlands",
+      "nederländerna": "netherlands",
+      "new zealand": "new zealand",
+      "nya zeeland": "new zealand",
+      "norway": "norway",
+      "norge": "norway",
+      "panama": "panama",
+      "paraguay": "paraguay",
+      "portugal": "portugal",
+      "qatar": "qatar",
+      "saudi arabia": "saudi arabia",
+      "saudiarabien": "saudi arabia",
+      "scotland": "scotland",
+      "skottland": "scotland",
+      "senegal": "senegal",
+      "south africa": "south africa",
+      "sydafrika": "south africa",
+      "south korea": "south korea",
+      "sydkorea": "south korea",
+      "spain": "spain",
+      "spanien": "spain",
+      "sweden": "sweden",
+      "sverige": "sweden",
+      "switzerland": "switzerland",
+      "schweiz": "switzerland",
+      "tunisia": "tunisia",
+      "tunisien": "tunisia",
+      "turkey": "turkey",
+      "turkiye": "turkey",
+      "turkiet": "turkey",
+      "uruguay": "uruguay",
+      "usa": "usa",
+      "united states": "usa",
+      "uzbekistan": "uzbekistan"
+    };
+
+    function normalizeName(value) {
+      return String(value || "")
+        .trim()
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9]+/g, " ")
+        .trim()
+        .replace(/\s+/g, " ");
+    }
+
+    function canonicalTeamName(value) {
+      const normalized = normalizeName(value);
+      return TEAM_NAME_ALIASES[normalized] || normalized;
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "").replace(/[&<>"']/g, char => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#039;"
+      }[char]));
+    }
+
+    function getGroupLetter(groupName) {
+      const match = String(groupName || "").match(/(?:Group|Grupp)\s*([A-L])\b/i);
+      return match ? match[1].toUpperCase() : "";
+    }
+
+    function isGroupStageMatch(match) {
+      return /^Group Stage\b/i.test(match.league?.round || "");
+    }
+
+    function isFinishedGroupMatch(match) {
+      return isGroupStageMatch(match)
+        && FINISHED_STATUSES.has(match.fixture?.status?.short)
+        && match.goals?.home != null
+        && match.goals?.away != null;
+    }
+
+    function parseTips(text) {
+      const participants = new Map();
+
+      text.split(/\r?\n/).forEach(line => {
+        const parts = line.split(/\t+/).map(value => value.trim());
+        const [name, group, first = "", second = "", third = ""] = parts;
+        if (!name || !group) return;
+
+        if (!participants.has(name)) {
+          participants.set(name, { name, predictions: {} });
+        }
+
+        participants.get(name).predictions[group.toUpperCase()] = [first, second, third];
+      });
+
+      return [...participants.values()];
+    }
+
+    function createSeedGroups(standings) {
+      const groupsByName = new Map();
+      const groupByTeamId = new Map();
+      const groupByTeamName = new Map();
+
+      standings.forEach(group => {
+        const groupName = getGroupLetter(group[0]?.group);
+        if (!groupName) return;
+
+        const teams = group.map((team, index) => ({
+          id: team.team?.id,
+          name: team.team?.name || "",
+          seedRank: Number(team.rank) || index + 1,
+          played: 0,
+          win: 0,
+          draw: 0,
+          lose: 0,
+          goalsFor: 0,
+          goalsAgainst: 0,
+          goalsDiff: 0,
+          points: 0
+        }));
+
+        groupsByName.set(groupName, teams);
+        teams.forEach(team => {
+          if (team.id !== undefined && team.id !== null) groupByTeamId.set(String(team.id), groupName);
+          groupByTeamName.set(canonicalTeamName(team.name), groupName);
+        });
+      });
+
+      return { groupsByName, groupByTeamId, groupByTeamName };
+    }
+
+    function applyMatchResult(team, goalsFor, goalsAgainst) {
+      team.played += 1;
+      team.goalsFor += goalsFor;
+      team.goalsAgainst += goalsAgainst;
+      team.goalsDiff = team.goalsFor - team.goalsAgainst;
+
+      if (goalsFor > goalsAgainst) {
+        team.win += 1;
+        team.points += 3;
+      } else if (goalsFor === goalsAgainst) {
+        team.draw += 1;
+        team.points += 1;
+      } else {
+        team.lose += 1;
+      }
+    }
+
+    function sortGroupTable(a, b) {
+      return b.points - a.points ||
+        b.goalsDiff - a.goalsDiff ||
+        b.goalsFor - a.goalsFor ||
+        a.seedRank - b.seedRank ||
+        a.name.localeCompare(b.name, "sv");
+    }
+
+    function buildGroupsFromStandingsAndFixtures(standings, fixtures) {
+      const { groupsByName, groupByTeamId, groupByTeamName } = createSeedGroups(standings);
+
+      fixtures.filter(isFinishedGroupMatch).forEach(match => {
+        const homeGroup = groupByTeamId.get(String(match.teams?.home?.id)) ||
+          groupByTeamName.get(canonicalTeamName(match.teams?.home?.name));
+        const awayGroup = groupByTeamId.get(String(match.teams?.away?.id)) ||
+          groupByTeamName.get(canonicalTeamName(match.teams?.away?.name));
+        if (!homeGroup || homeGroup !== awayGroup) return;
+
+        const teams = groupsByName.get(homeGroup);
+        const home = teams.find(team => String(team.id) === String(match.teams?.home?.id)) ||
+          teams.find(team => canonicalTeamName(team.name) === canonicalTeamName(match.teams?.home?.name));
+        const away = teams.find(team => String(team.id) === String(match.teams?.away?.id)) ||
+          teams.find(team => canonicalTeamName(team.name) === canonicalTeamName(match.teams?.away?.name));
+        if (!home || !away) return;
+
+        applyMatchResult(home, Number(match.goals.home), Number(match.goals.away));
+        applyMatchResult(away, Number(match.goals.away), Number(match.goals.home));
+      });
+
+      return [...groupsByName.entries()]
+        .map(([group, teams]) => ({
+          group,
+          teams: teams.slice().sort(sortGroupTable)
+        }))
+        .sort((a, b) => a.group.localeCompare(b.group, "sv"));
+    }
+
+    function calculateRows(participants, actualGroups) {
+      const actualByGroup = Object.fromEntries(
+        actualGroups.map(group => [group.group, group.teams.map(team => canonicalTeamName(team.name))])
+      );
+
+      const rows = participants.map(participant => {
+        let groupPoints = 0;
+        let winnerHits = 0;
+        let runnerUpHits = 0;
+        const hits = [];
+
+        Object.entries(participant.predictions).forEach(([group, prediction]) => {
+          const actual = actualByGroup[group] || [];
+          const [winner, runnerUp] = prediction.map(canonicalTeamName);
+
+          if (winner && winner === actual[0]) {
+            groupPoints += GROUP_WINNER_POINTS;
+            winnerHits += 1;
+            hits.push(`${group} vinnare`);
+          }
+
+          if (runnerUp && runnerUp === actual[1]) {
+            groupPoints += GROUP_RUNNER_UP_POINTS;
+            runnerUpHits += 1;
+            hits.push(`${group} tvåa`);
+          }
+        });
+
+        const playoffPoints = Number(PLAYOFF_POINTS[participant.name] || 0);
+        const totalPoints = groupPoints + playoffPoints;
+
+        return {
+          ...participant,
+          groupPoints,
+          playoffPoints,
+          totalPoints,
+          winnerHits,
+          runnerUpHits,
+          hits
+        };
+      });
+
+      rows.sort((a, b) =>
+        b.totalPoints - a.totalPoints ||
+        b.groupPoints - a.groupPoints ||
+        b.winnerHits - a.winnerHits ||
+        a.name.localeCompare(b.name, "sv")
+      );
+
+      return rows.map((row, index) => ({ ...row, rank: index + 1 }));
+    }
+
+    function renderLeaderboard() {
+      const search = normalizeName(document.getElementById("searchInput").value);
+      const view = document.getElementById("viewFilter").value;
+      const rows = latestRows.filter(row => {
+        const matchesSearch = !search || normalizeName(row.name).includes(search);
+        const matchesView = view === "all" || row.totalPoints > 0;
+        return matchesSearch && matchesView;
+      });
+
+      const container = document.getElementById("leaderboard");
+      if (!rows.length) {
+        container.className = "empty";
+        container.innerHTML = "Inga deltagare matchar filtret.";
+        return;
+      }
+
+      container.className = "";
+      container.innerHTML = `
+        <table>
+          <thead>
+            <tr>
+              <th>Placering</th>
+              <th>Deltagare</th>
+              <th>Gruppspel</th>
+              <th>Slutspel</th>
+              <th>Totalt</th>
+              <th>Rätt vinnare</th>
+              <th>Rätt tvåor</th>
+              <th>Gruppträffar</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows.map(row => `
+              <tr>
+                <td class="rank">${row.rank}</td>
+                <td class="name">${escapeHtml(row.name)}</td>
+                <td class="num">${row.groupPoints}</td>
+                <td class="num pending">${row.playoffPoints}</td>
+                <td class="num total">${row.totalPoints}</td>
+                <td class="num">${row.winnerHits}</td>
+                <td class="num">${row.runnerUpHits}</td>
+                <td class="details">${row.hits.length ? escapeHtml(row.hits.join(", ")) : "-"}</td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      `;
+    }
+
+    function updateSummary({ participants, fixtures, rows }) {
+      const finishedGroupMatches = fixtures.filter(isFinishedGroupMatch).length;
+      const leader = rows[0];
+      document.getElementById("participantCount").textContent = participants.length;
+      document.getElementById("finishedCount").textContent = `${finishedGroupMatches} / 72`;
+      document.getElementById("leaderName").textContent = leader?.name || "-";
+      document.getElementById("leaderPoints").textContent = leader ? `${leader.totalPoints} p` : "-";
+    }
+
+    function setStatus(message, isError = false) {
+      const status = document.getElementById("status");
+      status.textContent = message;
+      status.classList.toggle("error", isError);
+    }
+
+    function updateTimestamp() {
+      const now = new Date().toLocaleString("sv-SE", {
+        dateStyle: "short",
+        timeStyle: "short"
+      });
+      document.getElementById("updatedAt").textContent = `Senast uppdaterad: ${now}.`;
+    }
+
+    async function loadData() {
+      let participants = [];
+
+      try {
+        const tipsResponse = await fetch("grupptips.txt", { cache: "no-store" });
+        if (!tipsResponse.ok) throw new Error("Kunde inte läsa grupptips.txt");
+        participants = parseTips(await tipsResponse.text());
+
+        const [standingsResponse, fixturesResponse] = await Promise.all([
+          fetch(`${BASE_URL}/standings?league=${LEAGUE}&season=${SEASON}`, {
+            headers: { "x-apisports-key": API_KEY },
+            cache: "no-store"
+          }),
+          fetch(`${BASE_URL}/fixtures?league=${LEAGUE}&season=${SEASON}`, {
+            headers: { "x-apisports-key": API_KEY },
+            cache: "no-store"
+          })
+        ]);
+
+        if (!standingsResponse.ok) throw new Error("Kunde inte hämta gruppställningar");
+        if (!fixturesResponse.ok) throw new Error("Kunde inte hämta matcher");
+
+        const standingsData = await standingsResponse.json();
+        const fixturesData = await fixturesResponse.json();
+        const standings = standingsData.response[0]?.league?.standings || [];
+        const fixtures = fixturesData.response || [];
+        const actualGroups = buildGroupsFromStandingsAndFixtures(standings, fixtures);
+
+        latestRows = calculateRows(participants, actualGroups);
+        renderLeaderboard();
+        updateSummary({ participants, fixtures, rows: latestRows });
+        setStatus(`Visar ${participants.length} deltagare med gruppspelspoäng beräknade från aktuell grupptabell.`);
+        updateTimestamp();
+      } catch (error) {
+        console.error(error);
+
+        if (participants.length) {
+          latestRows = calculateRows(participants, []);
+          renderLeaderboard();
+          updateSummary({ participants, fixtures: [], rows: latestRows });
+        }
+
+        setStatus(`Fel vid inläsning: ${error.message}`, true);
+        updateTimestamp();
+      }
+    }
+
+    document.getElementById("searchInput").addEventListener("input", renderLeaderboard);
+    document.getElementById("viewFilter").addEventListener("change", renderLeaderboard);
+
+    loadData();
+  </script>
+</body>
+</html>

@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Slutspelspoäng - VM 2026</title>
+  <style>
+    :root {
+      color: #122547;
+      background: #eef4fb;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: radial-gradient(circle at top, #dce8ff 0%, #eef4fb 50%, #ffffff 100%);
+    }
+
+    .page {
+      width: min(1220px, 96%);
+      margin: 0 auto;
+      padding: 32px 0 48px;
+    }
+
+    header {
+      text-align: center;
+      padding: 24px 20px 10px;
+      margin-bottom: 22px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2rem, 3vw, 2.8rem);
+      letter-spacing: 0;
+      color: #0f2a4d;
+    }
+
+    p.lead {
+      margin: 16px auto 0;
+      max-width: 820px;
+      color: #42526a;
+      font-size: 1rem;
+      line-height: 1.7;
+    }
+
+    .card {
+      overflow-x: auto;
+      background: #ffffff;
+      border-radius: 8px;
+      border: 1px solid rgba(18, 37, 71, 0.08);
+      box-shadow: 0 20px 48px rgba(18, 37, 71, 0.08);
+    }
+
+    .status-card,
+    .profile-card,
+    .toolbar,
+    .rules-card {
+      margin-bottom: 18px;
+      padding: 18px 22px;
+      border-radius: 8px;
+      background: #ffffff;
+      border: 1px solid rgba(31, 78, 120, 0.14);
+      box-shadow: 0 18px 42px rgba(18, 37, 71, 0.07);
+      color: #0f2a4d;
+    }
+
+    .status-card.error {
+      background: #fff1f3;
+      border-color: rgba(184, 59, 75, 0.24);
+      color: #9f1239;
+    }
+
+    .profile-card {
+      display: none;
+    }
+
+    .profile-card.active {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .metric,
+    .profile-card > div {
+      min-height: 96px;
+      padding: 18px;
+      border-radius: 8px;
+      background: #ffffff;
+      border: 1px solid rgba(18, 37, 71, 0.08);
+    }
+
+    .metric {
+      box-shadow: 0 18px 42px rgba(18, 37, 71, 0.07);
+    }
+
+    .metric span,
+    .profile-card span {
+      display: block;
+      color: #60738a;
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .metric strong,
+    .profile-card strong {
+      display: block;
+      margin-top: 7px;
+      color: #0f2a4d;
+      font-size: clamp(1.25rem, 2vw, 1.8rem);
+      line-height: 1.15;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: end;
+    }
+
+    label {
+      display: grid;
+      gap: 6px;
+      min-width: min(320px, 100%);
+      color: #60738a;
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    input,
+    select {
+      min-height: 42px;
+      border: 1px solid #d6e1ee;
+      border-radius: 8px;
+      padding: 9px 12px;
+      background: #fbfdff;
+      color: #0f2a4d;
+      font: inherit;
+      font-size: 0.96rem;
+      letter-spacing: 0;
+      text-transform: none;
+    }
+
+    table {
+      width: 100%;
+      min-width: 1120px;
+      border-collapse: collapse;
+    }
+
+    thead {
+      background: linear-gradient(90deg, #1f4e78, #3e7cc8);
+      color: #ffffff;
+    }
+
+    th,
+    td {
+      padding: 14px 16px;
+      text-align: left;
+      font-size: 0.93rem;
+      border-bottom: 1px solid rgba(18, 37, 71, 0.08);
+      vertical-align: top;
+    }
+
+    th {
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    tbody tr:nth-child(even) {
+      background: rgba(31, 78, 120, 0.04);
+    }
+
+    tbody tr:hover {
+      background: rgba(31, 78, 120, 0.08);
+    }
+
+    tr.selected-participant {
+      background: #fff7d6 !important;
+      box-shadow: inset 4px 0 0 #f6b800;
+    }
+
+    .rank {
+      font-weight: 800;
+      color: #1f4e78;
+      width: 72px;
+    }
+
+    .participant {
+      min-width: 170px;
+      font-weight: 800;
+      color: #122547;
+    }
+
+    .num {
+      font-variant-numeric: tabular-nums;
+      font-weight: 800;
+      color: #0f2a4d;
+      white-space: nowrap;
+    }
+
+    .total {
+      color: #207a4f;
+      font-size: 1.08rem;
+    }
+
+    .details {
+      min-width: 280px;
+      color: #42526a;
+      line-height: 1.5;
+    }
+
+    .empty,
+    .error-box {
+      padding: 22px;
+      color: #42526a;
+      font-weight: 700;
+      line-height: 1.6;
+    }
+
+    .error-box {
+      background: #fff1f3;
+      color: #9f1239;
+    }
+
+    .rules-card {
+      margin-top: 18px;
+      color: #42526a;
+      line-height: 1.7;
+    }
+
+    .rules-card h2 {
+      margin: 0 0 8px;
+      color: #0f2a4d;
+      font-size: 1.25rem;
+    }
+
+    .rules-list {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin: 14px 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .rules-list li {
+      padding: 12px;
+      border-radius: 8px;
+      background: #f4f8fc;
+      border: 1px solid rgba(31, 78, 120, 0.1);
+      font-weight: 700;
+      color: #0f2a4d;
+    }
+
+    .rules-list span {
+      display: block;
+      margin-top: 4px;
+      color: #60738a;
+      font-size: 0.84rem;
+      font-weight: 800;
+    }
+
+    @media (max-width: 880px) {
+      .summary,
+      .profile-card.active,
+      .rules-list {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .page {
+        padding: 24px 0 32px;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .summary,
+      .profile-card.active,
+      .rules-list {
+        grid-template-columns: 1fr;
+      }
+
+      th,
+      td {
+        padding: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header>
+      <h1>Slutspelspoäng</h1>
+      <p class="lead">Poängställning för slutspelstipset. Tipsen läses från slutspelstips.txt och jämförs med slutspelsträdets matcher när de spelas.</p>
+    </header>
+
+    <section class="profile-card" id="profileCard" aria-live="polite"></section>
+
+    <section class="summary" aria-label="Sammanfattning">
+      <div class="metric"><span>Deltagare</span><strong id="participantCount">-</strong></div>
+      <div class="metric"><span>Spelade slutspelsmatcher</span><strong id="finishedKnockoutCount">-</strong></div>
+      <div class="metric"><span>Ledare</span><strong id="leaderName">-</strong></div>
+      <div class="metric"><span>Ledande poäng</span><strong id="leaderPoints">-</strong></div>
+    </section>
+
+    <section class="status-card" id="statusText">Laddar slutspelstips och slutspelsträd...</section>
+
+    <section class="toolbar" aria-label="Filtrera slutspelspoäng">
+      <label>
+        Sök deltagare
+        <input id="searchInput" type="search" placeholder="Exempel: Anders, Anna, Monica">
+      </label>
+      <label>
+        Visning
+        <select id="viewFilter">
+          <option value="all">Alla deltagare</option>
+          <option value="points">Endast poängtagare</option>
+        </select>
+      </label>
+    </section>
+
+    <section class="card" aria-live="polite">
+      <div id="leaderboard" class="empty">Hämtar poängställning...</div>
+    </section>
+
+    <section class="rules-card">
+      <h2>Poängsystem</h2>
+      <p>Poängen följer reglerna för slutspelstipset. Skyttekung räknas preliminärt mot aktuell Golden Boot-lista tills turneringen är färdigspelad.</p>
+      <ul class="rules-list">
+        <li>Åttondelsfinalist<span>2 p</span></li>
+        <li>Kvartsfinalist<span>5 p</span></li>
+        <li>Semifinalist<span>10 p</span></li>
+        <li>Finalist<span>15 p</span></li>
+        <li>Världsmästare<span>25 p</span></li>
+        <li>Bronsvinnare<span>20 p</span></li>
+        <li>Skyttekung<span>15 p</span></li>
+        <li>Utslagsfråga<span>används vid behov</span></li>
+      </ul>
+    </section>
+  </main>
+
+  <script>
+    const API_KEY = "170d2afb853fb860d9432d14d7eaaaa5";
+    const BASE_URL = "https://v3.football.api-sports.io";
+    const TOPSCORERS_PROXY_URL = "https://vm2026-worker.anders-h-engstrom.workers.dev/api/football/topscorers";
+    const LEAGUE = 1;
+    const SEASON = 2026;
+    const PROFILE_KEY = "vm2026-selected-participant";
+    const FINISHED_STATUSES = new Set(["FT", "AET", "PEN"]);
+
+    const STAGES = [
+      { key: "r16", title: "ÅF", label: "Åttondelsfinalister", start: 0, count: 16, points: 2 },
+      { key: "qf", title: "Kvart", label: "Kvartsfinalister", start: 16, count: 8, points: 5 },
+      { key: "sf", title: "Semi", label: "Semifinalister", start: 24, count: 4, points: 10 },
+      { key: "final", title: "Final", label: "Finalister", start: 28, count: 2, points: 15 }
+    ];
+
+    const SPECIAL_PICKS = {
+      champion: { title: "Mästare", index: 30, points: 25 },
+      bronze: { title: "Brons", index: 31, points: 20 },
+      scorer: { title: "Skyttekung", index: 32, points: 15 },
+      tieBreaker: { title: "Utslagsfråga", index: 33, points: 0 }
+    };
+
+    const TEAM_NAME_ALIASES = {
+      "algeria": "algeria",
+      "algeriet": "algeria",
+      "argentina": "argentina",
+      "australia": "australia",
+      "australien": "australia",
+      "austria": "austria",
+      "osterrike": "austria",
+      "belgien": "belgium",
+      "belgium": "belgium",
+      "bosnia and herzegovina": "bosnia and herzegovina",
+      "bosnia herzegovina": "bosnia and herzegovina",
+      "bosnien": "bosnia and herzegovina",
+      "bosnien och hercegovina": "bosnia and herzegovina",
+      "brasilien": "brazil",
+      "brazil": "brazil",
+      "canada": "canada",
+      "kanada": "canada",
+      "cape verde": "cape verde",
+      "kap verde": "cape verde",
+      "colombia": "colombia",
+      "croatia": "croatia",
+      "kroatien": "croatia",
+      "curacao": "curacao",
+      "czech republic": "czechia",
+      "czechia": "czechia",
+      "tjeckien": "czechia",
+      "d r congo": "dr congo",
+      "demokratiska republiken kongo": "dr congo",
+      "dr congo": "dr congo",
+      "dr kongo": "dr congo",
+      "ecuador": "ecuador",
+      "egypt": "egypt",
+      "egypten": "egypt",
+      "elfenbenskusten": "ivory coast",
+      "england": "england",
+      "france": "france",
+      "frankrike": "france",
+      "germany": "germany",
+      "tyskland": "germany",
+      "ghana": "ghana",
+      "haiti": "haiti",
+      "iran": "iran",
+      "iraq": "iraq",
+      "irak": "iraq",
+      "ivory coast": "ivory coast",
+      "cote d ivoire": "ivory coast",
+      "japan": "japan",
+      "jordan": "jordan",
+      "jordanien": "jordan",
+      "mexico": "mexico",
+      "mexiko": "mexico",
+      "morocco": "morocco",
+      "marocko": "morocco",
+      "netherlands": "netherlands",
+      "nederlanderna": "netherlands",
+      "nederländerna": "netherlands",
+      "new zealand": "new zealand",
+      "nya zeeland": "new zealand",
+      "norway": "norway",
+      "norge": "norway",
+      "panama": "panama",
+      "paraguay": "paraguay",
+      "portugal": "portugal",
+      "qatar": "qatar",
+      "saudi arabia": "saudi arabia",
+      "saudiarabien": "saudi arabia",
+      "scotland": "scotland",
+      "skottland": "scotland",
+      "senegal": "senegal",
+      "south africa": "south africa",
+      "sydafrika": "south africa",
+      "south korea": "south korea",
+      "sydkorea": "south korea",
+      "spain": "spain",
+      "spanien": "spain",
+      "sweden": "sweden",
+      "sverige": "sweden",
+      "switzerland": "switzerland",
+      "schweiz": "switzerland",
+      "tunisia": "tunisia",
+      "tunisien": "tunisia",
+      "turkey": "turkey",
+      "turkiye": "turkey",
+      "turkiet": "turkey",
+      "uruguay": "uruguay",
+      "usa": "usa",
+      "united states": "usa",
+      "uzbekistan": "uzbekistan"
+    };
+
+    const PLAYER_NAME_ALIASES = {
+      "e haaland": "erling haaland",
+      "erling haaland": "erling haaland",
+      "h kane": "harry kane",
+      "harry kane": "harry kane",
+      "kai havertz": "kai havertz",
+      "k havertz": "kai havertz",
+      "k mbappe": "kylian mbappe",
+      "kylian mbappe": "kylian mbappe",
+      "kylian mbape": "kylian mbappe",
+      "l messi": "lionel messi",
+      "lamine yamal": "lamine yamal",
+      "lionel messi": "lionel messi",
+      "j alvarez": "julian alvarez",
+      "julian alvarez": "julian alvarez",
+      "julián álvarez": "julian alvarez",
+      "l yamal": "lamine yamal"
+    };
+
+    let latestRows = [];
+
+    function normalizeName(value) {
+      return String(value || "")
+        .trim()
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9]+/g, " ")
+        .trim()
+        .replace(/\s+/g, " ");
+    }
+
+    function canonicalTeamName(value) {
+      const normalized = normalizeName(value);
+      return TEAM_NAME_ALIASES[normalized] || normalized;
+    }
+
+    function canonicalPlayerName(value) {
+      const normalized = normalizeName(value);
+      return PLAYER_NAME_ALIASES[normalized] || normalized;
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "").replace(/[&<>"']/g, char => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#039;"
+      }[char]));
+    }
+
+    function parseTips(text) {
+      const lines = text.split(/\r?\n/).filter(line => line.trim());
+      const headers = (lines.shift() || "").split("\t").map(cell => cell.trim());
+
+      return lines.map(line => {
+        const cells = line.split("\t").map(cell => cell.trim());
+        return {
+          name: cells[0] || "",
+          values: headers.slice(1).map((header, index) => ({
+            header,
+            value: cells[index + 1] || ""
+          }))
+        };
+      }).filter(participant => participant.name);
+    }
+
+    function pickValue(participant, index) {
+      return participant.values[index]?.value || "";
+    }
+
+    function stagePicks(participant, stage) {
+      return participant.values
+        .slice(stage.start, stage.start + stage.count)
+        .map(item => item.value)
+        .filter(Boolean);
+    }
+
+    function normalizeRound(round) {
+      return String(round || "").toLowerCase();
+    }
+
+    function isRoundOf32(match) {
+      const round = normalizeRound(match.league?.round);
+      return round.includes("round of 32") || round.includes("1/16") || round.includes("sixteenth");
+    }
+
+    function isRoundOf16(match) {
+      const round = normalizeRound(match.league?.round);
+      return round.includes("round of 16") || round.includes("8th finals") || round.includes("eighth") || round.includes("1/8");
+    }
+
+    function isQuarterFinal(match) {
+      return normalizeRound(match.league?.round).includes("quarter");
+    }
+
+    function isSemiFinal(match) {
+      return normalizeRound(match.league?.round).includes("semi");
+    }
+
+    function isThirdPlace(match) {
+      const round = normalizeRound(match.league?.round);
+      return round.includes("3rd") || round.includes("third") || round.includes("bronze");
+    }
+
+    function isFinal(match) {
+      const round = normalizeRound(match.league?.round);
+      return round.includes("final") && !isThirdPlace(match);
+    }
+
+    function isFinished(match) {
+      return FINISHED_STATUSES.has(match.fixture?.status?.short);
+    }
+
+    function addTeam(set, team) {
+      if (team?.name) set.add(canonicalTeamName(team.name));
+    }
+
+    function teamsInRound(fixtures, predicate) {
+      const teams = new Set();
+      fixtures.filter(predicate).forEach(match => {
+        addTeam(teams, match.teams?.home);
+        addTeam(teams, match.teams?.away);
+      });
+      return teams;
+    }
+
+    function matchWinner(match) {
+      if (!isFinished(match)) return null;
+      if (match.teams?.home?.winner === true) return match.teams.home;
+      if (match.teams?.away?.winner === true) return match.teams.away;
+
+      const homeGoals = Number(match.goals?.home);
+      const awayGoals = Number(match.goals?.away);
+      if (!Number.isFinite(homeGoals) || !Number.isFinite(awayGoals)) return null;
+      if (homeGoals > awayGoals) return match.teams?.home || null;
+      if (awayGoals > homeGoals) return match.teams?.away || null;
+
+      const homePenalties = Number(match.score?.penalty?.home);
+      const awayPenalties = Number(match.score?.penalty?.away);
+      if (Number.isFinite(homePenalties) && Number.isFinite(awayPenalties)) {
+        if (homePenalties > awayPenalties) return match.teams?.home || null;
+        if (awayPenalties > homePenalties) return match.teams?.away || null;
+      }
+
+      return null;
+    }
+
+    function winnersOfRound(fixtures, predicate) {
+      const winners = new Set();
+      fixtures.filter(predicate).forEach(match => addTeam(winners, matchWinner(match)));
+      return winners;
+    }
+
+    function unionSets(...sets) {
+      const result = new Set();
+      sets.forEach(set => set.forEach(value => result.add(value)));
+      return result;
+    }
+
+    function buildActualStages(fixtures, scorerLeaders) {
+      return {
+        r16: unionSets(teamsInRound(fixtures, isRoundOf16), winnersOfRound(fixtures, isRoundOf32)),
+        qf: unionSets(teamsInRound(fixtures, isQuarterFinal), winnersOfRound(fixtures, isRoundOf16)),
+        sf: unionSets(teamsInRound(fixtures, isSemiFinal), winnersOfRound(fixtures, isQuarterFinal)),
+        final: unionSets(teamsInRound(fixtures, isFinal), winnersOfRound(fixtures, isSemiFinal)),
+        champion: winnersOfRound(fixtures, isFinal),
+        bronze: winnersOfRound(fixtures, isThirdPlace),
+        scorer: new Set(scorerLeaders.map(player => canonicalPlayerName(player.player?.name || player.name || "")))
+      };
+    }
+
+    function scorerStats(player) {
+      return player.statistics?.[0] || {};
+    }
+
+    function compareTopscorers(a, b) {
+      const aStats = scorerStats(a);
+      const bStats = scorerStats(b);
+      const goalDiff = (bStats.goals?.total ?? 0) - (aStats.goals?.total ?? 0);
+      if (goalDiff) return goalDiff;
+      const assistDiff = (bStats.goals?.assists ?? 0) - (aStats.goals?.assists ?? 0);
+      if (assistDiff) return assistDiff;
+      const aMinutes = Number(aStats.games?.minutes) || Number.MAX_SAFE_INTEGER;
+      const bMinutes = Number(bStats.games?.minutes) || Number.MAX_SAFE_INTEGER;
+      if (aMinutes !== bMinutes) return aMinutes - bMinutes;
+      return (a.player?.name || "").localeCompare(b.player?.name || "", "sv");
+    }
+
+    function sameTopscorerRank(a, b) {
+      const aStats = scorerStats(a);
+      const bStats = scorerStats(b);
+      const aMinutes = Number(aStats.games?.minutes) || Number.MAX_SAFE_INTEGER;
+      const bMinutes = Number(bStats.games?.minutes) || Number.MAX_SAFE_INTEGER;
+      return (aStats.goals?.total ?? 0) === (bStats.goals?.total ?? 0)
+        && (aStats.goals?.assists ?? 0) === (bStats.goals?.assists ?? 0)
+        && aMinutes === bMinutes;
+    }
+
+    async function loadTopscorerLeaders() {
+      try {
+        const response = await fetch(`${TOPSCORERS_PROXY_URL}?_=${Date.now()}`, { cache: "no-store" });
+        if (!response.ok) throw new Error(`Worker-fel ${response.status}`);
+        const data = await response.json();
+        const players = (data.response || [])
+          .filter(player => (scorerStats(player).goals?.total ?? 0) > 0)
+          .sort(compareTopscorers);
+
+        if (!players.length) return [];
+        const leader = players[0];
+        return players.filter(player => sameTopscorerRank(player, leader));
+      } catch (error) {
+        console.warn("Kunde inte hämta skyttekungar via worker:", error);
+      }
+
+      try {
+        const response = await fetch(`${BASE_URL}/players/topscorers?league=${LEAGUE}&season=${SEASON}`, {
+          cache: "no-store",
+          headers: { "x-apisports-key": API_KEY }
+        });
+        if (!response.ok) throw new Error(`API-fel ${response.status}`);
+        const data = await response.json();
+        if (data.errors && Object.keys(data.errors).length) {
+          throw new Error(JSON.stringify(data.errors));
+        }
+
+        const players = (data.response || [])
+          .filter(player => (scorerStats(player).goals?.total ?? 0) > 0)
+          .sort(compareTopscorers);
+
+        if (!players.length) return [];
+        const leader = players[0];
+        return players.filter(player => sameTopscorerRank(player, leader));
+      } catch (error) {
+        console.warn("Kunde inte hämta skyttekungar direkt:", error);
+      }
+
+      return [];
+    }
+
+    function scoreParticipant(participant, actualStages) {
+      const stageScores = STAGES.map(stage => {
+        const actual = actualStages[stage.key] || new Set();
+        const hits = stagePicks(participant, stage)
+          .filter(pick => actual.has(canonicalTeamName(pick)));
+        return {
+          ...stage,
+          hits,
+          hitCount: hits.length,
+          points: hits.length * stage.points
+        };
+      });
+
+      const championPick = pickValue(participant, SPECIAL_PICKS.champion.index);
+      const bronzePick = pickValue(participant, SPECIAL_PICKS.bronze.index);
+      const scorerPick = pickValue(participant, SPECIAL_PICKS.scorer.index);
+
+      const championHit = championPick && actualStages.champion.has(canonicalTeamName(championPick));
+      const bronzeHit = bronzePick && actualStages.bronze.has(canonicalTeamName(bronzePick));
+      const scorerHit = scorerPick && actualStages.scorer.has(canonicalPlayerName(scorerPick));
+
+      const championPoints = championHit ? SPECIAL_PICKS.champion.points : 0;
+      const bronzePoints = bronzeHit ? SPECIAL_PICKS.bronze.points : 0;
+      const scorerPoints = scorerHit ? SPECIAL_PICKS.scorer.points : 0;
+      const stagePoints = stageScores.reduce((sum, stage) => sum + stage.points, 0);
+      const totalPoints = stagePoints + championPoints + bronzePoints + scorerPoints;
+
+      const details = [
+        ...stageScores
+          .filter(stage => stage.hitCount)
+          .map(stage => `${stage.label}: ${stage.hitCount} (${stage.points} p)`),
+        championHit ? `Världsmästare: ${championPick} (${championPoints} p)` : "",
+        bronzeHit ? `Brons: ${bronzePick} (${bronzePoints} p)` : "",
+        scorerHit ? `Skyttekung: ${scorerPick} (${scorerPoints} p)` : ""
+      ].filter(Boolean);
+
+      return {
+        ...participant,
+        stageScores,
+        championPoints,
+        bronzePoints,
+        scorerPoints,
+        totalPoints,
+        details,
+        tieBreaker: pickValue(participant, SPECIAL_PICKS.tieBreaker.index)
+      };
+    }
+
+    function calculateRows(participants, actualStages) {
+      return participants
+        .map(participant => scoreParticipant(participant, actualStages))
+        .sort((a, b) =>
+          b.totalPoints - a.totalPoints ||
+          b.championPoints - a.championPoints ||
+          b.stageScores[3].points - a.stageScores[3].points ||
+          b.stageScores[2].points - a.stageScores[2].points ||
+          a.name.localeCompare(b.name, "sv")
+        )
+        .map((row, index) => ({ ...row, rank: index + 1 }));
+    }
+
+    function renderProfileCard(rows) {
+      const selectedName = localStorage.getItem(PROFILE_KEY) || "";
+      const card = document.getElementById("profileCard");
+      const row = rows.find(item => item.name === selectedName);
+
+      if (!selectedName || !row) {
+        card.classList.remove("active");
+        card.innerHTML = "";
+        return;
+      }
+
+      const leader = rows[0];
+      const behind = Math.max(0, (leader?.totalPoints || 0) - row.totalPoints);
+      card.classList.add("active");
+      card.innerHTML = `
+        <div><span>Min placering</span><strong>#${row.rank}</strong></div>
+        <div><span>Mina slutspelspoäng</span><strong>${row.totalPoints} p</strong></div>
+        <div><span>Avstånd till ledaren</span><strong>${behind} p</strong></div>
+        <div><span>Utslagsfråga</span><strong>${escapeHtml(row.tieBreaker || "-")}</strong></div>
+      `;
+    }
+
+    function renderLeaderboard() {
+      const search = normalizeName(document.getElementById("searchInput").value);
+      const view = document.getElementById("viewFilter").value;
+      const rows = latestRows.filter(row => {
+        const matchesSearch = !search || normalizeName(row.name).includes(search);
+        const matchesView = view === "all" || row.totalPoints > 0;
+        return matchesSearch && matchesView;
+      });
+
+      const container = document.getElementById("leaderboard");
+      if (!rows.length) {
+        container.className = "empty";
+        container.innerHTML = "Inga deltagare matchar filtret.";
+        renderProfileCard(latestRows);
+        return;
+      }
+
+      container.className = "";
+      container.innerHTML = `
+        <table>
+          <thead>
+            <tr>
+              <th>Placering</th>
+              <th>Deltagare</th>
+              <th>ÅF</th>
+              <th>Kvart</th>
+              <th>Semi</th>
+              <th>Final</th>
+              <th>Mästare</th>
+              <th>Brons</th>
+              <th>Skytt</th>
+              <th>Totalt</th>
+              <th>Träffar</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows.map(row => {
+              const [r16, qf, sf, final] = row.stageScores;
+              return `
+                <tr data-name="${escapeHtml(row.name)}">
+                  <td class="rank">${row.rank}</td>
+                  <td class="participant">${escapeHtml(row.name)}</td>
+                  <td class="num">${r16.points}</td>
+                  <td class="num">${qf.points}</td>
+                  <td class="num">${sf.points}</td>
+                  <td class="num">${final.points}</td>
+                  <td class="num">${row.championPoints}</td>
+                  <td class="num">${row.bronzePoints}</td>
+                  <td class="num">${row.scorerPoints}</td>
+                  <td class="num total">${row.totalPoints}</td>
+                  <td class="details">${row.details.length ? escapeHtml(row.details.join(", ")) : "-"}</td>
+                </tr>
+              `;
+            }).join("")}
+          </tbody>
+        </table>
+      `;
+
+      const selectedName = localStorage.getItem(PROFILE_KEY) || "";
+      document.querySelectorAll("#leaderboard tbody tr").forEach(row => {
+        row.classList.toggle("selected-participant", row.dataset.name === selectedName && Boolean(selectedName));
+      });
+      renderProfileCard(latestRows);
+    }
+
+    function knockoutFixtures(fixtures) {
+      return fixtures.filter(match => !/^Group Stage\b/i.test(match.league?.round || ""));
+    }
+
+    function updateSummary(participants, fixtures, scorerLeaders) {
+      const leader = latestRows[0];
+      const playedKnockout = knockoutFixtures(fixtures).filter(isFinished).length;
+      document.getElementById("participantCount").textContent = participants.length;
+      document.getElementById("finishedKnockoutCount").textContent = playedKnockout;
+      document.getElementById("leaderName").textContent = leader?.name || "-";
+      document.getElementById("leaderPoints").textContent = leader ? `${leader.totalPoints} p` : "-";
+
+      const leaderScorers = scorerLeaders.map(player => player.player?.name || player.name).filter(Boolean);
+      const scorerText = leaderScorers.length ? ` Aktuell skyttekung: ${leaderScorers.join(", ")}.` : " Skyttekung kunde inte räknas ännu.";
+      return { playedKnockout, scorerText };
+    }
+
+    function setStatus(message, isError = false) {
+      const status = document.getElementById("statusText");
+      status.textContent = message;
+      status.classList.toggle("error", isError);
+    }
+
+    async function loadData() {
+      let participants = [];
+
+      try {
+        const tipsResponse = await fetch("slutspelstips.txt", { cache: "no-store" });
+        if (!tipsResponse.ok) throw new Error("Kunde inte läsa slutspelstips.txt");
+        participants = parseTips(await tipsResponse.text());
+
+        const [fixturesResponse, scorerLeaders] = await Promise.all([
+          fetch(`${BASE_URL}/fixtures?league=${LEAGUE}&season=${SEASON}`, {
+            headers: { "x-apisports-key": API_KEY },
+            cache: "no-store"
+          }),
+          loadTopscorerLeaders()
+        ]);
+
+        if (!fixturesResponse.ok) throw new Error("Kunde inte hämta slutspelsträdet");
+
+        const fixturesData = await fixturesResponse.json();
+        const fixtures = fixturesData.response || [];
+        const actualStages = buildActualStages(fixtures, scorerLeaders);
+        latestRows = calculateRows(participants, actualStages);
+
+        renderLeaderboard();
+        const { playedKnockout, scorerText } = updateSummary(participants, fixtures, scorerLeaders);
+        setStatus(`Uppdaterat från ${participants.length} slutspelstips och ${playedKnockout} spelade slutspelsmatcher.${scorerText}`);
+      } catch (error) {
+        console.error(error);
+
+        if (participants.length) {
+          latestRows = calculateRows(participants, buildActualStages([], []));
+          renderLeaderboard();
+          updateSummary(participants, [], []);
+        }
+
+        setStatus(`Fel vid inläsning: ${error.message}`, true);
+      }
+    }
+
+    document.getElementById("searchInput").addEventListener("input", renderLeaderboard);
+    document.getElementById("viewFilter").addEventListener("change", renderLeaderboard);
+    window.addEventListener("message", event => {
+      if (event.origin !== window.location.origin) return;
+      if (event.data?.type !== "vm2026:selectedParticipant") return;
+      localStorage.setItem(PROFILE_KEY, event.data.name || "");
+      renderLeaderboard();
+    });
+
+    loadData();
+  </script>
+</body>
+</html>
