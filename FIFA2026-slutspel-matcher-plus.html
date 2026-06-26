@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VM 2026 slutspelsmatcher</title>
+  <style>
+    :root {
+      color: #172033;
+      background: #eef3f8;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        linear-gradient(135deg, rgba(0, 82, 147, 0.92), rgba(0, 142, 105, 0.86)),
+        radial-gradient(circle at 20% 0%, rgba(254, 203, 0, 0.45), transparent 34%),
+        #eef3f8;
+      color: #172033;
+    }
+
+    header { color: #fff; padding: 34px 18px 26px; }
+
+    .hero {
+      width: min(1180px, 94%);
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 22px;
+      align-items: end;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2rem, 4vw, 3.8rem);
+      line-height: 1;
+      letter-spacing: 0;
+    }
+
+    .lead {
+      max-width: 760px;
+      margin: 14px 0 0;
+      color: rgba(255, 255, 255, 0.9);
+      line-height: 1.65;
+    }
+
+    .status-box {
+      display: inline-flex;
+      align-items: center;
+      min-height: 42px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.94);
+      color: #0f2c45;
+      font-size: 14px;
+      font-weight: 700;
+      box-shadow: 0 14px 34px rgba(15, 44, 69, 0.18);
+      white-space: nowrap;
+    }
+
+    .container { width: min(1180px, 94%); margin: 0 auto; padding: 0 0 42px; }
+
+    .qualification-note,
+    .toolbar,
+    .metric,
+    .match-card,
+    .loading,
+    .error,
+    .empty {
+      border: 1px solid rgba(15, 44, 69, 0.08);
+      box-shadow: 0 12px 32px rgba(15, 44, 69, 0.08);
+    }
+
+    .qualification-note {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 12px;
+      align-items: start;
+      margin: 0 0 16px;
+      padding: 14px 16px;
+      border-radius: 8px;
+      background: #fffdf1;
+      color: #5f4a13;
+      line-height: 1.5;
+      font-size: 14px;
+    }
+
+    .qualification-note strong { color: #3f310b; }
+
+    .legend {
+      display: inline-flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .third-place-panel {
+      margin: 0 0 18px;
+      color: #fff;
+    }
+
+    .third-place-heading {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: baseline;
+      margin-bottom: 10px;
+    }
+
+    .third-place-heading h2 {
+      margin: 0;
+      font-size: 20px;
+    }
+
+    .third-place-heading span {
+      color: rgba(255, 255, 255, 0.86);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .third-list {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .third-team {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      gap: 9px 10px;
+      align-items: center;
+      min-height: 82px;
+      padding: 12px;
+      border: 1px solid rgba(15, 44, 69, 0.08);
+      border-radius: 8px;
+      background: #fff;
+      color: #172033;
+      box-shadow: 0 12px 32px rgba(15, 44, 69, 0.08);
+    }
+
+    .third-rank {
+      display: grid;
+      place-items: center;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: #0f2c45;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 900;
+    }
+
+    .third-team strong,
+    .third-team small {
+      display: block;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .third-team strong { font-size: 14px; }
+    .third-team small { margin-top: 3px; color: #657389; font-weight: 700; }
+    .third-team .badge { grid-column: 1 / -1; justify-self: start; }
+
+    .toolbar {
+      display: grid;
+      grid-template-columns: minmax(220px, 1.2fr) repeat(2, minmax(170px, 0.8fr));
+      gap: 12px;
+      margin: 0 0 16px;
+      padding: 14px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.95);
+    }
+
+    label {
+      display: grid;
+      gap: 6px;
+      color: #3b4b63;
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    input,
+    select {
+      width: 100%;
+      min-height: 42px;
+      padding: 9px 11px;
+      border: 1px solid #cfd9e6;
+      border-radius: 8px;
+      background: #fff;
+      color: #172033;
+      font: inherit;
+      text-transform: none;
+    }
+
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .metric { padding: 16px; border-radius: 8px; background: #fff; }
+    .metric span,
+    .fact span { display: block; color: #657389; font-size: 11px; font-weight: 800; text-transform: uppercase; }
+    .metric strong { display: block; margin-top: 8px; color: #0f2c45; font-size: 28px; }
+
+    .day-group { margin-top: 18px; }
+    .day-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 10px; color: #fff; }
+    .day-heading h2 { margin: 0; font-size: 20px; }
+    .day-heading span { padding: 7px 10px; border-radius: 8px; background: rgba(255, 255, 255, 0.2); font-size: 13px; font-weight: 700; }
+
+    .matches { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+    .match-link { color: inherit; text-decoration: none; }
+    .match-card { height: 100%; display: grid; gap: 14px; padding: 18px; border-radius: 8px; background: #fff; }
+    .match-link .match-card { transition: transform 0.15s ease, box-shadow 0.15s ease; }
+    .match-link:hover .match-card { transform: translateY(-2px); box-shadow: 0 22px 48px rgba(15, 44, 69, 0.16); }
+
+    .match-topline,
+    .fact-grid { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      padding: 5px 9px;
+      border-radius: 999px;
+      background: #eef4fb;
+      color: #23435f;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .badge.done { background: #dcfce7; color: #166534; }
+    .badge.live { background: #fee2e2; color: #991b1b; }
+    .badge.tv { background: #fef3c7; color: #92400e; }
+    .badge.confirmed { background: #dcfce7; color: #166534; }
+    .badge.provisional { background: #fff7ed; color: #9a3412; }
+    .kickoff { margin-left: auto; color: #657389; font-size: 13px; font-weight: 700; }
+
+    .scoreboard { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 12px; align-items: center; }
+    .team { display: grid; gap: 6px; min-width: 0; }
+    .team.away { text-align: right; }
+    .team-name { color: #10243b; font-size: 18px; font-weight: 800; overflow-wrap: anywhere; }
+    .team small { color: #657389; font-weight: 700; }
+    .team small.confirmed { color: #16703c; }
+    .team small.provisional { color: #a34a0b; }
+    .score { min-width: 92px; padding: 10px 12px; border-radius: 8px; background: #0f2c45; color: #fff; text-align: center; font-size: 26px; font-weight: 900; }
+    .meta-row { color: #40536b; font-size: 14px; line-height: 1.45; }
+
+    .fact-grid { padding-top: 12px; border-top: 1px solid #e6edf5; }
+    .fact { flex: 1 1 160px; display: grid; gap: 4px; min-height: 58px; padding: 10px; border: 1px solid #e6edf5; border-radius: 8px; background: #f7fafc; }
+    .fact strong { color: #172033; font-size: 13px; }
+
+    .loading,
+    .error,
+    .empty { padding: 18px; border-radius: 8px; background: #fff; color: #40536b; }
+    .error { border-color: #fecdd3; background: #fff1f2; color: #9f1239; }
+
+    @media (max-width: 860px) {
+      .hero,
+      .toolbar,
+      .summary,
+      .matches,
+      .third-list { grid-template-columns: 1fr; }
+      .status-box,
+      .kickoff { margin-left: 0; white-space: normal; }
+    }
+
+    @media (max-width: 560px) {
+      header { padding-top: 24px; }
+      .qualification-note,
+      .scoreboard { grid-template-columns: 1fr; }
+      .team.away { text-align: left; }
+      .score { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="hero">
+      <div>
+        <h1>VM 2026 slutspelsmatcher</h1>
+        <p class="lead">Alla 32 slutspelsmatcher, från Round of 32 till final. Färdiga gruppplaceringar visas direkt och övriga platser följer den aktuella ställningen.</p>
+      </div>
+      <p class="status-box" id="status">Laddar slutspel och gruppställning...</p>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="qualification-note" aria-label="Förklaring till kvalificeringsstatus">
+      <div class="legend">
+        <span class="badge confirmed">Klar</span>
+        <span class="badge provisional">Preliminär</span>
+      </div>
+      <div><strong>Så läser du sidan:</strong> En grön markering betyder att gruppens placering är färdigspelad. Gul markering betyder att laget eller den bästa grupptrean fortfarande kan ändras. Matchpar som FIFA redan har publicerat används före den preliminära placeringen.</div>
+    </section>
+
+    <section class="third-place-panel" aria-live="polite">
+      <div class="third-place-heading">
+        <h2>Åtta bästa grupptreor just nu</h2>
+        <span id="thirdPlaceStatus">Räknar placeringarna...</span>
+      </div>
+      <div id="bestThirds" class="third-list">
+        <div class="loading">Hämtar grupptreorna...</div>
+      </div>
+    </section>
+
+    <section class="toolbar" aria-label="Filtrera slutspelsmatcher">
+      <label>Sök lag eller match<input id="searchInput" type="search" placeholder="Exempel: Sverige, Match 73"></label>
+      <label>Runda<select id="roundFilter"><option value="all">Alla rundor</option><option value="round32">Round of 32</option><option value="round16">Åttondelsfinaler</option><option value="quarter">Kvartsfinaler</option><option value="semi">Semifinaler</option><option value="bronze">Bronsmatch</option><option value="final">Final</option></select></label>
+      <label>Status<select id="statusFilter"><option value="all">Alla matcher</option><option value="active" selected>Kommande + live</option><option value="upcoming">Kommande</option><option value="live">Live</option><option value="finished">Spelade</option></select></label>
+    </section>
+
+    <section class="summary" aria-label="Sammanfattning">
+      <div class="metric"><span>Slutspelsmatcher</span><strong id="totalMatches">-</strong></div>
+      <div class="metric"><span>FIFA-publicerade par</span><strong id="publishedMatches">-</strong></div>
+      <div class="metric"><span>Klara lagplatser</span><strong id="confirmedSlots">-</strong></div>
+      <div class="metric"><span>Preliminära platser</span><strong id="provisionalSlots">-</strong></div>
+    </section>
+
+    <div id="matches"><div class="loading">Bygger slutspelsmatcherna...</div></div>
+  </main>
+
+  <script>
+    const API_KEY = "170d2afb853fb860d9432d14d7eaaaa5";
+    const BASE_URL = "https://v3.football.api-sports.io";
+    const LEAGUE = 1;
+    const SEASON = 2026;
+    const FINISHED_STATUSES = new Set(["FT", "AET", "PEN"]);
+
+    const ROUND_INFO = {
+      round32: { label: "Round of 32", terms: ["round of 32", "1/16", "sixteenth"] },
+      round16: { label: "Åttondelsfinal", terms: ["round of 16", "8th finals", "eighth", "1/8"] },
+      quarter: { label: "Kvartsfinal", terms: ["quarter", "kvarts"] },
+      semi: { label: "Semifinal", terms: ["semi", "semif"] },
+      bronze: { label: "Bronsmatch", terms: ["third", "3rd", "bronze", "brons"] },
+      final: { label: "Final", terms: ["final"] }
+    };
+
+    const ROUND_OF_32 = [
+      { home: "2A", away: "2B" }, { home: "1E", thirdColumn: "1E" }, { home: "1F", away: "2C" }, { home: "1C", away: "2F" },
+      { home: "1I", thirdColumn: "1I" }, { home: "2E", away: "2I" }, { home: "1A", thirdColumn: "1A" }, { home: "1L", thirdColumn: "1L" },
+      { home: "1D", thirdColumn: "1D" }, { home: "1G", thirdColumn: "1G" }, { home: "2K", away: "2L" }, { home: "1H", away: "2J" },
+      { home: "1B", thirdColumn: "1B" }, { home: "1J", away: "2H" }, { home: "1K", thirdColumn: "1K" }, { home: "2D", away: "2G" }
+    ];
+    const THIRD_PLACE_MATRIX = Object.fromEntries("EFGHIJKL:EJIFHGLK;DFGHIJKL:HGIDJFLK;DEGHIJKL:EJIDHGLK;DEFHIJKL:EJIDHFLK;DEFGIJKL:EGIDJFLK;DEFGHJKL:EGJDHFLK;DEFGHIKL:EGIDHFLK;DEFGHIJL:EGJDHFLI;DEFGHIJK:EGJDHFIK;CFGHIJKL:HGICJFLK;CEGHIJKL:EJICHGLK;CEFHIJKL:EJICHFLK;CEFGIJKL:EGICJFLK;CEFGHJKL:EGJCHFLK;CEFGHIKL:EGICHFLK;CEFGHIJL:EGJCHFLI;CEFGHIJK:EGJCHFIK;CDGHIJKL:HGICJDLK;CDFHIJKL:CJIDHFLK;CDFGIJKL:CGIDJFLK;CDFGHJKL:CGJDHFLK;CDFGHIKL:CGIDHFLK;CDFGHIJL:CGJDHFLI;CDFGHIJK:CGJDHFIK;CDEHIJKL:EJICHDLK;CDEGIJKL:EGICJDLK;CDEGHJKL:EGJCHDLK;CDEGHIKL:EGICHDLK;CDEGHIJL:EGJCHDLI;CDEGHIJK:EGJCHDIK;CDEFIJKL:CJEDIFLK;CDEFHJKL:CJEDHFLK;CDEFHIKL:CEIDHFLK;CDEFHIJL:CJEDHFLI;CDEFHIJK:CJEDHFIK;CDEFGJKL:CGEDJFLK;CDEFGIKL:CGEDIFLK;CDEFGIJL:CGEDJFLI;CDEFGIJK:CGEDJFIK;CDEFGHKL:CGEDHFLK;CDEFGHJL:CGJDHFLE;CDEFGHJK:CGJDHFEK;CDEFGHIL:CGEDHFLI;CDEFGHIK:CGEDHFIK;CDEFGHIJ:CGJDHFEI;BFGHIJKL:HJBFIGLK;BEGHIJKL:EJIBHGLK;BEFHIJKL:EJBFIHLK;BEFGIJKL:EJBFIGLK;BEFGHJKL:EJBFHGLK;BEFGHIKL:EGBFIHLK;BEFGHIJL:EJBFHGLI;BEFGHIJK:EJBFHGIK;BDGHIJKL:HJBDIGLK;BDFHIJKL:HJBDIFLK;BDFGIJKL:IGBDJFLK;BDFGHJKL:HGBDJFLK;BDFGHIKL:HGBDIFLK;BDFGHIJL:HGBDJFLI;BDFGHIJK:HGBDJFIK;BDEHIJKL:EJBDIHLK;BDEGIJKL:EJBDIGLK;BDEGHJKL:EJBDHGLK;BDEGHIKL:EGBDIHLK;BDEGHIJL:EJBDHGLI;BDEGHIJK:EJBDHGIK;BDEFIJKL:EJBDIFLK;BDEFHJKL:EJBDHFLK;BDEFHIKL:EIBDHFLK;BDEFHIJL:EJBDHFLI;BDEFHIJK:EJBDHFIK;BDEFGJKL:EGBDJFLK;BDEFGIKL:EGBDIFLK;BDEFGIJL:EGBDJFLI;BDEFGIJK:EGBDJFIK;BDEFGHKL:EGBDHFLK;BDEFGHJL:HGBDJFLE;BDEFGHJK:HGBDJFEK;BDEFGHIL:EGBDHFLI;BDEFGHIK:EGBDHFIK;BDEFGHIJ:HGBDJFEI;BCGHIJKL:HJBCIGLK;BCFHIJKL:HJBCIFLK;BCFGIJKL:IGBCJFLK;BCFGHJKL:HGBCJFLK;BCFGHIKL:HGBCIFLK;BCFGHIJL:HGBCJFLI;BCFGHIJK:HGBCJFIK;BCEHIJKL:EJBCIHLK;BCEGIJKL:EJBCIGLK;BCEGHJKL:EJBCHGLK;BCEGHIKL:EGBCIHLK;BCEGHIJL:EJBCHGLI;BCEGHIJK:EJBCHGIK;BCEFIJKL:EJBCIFLK;BCEFHJKL:EJBCHFLK;BCEFHIKL:EIBCHFLK;BCEFHIJL:EJBCHFLI;BCEFHIJK:EJBCHFIK;BCEFGJKL:EGBCJFLK;BCEFGIKL:EGBCIFLK;BCEFGIJL:EGBCJFLI;BCEFGIJK:EGBCJFIK;BCEFGHKL:EGBCHFLK;BCEFGHJL:HGBCJFLE;BCEFGHJK:HGBCJFEK;BCEFGHIL:EGBCHFLI;BCEFGHIK:EGBCHFIK;BCEFGHIJ:HGBCJFEI;BCDHIJKL:HJBCIDLK;BCDGIJKL:IGBCJDLK;BCDGHJKL:HGBCJDLK;BCDGHIKL:HGBCIDLK;BCDGHIJL:HGBCJDLI;BCDGHIJK:HGBCJDIK;BCDFIJKL:CJBDIFLK;BCDFHJKL:CJBDHFLK;BCDFHIKL:CIBDHFLK;BCDFHIJL:CJBDHFLI;BCDFHIJK:CJBDHFIK;BCDFGJKL:CGBDJFLK;BCDFGIKL:CGBDIFLK;BCDFGIJL:CGBDJFLI;BCDFGIJK:CGBDJFIK;BCDFGHKL:CGBDHFLK;BCDFGHJL:CGBDHFLJ;BCDFGHJK:HGBCJFDK;BCDFGHIL:CGBDHFLI;BCDFGHIK:CGBDHFIK;BCDFGHIJ:HGBCJFDI;BCDEIJKL:EJBCIDLK;BCDEHJKL:EJBCHDLK;BCDEHIKL:EIBCHDLK;BCDEHIJL:EJBCHDLI;BCDEHIJK:EJBCHDIK;BCDEGJKL:EGBCJDLK;BCDEGIKL:EGBCIDLK;BCDEGIJL:EGBCJDLI;BCDEGIJK:EGBCJDIK;BCDEGHKL:EGBCHDLK;BCDEGHJL:HGBCJDLE;BCDEGHJK:HGBCJDEK;BCDEGHIL:EGBCHDLI;BCDEGHIK:EGBCHDIK;BCDEGHIJ:HGBCJDEI;BCDEFJKL:CJBDEFLK;BCDEFIKL:CEBDIFLK;BCDEFIJL:CJBDEFLI;BCDEFIJK:CJBDEFIK;BCDEFHKL:CEBDHFLK;BCDEFHJL:CJBDHFLE;BCDEFHJK:CJBDHFEK;BCDEFHIL:CEBDHFLI;BCDEFHIK:CEBDHFIK;BCDEFHIJ:CJBDHFEI;BCDEFGKL:CGBDEFLK;BCDEFGJL:CGBDJFLE;BCDEFGJK:CGBDJFEK;BCDEFGIL:CGBDEFLI;BCDEFGIK:CGBDEFIK;BCDEFGIJ:CGBDJFEI;BCDEFGHL:CGBDHFLE;BCDEFGHK:CGBDHFEK;BCDEFGHJ:HGBCJFDE;BCDEFGHI:CGBDHFEI;AFGHIJKL:HJIFAGLK;AEGHIJKL:EJIAHGLK;AEFHIJKL:EJIFAHLK;AEFGIJKL:EJIFAGLK;AEFGHJKL:EGJFAHLK;AEFGHIKL:EGIFAHLK;AEFGHIJL:EGJFAHLI;AEFGHIJK:EGJFAHIK;ADGHIJKL:HJIDAGLK;ADFHIJKL:HJIDAFLK;ADFGIJKL:IGJDAFLK;ADFGHJKL:HGJDAFLK;ADFGHIKL:HGIDAFLK;ADFGHIJL:HGJDAFLI;ADFGHIJK:HGJDAFIK;ADEHIJKL:EJIDAHLK;ADEGIJKL:EJIDAGLK;ADEGHJKL:EGJDAHLK;ADEGHIKL:EGIDAHLK;ADEGHIJL:EGJDAHLI;ADEGHIJK:EGJDAHIK;ADEFIJKL:EJIDAFLK;ADEFHJKL:HJEDAFLK;ADEFHIKL:HEIDAFLK;ADEFHIJL:HJEDAFLI;ADEFHIJK:HJEDAFIK;ADEFGJKL:EGJDAFLK;ADEFGIKL:EGIDAFLK;ADEFGIJL:EGJDAFLI;ADEFGIJK:EGJDAFIK;ADEFGHKL:HGEDAFLK;ADEFGHJL:HGJDAFLE;ADEFGHJK:HGJDAFEK;ADEFGHIL:HGEDAFLI;ADEFGHIK:HGEDAFIK;ADEFGHIJ:HGJDAFEI;ACGHIJKL:HJICAGLK;ACFHIJKL:HJICAFLK;ACFGIJKL:IGJCAFLK;ACFGHJKL:HGJCAFLK;ACFGHIKL:HGICAFLK;ACFGHIJL:HGJCAFLI;ACFGHIJK:HGJCAFIK;ACEHIJKL:EJICAHLK;ACEGIJKL:EJICAGLK;ACEGHJKL:EGJCAHLK;ACEGHIKL:EGICAHLK;ACEGHIJL:EGJCAHLI;ACEGHIJK:EGJCAHIK;ACEFIJKL:EJICAFLK;ACEFHJKL:HJECAFLK;ACEFHIKL:HEICAFLK;ACEFHIJL:HJECAFLI;ACEFHIJK:HJECAFIK;ACEFGJKL:EGJCAFLK;ACEFGIKL:EGICAFLK;ACEFGIJL:EGJCAFLI;ACEFGIJK:EGJCAFIK;ACEFGHKL:HGECAFLK;ACEFGHJL:HGJCAFLE;ACEFGHJK:HGJCAFEK;ACEFGHIL:HGECAFLI;ACEFGHIK:HGECAFIK;ACEFGHIJ:HGJCAFEI;ACDHIJKL:HJICADLK;ACDGIJKL:IGJCADLK;ACDGHJKL:HGJCADLK;ACDGHIKL:HGICADLK;ACDGHIJL:HGJCADLI;ACDGHIJK:HGJCADIK;ACDFIJKL:CJIDAFLK;ACDFHJKL:HJFCADLK;ACDFHIKL:HFICADLK;ACDFHIJL:HJFCADLI;ACDFHIJK:HJFCADIK;ACDFGJKL:CGJDAFLK;ACDFGIKL:CGIDAFLK;ACDFGIJL:CGJDAFLI;ACDFGIJK:CGJDAFIK;ACDFGHKL:HGFCADLK;ACDFGHJL:CGJDAFLH;ACDFGHJK:HGJCAFDK;ACDFGHIL:HGFCADLI;ACDFGHIK:HGFCADIK;ACDFGHIJ:HGJCAFDI;ACDEIJKL:EJICADLK;ACDEHJKL:HJECADLK;ACDEHIKL:HEICADLK;ACDEHIJL:HJECADLI;ACDEHIJK:HJECADIK;ACDEGJKL:EGJCADLK;ACDEGIKL:EGICADLK;ACDEGIJL:EGJCADLI;ACDEGIJK:EGJCADIK;ACDEGHKL:HGECADLK;ACDEGHJL:HGJCADLE;ACDEGHJK:HGJCADEK;ACDEGHIL:HGECADLI;ACDEGHIK:HGECADIK;ACDEGHIJ:HGJCADEI;ACDEFJKL:CJEDAFLK;ACDEFIKL:CEIDAFLK;ACDEFIJL:CJEDAFLI;ACDEFIJK:CJEDAFIK;ACDEFHKL:HEFCADLK;ACDEFHJL:HJFCADLE;ACDEFHJK:HJECAFDK;ACDEFHIL:HEFCADLI;ACDEFHIK:HEFCADIK;ACDEFHIJ:HJECAFDI;ACDEFGKL:CGEDAFLK;ACDEFGJL:CGJDAFLE;ACDEFGJK:CGJDAFEK;ACDEFGIL:CGEDAFLI;ACDEFGIK:CGEDAFIK;ACDEFGIJ:CGJDAFEI;ACDEFGHL:HGFCADLE;ACDEFGHK:HGECAFDK;ACDEFGHJ:HGJCAFDE;ACDEFGHI:HGECAFDI;ABGHIJKL:HJBAIGLK;ABFHIJKL:HJBAIFLK;ABFGIJKL:IJBFAGLK;ABFGHJKL:HJBFAGLK;ABFGHIKL:HGBAIFLK;ABFGHIJL:HJBFAGLI;ABFGHIJK:HJBFAGIK;ABEHIJKL:EJBAIHLK;ABEGIJKL:EJBAIGLK;ABEGHJKL:EJBAHGLK;ABEGHIKL:EGBAIHLK;ABEGHIJL:EJBAHGLI;ABEGHIJK:EJBAHGIK;ABEFIJKL:EJBAIFLK;ABEFHJKL:EJBFAHLK;ABEFHIKL:EIBFAHLK;ABEFHIJL:EJBFAHLI;ABEFHIJK:EJBFAHIK;ABEFGJKL:EJBFAGLK;ABEFGIKL:EGBAIFLK;ABEFGIJL:EJBFAGLI;ABEFGIJK:EJBFAGIK;ABEFGHKL:EGBFAHLK;ABEFGHJL:HJBFAGLE;ABEFGHJK:HJBFAGEK;ABEFGHIL:EGBFAHLI;ABEFGHIK:EGBFAHIK;ABEFGHIJ:HJBFAGEI;ABDHIJKL:IJBDAHLK;ABDGIJKL:IJBDAGLK;ABDGHJKL:HJBDAGLK;ABDGHIKL:IGBDAHLK;ABDGHIJL:HJBDAGLI;ABDGHIJK:HJBDAGIK;ABDFIJKL:IJBDAFLK;ABDFHJKL:HJBDAFLK;ABDFHIKL:HIBDAFLK;ABDFHIJL:HJBDAFLI;ABDFHIJK:HJBDAFIK;ABDFGJKL:FJBDAGLK;ABDFGIKL:IGBDAFLK;ABDFGIJL:FJBDAGLI;ABDFGIJK:FJBDAGIK;ABDFGHKL:HGBDAFLK;ABDFGHJL:HGBDAFLJ;ABDFGHJK:HGBDAFJK;ABDFGHIL:HGBDAFLI;ABDFGHIK:HGBDAFIK;ABDFGHIJ:HGBDAFIJ;ABDEIJKL:EJBAIDLK;ABDEHJKL:EJBDAHLK;ABDEHIKL:EIBDAHLK;ABDEHIJL:EJBDAHLI;ABDEHIJK:EJBDAHIK;ABDEGJKL:EJBDAGLK;ABDEGIKL:EGBAIDLK;ABDEGIJL:EJBDAGLI;ABDEGIJK:EJBDAGIK;ABDEGHKL:EGBDAHLK;ABDEGHJL:HJBDAGLE;ABDEGHJK:HJBDAGEK;ABDEGHIL:EGBDAHLI;ABDEGHIK:EGBDAHIK;ABDEGHIJ:HJBDAGEI;ABDEFJKL:EJBDAFLK;ABDEFIKL:EIBDAFLK;ABDEFIJL:EJBDAFLI;ABDEFIJK:EJBDAFIK;ABDEFHKL:HEBDAFLK;ABDEFHJL:HJBDAFLE;ABDEFHJK:HJBDAFEK;ABDEFHIL:HEBDAFLI;ABDEFHIK:HEBDAFIK;ABDEFHIJ:HJBDAFEI;ABDEFGKL:EGBDAFLK;ABDEFGJL:EGBDAFLJ;ABDEFGJK:EGBDAFJK;ABDEFGIL:EGBDAFLI;ABDEFGIK:EGBDAFIK;ABDEFGIJ:EGBDAFIJ;ABDEFGHL:HGBDAFLE;ABDEFGHK:HGBDAFEK;ABDEFGHJ:HGBDAFEJ;ABDEFGHI:HGBDAFEI;ABCHIJKL:IJBCAHLK;ABCGIJKL:IJBCAGLK;ABCGHJKL:HJBCAGLK;ABCGHIKL:IGBCAHLK;ABCGHIJL:HJBCAGLI;ABCGHIJK:HJBCAGIK;ABCFIJKL:IJBCAFLK;ABCFHJKL:HJBCAFLK;ABCFHIKL:HIBCAFLK;ABCFHIJL:HJBCAFLI;ABCFHIJK:HJBCAFIK;ABCFGJKL:CJBFAGLK;ABCFGIKL:IGBCAFLK;ABCFGIJL:CJBFAGLI;ABCFGIJK:CJBFAGIK;ABCFGHKL:HGBCAFLK;ABCFGHJL:HGBCAFLJ;ABCFGHJK:HGBCAFJK;ABCFGHIL:HGBCAFLI;ABCFGHIK:HGBCAFIK;ABCFGHIJ:HGBCAFIJ;ABCEIJKL:EJBAICLK;ABCEHJKL:EJBCAHLK;ABCEHIKL:EIBCAHLK;ABCEHIJL:EJBCAHLI;ABCEHIJK:EJBCAHIK;ABCEGJKL:EJBCAGLK;ABCEGIKL:EGBAICLK;ABCEGIJL:EJBCAGLI;ABCEGIJK:EJBCAGIK;ABCEGHKL:EGBCAHLK;ABCEGHJL:HJBCAGLE;ABCEGHJK:HJBCAGEK;ABCEGHIL:EGBCAHLI;ABCEGHIK:EGBCAHIK;ABCEGHIJ:HJBCAGEI;ABCEFJKL:EJBCAFLK;ABCEFIKL:EIBCAFLK;ABCEFIJL:EJBCAFLI;ABCEFIJK:EJBCAFIK;ABCEFHKL:HEBCAFLK;ABCEFHJL:HJBCAFLE;ABCEFHJK:HJBCAFEK;ABCEFHIL:HEBCAFLI;ABCEFHIK:HEBCAFIK;ABCEFHIJ:HJBCAFEI;ABCEFGKL:EGBCAFLK;ABCEFGJL:EGBCAFLJ;ABCEFGJK:EGBCAFJK;ABCEFGIL:EGBCAFLI;ABCEFGIK:EGBCAFIK;ABCEFGIJ:EGBCAFIJ;ABCEFGHL:HGBCAFLE;ABCEFGHK:HGBCAFEK;ABCEFGHJ:HGBCAFEJ;ABCEFGHI:HGBCAFEI;ABCDIJKL:IJBCADLK;ABCDHJKL:HJBCADLK;ABCDHIKL:HIBCADLK;ABCDHIJL:HJBCADLI;ABCDHIJK:HJBCADIK;ABCDGJKL:CJBDAGLK;ABCDGIKL:IGBCADLK;ABCDGIJL:CJBDAGLI;ABCDGIJK:CJBDAGIK;ABCDGHKL:HGBCADLK;ABCDGHJL:HGBCADLJ;ABCDGHJK:HGBCADJK;ABCDGHIL:HGBCADLI;ABCDGHIK:HGBCADIK;ABCDGHIJ:HGBCADIJ;ABCDFJKL:CJBDAFLK;ABCDFIKL:CIBDAFLK;ABCDFIJL:CJBDAFLI;ABCDFIJK:CJBDAFIK;ABCDFHKL:HFBCADLK;ABCDFHJL:CJBDAFLH;ABCDFHJK:HJBCAFDK;ABCDFHIL:HFBCADLI;ABCDFHIK:HFBCADIK;ABCDFHIJ:HJBCAFDI;ABCDFGKL:CGBDAFLK;ABCDFGJL:CGBDAFLJ;ABCDFGJK:CGBDAFJK;ABCDFGIL:CGBDAFLI;ABCDFGIK:CGBDAFIK;ABCDFGIJ:CGBDAFIJ;ABCDFGHL:CGBDAFLH;ABCDFGHK:HGBCAFDK;ABCDFGHJ:HGBCAFDJ;ABCDFGHI:HGBCAFDI;ABCDEJKL:EJBCADLK;ABCDEIKL:EIBCADLK;ABCDEIJL:EJBCADLI;ABCDEIJK:EJBCADIK;ABCDEHKL:HEBCADLK;ABCDEHJL:HJBCADLE;ABCDEHJK:HJBCADEK;ABCDEHIL:HEBCADLI;ABCDEHIK:HEBCADIK;ABCDEHIJ:HJBCADEI;ABCDEGKL:EGBCADLK;ABCDEGJL:EGBCADLJ;ABCDEGJK:EGBCADJK;ABCDEGIL:EGBCADLI;ABCDEGIK:EGBCADIK;ABCDEGIJ:EGBCADIJ;ABCDEGHL:HGBCADLE;ABCDEGHK:HGBCADEK;ABCDEGHJ:HGBCADEJ;ABCDEGHI:HGBCADEI;ABCDEFKL:CEBDAFLK;ABCDEFJL:CJBDAFLE;ABCDEFJK:CJBDAFEK;ABCDEFIL:CEBDAFLI;ABCDEFIK:CEBDAFIK;ABCDEFIJ:CJBDAFEI;ABCDEFHL:HFBCADLE;ABCDEFHK:HEBCAFDK;ABCDEFHJ:HJBCAFDE;ABCDEFHI:HEBCAFDI;ABCDEFGL:CGBDAFLE;ABCDEFGK:CGBDAFEK;ABCDEFGJ:CGBDAFEJ;ABCDEFGI:CGBDAFEI;ABCDEFGH:HGBCAFDE".split(";").map(entry => entry.split(":")));
+    const THIRD_COLUMNS = ["1A", "1B", "1D", "1E", "1G", "1I", "1K", "1L"];
+
+    const FUTURE_MATCHES = [
+      ["round16", 89, "Vinnare match 74", "Vinnare match 77"], ["round16", 90, "Vinnare match 73", "Vinnare match 75"],
+      ["round16", 91, "Vinnare match 76", "Vinnare match 78"], ["round16", 92, "Vinnare match 79", "Vinnare match 80"],
+      ["round16", 93, "Vinnare match 83", "Vinnare match 84"], ["round16", 94, "Vinnare match 81", "Vinnare match 82"],
+      ["round16", 95, "Vinnare match 86", "Vinnare match 88"], ["round16", 96, "Vinnare match 85", "Vinnare match 87"],
+      ["quarter", 97, "Vinnare match 89", "Vinnare match 90"], ["quarter", 98, "Vinnare match 93", "Vinnare match 94"],
+      ["quarter", 99, "Vinnare match 91", "Vinnare match 92"], ["quarter", 100, "Vinnare match 95", "Vinnare match 96"],
+      ["semi", 101, "Vinnare match 97", "Vinnare match 98"], ["semi", 102, "Vinnare match 99", "Vinnare match 100"],
+      ["bronze", 103, "Förlorare match 101", "Förlorare match 102"], ["final", 104, "Vinnare match 101", "Vinnare match 102"]
+    ];
+
+    const KNOCKOUT_TIMES = [
+      "2026-06-28T21:00:00+02:00", "2026-06-29T19:00:00+02:00", "2026-06-29T22:30:00+02:00", "2026-06-30T03:00:00+02:00",
+      "2026-06-30T19:00:00+02:00", "2026-06-30T23:00:00+02:00", "2026-07-01T03:00:00+02:00", "2026-07-01T18:00:00+02:00",
+      "2026-07-01T22:00:00+02:00", "2026-07-02T02:00:00+02:00", "2026-07-02T21:00:00+02:00", "2026-07-03T01:00:00+02:00",
+      "2026-07-03T05:00:00+02:00", "2026-07-03T20:00:00+02:00", "2026-07-04T00:00:00+02:00", "2026-07-04T03:30:00+02:00",
+      "2026-07-04T19:00:00+02:00", "2026-07-04T23:00:00+02:00", "2026-07-05T22:00:00+02:00", "2026-07-06T02:00:00+02:00",
+      "2026-07-06T21:00:00+02:00", "2026-07-07T02:00:00+02:00", "2026-07-07T18:00:00+02:00", "2026-07-07T22:00:00+02:00",
+      "2026-07-09T22:00:00+02:00", "2026-07-10T21:00:00+02:00", "2026-07-11T23:00:00+02:00", "2026-07-12T03:00:00+02:00",
+      "2026-07-14T21:00:00+02:00", "2026-07-15T21:00:00+02:00", "2026-07-18T23:00:00+02:00", "2026-07-19T21:00:00+02:00"
+    ];
+
+    const TV_CHANNELS = [
+      "TV4 / TV4 Play", "TV4 / TV4 Play", "SVT / SVT Play", "SVT / SVT Play", "TV4 / TV4 Play", "TV4 / TV4 Play", "TV4 / TV4 Play", "SVT / SVT Play",
+      "TV4 / TV4 Play", "TV4 / TV4 Play", "SVT / SVT Play", "TV4 / TV4 Play", "TV4 / TV4 Play", "TV4 / TV4 Play", "SVT / SVT Play", "SVT / SVT Play",
+      "TV4 / TV4 Play", "SVT / SVT Play", "TV4 / TV4 Play", "SVT / SVT Play", "TV4 / TV4 Play", "TV4 / TV4 Play", "TV4 / TV4 Play", "SVT / SVT Play",
+      "TV4 / TV4 Play", "SVT / SVT Play", "TV4 / TV4 Play", "SVT / SVT Play", "SVT / SVT Play", "TV4 / TV4 Play", "SVT / SVT Play", "TV4 / TV4 Play"
+    ];
+
+    let allMatches = [];
+
+    function escapeHtml(value) {
+      return String(value ?? "").replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[char]));
+    }
+
+    async function apiFootball(endpoint) {
+      const response = await fetch(`${BASE_URL}/${endpoint}`, { headers: { "x-apisports-key": API_KEY } });
+      if (!response.ok) throw new Error(`API-fel ${response.status}`);
+      return response.json();
+    }
+
+    function normalize(value) {
+      return String(value ?? "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, " ").trim();
+    }
+
+    function formatDate(date) {
+      return new Intl.DateTimeFormat("sv-SE", { weekday: "long", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "Europe/Stockholm" }).format(new Date(date));
+    }
+
+    function dayKey(date) {
+      return new Intl.DateTimeFormat("sv-SE", { weekday: "long", year: "numeric", day: "2-digit", month: "2-digit", timeZone: "Europe/Stockholm" }).format(new Date(date));
+    }
+
+    function getGroupLetter(groupName) {
+      return String(groupName || "").match(/(?:Group|Grupp)\s*([A-L])\b/i)?.[1]?.toUpperCase() || "";
+    }
+
+    function isGroupMatch(match) {
+      return /\b(?:group|grupp)\b/i.test(match.league?.round || "");
+    }
+
+    function isFinished(match) {
+      return FINISHED_STATUSES.has(match.fixture?.status?.short);
+    }
+
+    function stateFor(match) {
+      const short = match.source?.fixture?.status?.short || "NS";
+      if (["1H", "HT", "2H", "ET", "BT", "P", "SUSP", "INT", "LIVE"].includes(short)) return "live";
+      return FINISHED_STATUSES.has(short) ? "finished" : "upcoming";
+    }
+
+    function stateLabel(state) {
+      return state === "live" ? "Live" : state === "finished" ? "Spelad" : "Kommande";
+    }
+
+    function roundKeyForFixture(match) {
+      const round = normalize(match.league?.round);
+      if (round.includes("third") || round.includes("3rd") || round.includes("bronze") || round.includes("brons")) return "bronze";
+      if (round.includes("round of 32") || round.includes("1 16") || round.includes("sixteenth")) return "round32";
+      if (round.includes("round of 16") || round.includes("8th finals") || round.includes("eighth") || round.includes("1 8")) return "round16";
+      if (round.includes("quarter") || round.includes("kvarts")) return "quarter";
+      if (round.includes("semi")) return "semi";
+      if (round.includes("final")) return "final";
+      return null;
+    }
+
+    function cloneGroups(standings) {
+      return standings
+        .filter(group => getGroupLetter(group[0]?.group))
+        .map(group => group.map((team, index) => ({
+          team: team.team,
+          groupLetter: getGroupLetter(team.group),
+          seedRank: Number(team.rank) || index + 1,
+          rank: index + 1,
+          points: 0,
+          goalsDiff: 0,
+          all: { played: 0, win: 0, draw: 0, lose: 0, goals: { for: 0, against: 0 } }
+        })));
+    }
+
+    function applyResult(team, goalsFor, goalsAgainst) {
+      team.all.played += 1;
+      team.all.goals.for += goalsFor;
+      team.all.goals.against += goalsAgainst;
+      team.goalsDiff = team.all.goals.for - team.all.goals.against;
+      if (goalsFor > goalsAgainst) { team.all.win += 1; team.points += 3; }
+      else if (goalsFor === goalsAgainst) { team.all.draw += 1; team.points += 1; }
+      else team.all.lose += 1;
+    }
+
+    function sortGroupRows(a, b) {
+      return (b.points - a.points) || (b.goalsDiff - a.goalsDiff) || (b.all.goals.for - a.all.goals.for) || a.seedRank - b.seedRank || String(a.team?.name).localeCompare(String(b.team?.name), "sv");
+    }
+
+    function buildGroups(standings, fixtures) {
+      const groups = cloneGroups(standings);
+      const teamGroup = new Map();
+      groups.forEach((group, groupIndex) => group.forEach(team => teamGroup.set(String(team.team.id), groupIndex)));
+
+      fixtures.filter(match => isGroupMatch(match) && isFinished(match) && match.goals?.home != null && match.goals?.away != null).forEach(match => {
+        const homeGroup = teamGroup.get(String(match.teams?.home?.id));
+        const awayGroup = teamGroup.get(String(match.teams?.away?.id));
+        if (homeGroup === undefined || homeGroup !== awayGroup) return;
+        const group = groups[homeGroup];
+        const home = group.find(team => String(team.team.id) === String(match.teams.home.id));
+        const away = group.find(team => String(team.team.id) === String(match.teams.away.id));
+        if (!home || !away) return;
+        applyResult(home, Number(match.goals.home), Number(match.goals.away));
+        applyResult(away, Number(match.goals.away), Number(match.goals.home));
+      });
+
+      const groupFixtures = new Map();
+      fixtures.filter(isGroupMatch).forEach(match => {
+        const groupIndex = teamGroup.get(String(match.teams?.home?.id));
+        if (groupIndex === undefined || groupIndex !== teamGroup.get(String(match.teams?.away?.id))) return;
+        const letter = groups[groupIndex]?.[0]?.groupLetter;
+        if (!letter) return;
+        const list = groupFixtures.get(letter) || [];
+        list.push(match);
+        groupFixtures.set(letter, list);
+      });
+
+      return groups.map(group => {
+        const rows = group.slice().sort(sortGroupRows).map((team, index) => ({ ...team, rank: index + 1 }));
+        const fixturesInGroup = groupFixtures.get(rows[0]?.groupLetter) || [];
+        return { letter: rows[0]?.groupLetter, rows, complete: fixturesInGroup.length === 6 && fixturesInGroup.every(isFinished) };
+      });
+    }
+
+    function candidateForSeed(seed, groupMap) {
+      const matched = String(seed).match(/^([12])([A-L])$/);
+      if (!matched) return { name: seed, note: "Plats ej klar", confirmed: false, seed };
+      const rank = Number(matched[1]);
+      const group = groupMap.get(matched[2]);
+      const row = group?.rows.find(team => team.rank === rank);
+      const confirmed = Boolean(group?.complete);
+      return {
+        name: row?.team?.name || seed,
+        note: confirmed ? `Klar som ${seed}` : `Preliminärt ${seed}`,
+        confirmed,
+        seed
+      };
+    }
+
+    function candidateForThirdSeed(seed, groupMap, groupStageComplete) {
+      const matched = String(seed).match(/^3([A-L])$/);
+      if (!matched) return candidateForPlaceholder("Bästa grupptrea");
+      const group = groupMap.get(matched[1]);
+      const row = group?.rows.find(team => team.rank === 3);
+      return {
+        name: row?.team?.name || seed,
+        note: groupStageComplete ? `Klar som bästa trea (${seed})` : `Topp 8 just nu (${seed})`,
+        confirmed: groupStageComplete,
+        seed
+      };
+    }
+
+    function candidateForPlaceholder(value) {
+      return { name: value, note: "Ej klar", confirmed: false, seed: value };
+    }
+
+    function candidateForApiTeam(team, teamById, groupMap, groupStageComplete) {
+      const row = teamById.get(String(team?.id));
+      const group = row ? groupMap.get(row.groupLetter) : null;
+      const confirmed = Boolean(group?.complete && (row.rank <= 2 || (row.rank === 3 && groupStageComplete)));
+      const isThird = row?.rank === 3;
+      return {
+        name: team?.name || "Lag ej klart",
+        note: confirmed ? (isThird ? `Klar som bästa trea (3${row.groupLetter})` : `Klar som ${row.rank}${row.groupLetter}`) : isThird ? `Topp 8 just nu (3${row.groupLetter})` : "Preliminär plats",
+        confirmed,
+        seed: row ? `${row.rank}${row.groupLetter}` : "Slutspelsplats"
+      };
+    }
+
+    function sortThirds(a, b) {
+      return (b.points - a.points) || (b.goalsDiff - a.goalsDiff) || (b.all.goals.for - a.all.goals.for) || a.groupLetter.localeCompare(b.groupLetter, "sv");
+    }
+
+    function thirdAssignments(bestThirds) {
+      const key = bestThirds.map(team => team.groupLetter).sort().join("");
+      const assignment = THIRD_PLACE_MATRIX[key];
+      if (!assignment) return {};
+      return Object.fromEntries(THIRD_COLUMNS.map((column, index) => [column, `3${assignment[index]}`]));
+    }
+
+    function renderBestThirds(thirds, groupStageComplete) {
+      const container = document.getElementById("bestThirds");
+      const status = document.getElementById("thirdPlaceStatus");
+      const qualifierState = groupStageComplete ? "confirmed" : "provisional";
+      const qualifierText = groupStageComplete ? "Klara för slutspel" : "Preliminära tills gruppspelet är klart";
+      status.textContent = qualifierText;
+      container.innerHTML = thirds.map((team, index) => {
+        const goalDiff = team.goalsDiff > 0 ? `+${team.goalsDiff}` : String(team.goalsDiff);
+        return `<article class="third-team"><span class="third-rank">${index + 1}</span><div><strong>${escapeHtml(team.team?.name || "Lag saknas")}</strong><small>3${team.groupLetter} · ${team.points} p · ${goalDiff} i MS</small></div><span class="badge ${qualifierState}">${qualifierText}</span></article>`;
+      }).join("");
+    }
+
+    function buildMatch(round, number, home, away, slotIndex, source) {
+      const fixture = source?.fixture;
+      return {
+        round,
+        number,
+        home,
+        away,
+        date: fixture?.date || KNOCKOUT_TIMES[slotIndex],
+        venue: fixture?.venue?.name || "Arena ej bekräftad",
+        city: fixture?.venue?.city || "",
+        referee: fixture?.referee || "Domare ej utsedd",
+        channel: TV_CHANNELS[slotIndex] || "Ej bekräftad",
+        source,
+        published: Boolean(source)
+      };
+    }
+
+    function buildKnockoutMatches(fixtures, groups) {
+      const groupMap = new Map(groups.map(group => [group.letter, group]));
+      const teamById = new Map();
+      groups.forEach(group => group.rows.forEach(row => teamById.set(String(row.team.id), { ...row, groupLetter: group.letter })));
+      const groupStageComplete = groups.every(group => group.complete);
+      const bestThirds = groups
+        .map(group => ({ ...group.rows.find(team => team.rank === 3), groupLetter: group.letter }))
+        .filter(Boolean)
+        .sort(sortThirds)
+        .slice(0, 8);
+      const assignments = thirdAssignments(bestThirds);
+      const byRound = Object.fromEntries(Object.keys(ROUND_INFO).map(key => [key, []]));
+      fixtures.filter(match => !isGroupMatch(match)).forEach(match => {
+        const key = roundKeyForFixture(match);
+        if (key) byRound[key].push(match);
+      });
+      Object.values(byRound).forEach(list => list.sort((a, b) => new Date(a.fixture.date) - new Date(b.fixture.date)));
+
+      const round32 = ROUND_OF_32.map((slot, index) => {
+        const source = byRound.round32[index];
+        const awaySeed = slot.thirdColumn ? assignments[slot.thirdColumn] || "Bästa grupptrea" : slot.away;
+        const home = source ? candidateForApiTeam(source.teams.home, teamById, groupMap, groupStageComplete) : candidateForSeed(slot.home, groupMap);
+        const away = source ? candidateForApiTeam(source.teams.away, teamById, groupMap, groupStageComplete) : slot.thirdColumn ? candidateForThirdSeed(awaySeed, groupMap, groupStageComplete) : candidateForSeed(awaySeed, groupMap);
+        return buildMatch("round32", 73 + index, home, away, index, source);
+      });
+
+      const future = FUTURE_MATCHES.map(([round, number, homeSeed, awaySeed], index) => {
+        const source = byRound[round][round === "round16" ? index : round === "quarter" ? index - 8 : round === "semi" ? index - 12 : round === "bronze" ? 0 : 0];
+        const home = source ? candidateForApiTeam(source.teams.home, teamById, groupMap, groupStageComplete) : candidateForPlaceholder(homeSeed);
+        const away = source ? candidateForApiTeam(source.teams.away, teamById, groupMap, groupStageComplete) : candidateForPlaceholder(awaySeed);
+        return buildMatch(round, number, home, away, 16 + index, source);
+      });
+      return { matches: [...round32, ...future], bestThirds, groupStageComplete };
+    }
+
+    function teamMarkup(team, side) {
+      const state = team.confirmed ? "confirmed" : "provisional";
+      const role = side === "home" ? "Hemmalag" : "Bortalag";
+      return `<div class="team ${side === "away" ? "away" : ""}"><div class="team-name">${escapeHtml(team.name)}</div><small class="${state}">${escapeHtml(team.note)} · ${role}</small></div>`;
+    }
+
+    function buildMatchCard(match) {
+      const state = stateFor(match);
+      const source = match.source;
+      const score = source ? `${source.goals.home ?? "-"} - ${source.goals.away ?? "-"}` : "- - -";
+      const venue = [match.venue, match.city].filter(Boolean).join(", ");
+      const content = `<article class="match-card"><div class="match-topline"><span class="badge ${state === "live" ? "live" : state === "finished" ? "done" : ""}">${stateLabel(state)}</span><span class="badge">${ROUND_INFO[match.round].label}</span><span class="badge">Match ${match.number}</span><span class="badge tv">${escapeHtml(match.channel)}</span>${match.published ? '<span class="badge confirmed">FIFA-publicerad</span>' : '<span class="badge provisional">Preliminär placering</span>'}<span class="kickoff">${escapeHtml(formatDate(match.date))}</span></div><div class="scoreboard">${teamMarkup(match.home, "home")}<div class="score">${score}</div>${teamMarkup(match.away, "away")}</div><div class="meta-row"><span>${escapeHtml(venue)}</span></div><div class="fact-grid"><div class="fact"><span>Status</span><strong>${source?.fixture?.status?.long || "Inte startad"}</strong></div><div class="fact"><span>TV-kanal</span><strong>${escapeHtml(match.channel)}</strong></div><div class="fact"><span>Matchning</span><strong>${match.published ? "FIFA-data" : "Aktuell gruppställning"}</strong></div><div class="fact"><span>Domare</span><strong>${escapeHtml(match.referee)}</strong></div></div></article>`;
+      if (!source?.fixture?.id) return content;
+      return `<a class="match-link" href="FIFA2026-match-details.html?fixture=${source.fixture.id}&home=${source.teams.home.id}&away=${source.teams.away.id}&back=FIFA2026-slutspel-matcher-plus.html">${content}</a>`;
+    }
+
+    function searchableText(match) {
+      return normalize([match.number, ROUND_INFO[match.round].label, match.home.name, match.home.seed, match.away.name, match.away.seed, match.venue].join(" "));
+    }
+
+    function updateSummary(matches) {
+      const published = matches.filter(match => match.published).length;
+      const confirmed = matches.flatMap(match => [match.home, match.away]).filter(team => team.confirmed).length;
+      document.getElementById("totalMatches").textContent = matches.length;
+      document.getElementById("publishedMatches").textContent = published;
+      document.getElementById("confirmedSlots").textContent = confirmed;
+      document.getElementById("provisionalSlots").textContent = matches.length * 2 - confirmed;
+    }
+
+    function renderMatches() {
+      const container = document.getElementById("matches");
+      const search = normalize(document.getElementById("searchInput").value);
+      const roundFilter = document.getElementById("roundFilter").value;
+      const statusFilter = document.getElementById("statusFilter").value;
+      const filtered = allMatches.filter(match => {
+        const state = stateFor(match);
+        const matchesStatus = statusFilter === "all" || state === statusFilter || (statusFilter === "active" && ["live", "upcoming"].includes(state));
+        return (!search || searchableText(match).includes(search)) && (roundFilter === "all" || match.round === roundFilter) && matchesStatus;
+      });
+
+      updateSummary(allMatches);
+      if (!filtered.length) { container.innerHTML = '<div class="empty">Inga slutspelsmatcher matchar filtret.</div>'; return; }
+      const grouped = filtered.reduce((groups, match) => {
+        const key = dayKey(match.date);
+        (groups[key] ||= []).push(match);
+        return groups;
+      }, {});
+      container.innerHTML = Object.entries(grouped).map(([day, matches]) => `<section class="day-group"><div class="day-heading"><h2>${escapeHtml(day)}</h2><span>${matches.length} match${matches.length === 1 ? "" : "er"}</span></div><div class="matches">${matches.map(buildMatchCard).join("")}</div></section>`).join("");
+    }
+
+    async function loadMatches() {
+      const status = document.getElementById("status");
+      try {
+        const [standingsData, fixturesData] = await Promise.all([
+          apiFootball(`standings?league=${LEAGUE}&season=${SEASON}`),
+          apiFootball(`fixtures?league=${LEAGUE}&season=${SEASON}`)
+        ]);
+        const standings = standingsData.response?.[0]?.league?.standings || [];
+        const fixtures = fixturesData.response || [];
+        const groups = buildGroups(standings, fixtures);
+        if (groups.length !== 12) throw new Error(`Hittade ${groups.length} grupper i stället för 12.`);
+        const knockout = buildKnockoutMatches(fixtures, groups);
+        allMatches = knockout.matches;
+        renderBestThirds(knockout.bestThirds, knockout.groupStageComplete);
+        renderMatches();
+        const completeGroups = groups.filter(group => group.complete).map(group => group.letter);
+        status.textContent = `Visar ${allMatches.length} slutspelsmatcher. Färdigspelade grupper: ${completeGroups.length ? completeGroups.join(", ") : "inga ännu"}.`;
+      } catch (error) {
+        console.error(error);
+        document.getElementById("matches").innerHTML = `<div class="error">Kunde inte bygga slutspelsvyn: ${escapeHtml(error.message)}</div>`;
+        status.textContent = "Fel vid hämtning av matcher och gruppställning.";
+        updateSummary([]);
+      }
+    }
+
+    document.getElementById("searchInput").addEventListener("input", renderMatches);
+    document.getElementById("roundFilter").addEventListener("change", renderMatches);
+    document.getElementById("statusFilter").addEventListener("change", renderMatches);
+    loadMatches();
+  </script>
+</body>
+</html>
