@@ -556,28 +556,36 @@
       97, 98, 99, 100, 101, 102, 103, 104
     ];
     const MATCH_TIMES = Object.fromEntries(MATCH_NUMBERS_BY_TIME.map((number, index) => [number, KNOCKOUT_TIMES[index]]));
+    const SOURCE_MATCH_NUMBERS = {
+      round32: [73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88],
+      round16: [89, 90, 91, 92, 93, 94, 95, 96],
+      quarter: [97, 98, 99, 100],
+      semi: [101, 102],
+      final: [104],
+      bronze: [103]
+    };
 
     const ROUND_DEFS = [
       {
         key: "round32",
         label: "Round of 32",
         slots: [
-          { number: 73, home: "2A", away: "2B" },
           { number: 74, home: "1E", away: "Bästa grupptrea" },
+          { number: 77, home: "1I", away: "Bästa grupptrea" },
+          { number: 73, home: "2A", away: "2B" },
           { number: 75, home: "1F", away: "2C" },
           { number: 76, home: "1C", away: "2F" },
-          { number: 77, home: "1I", away: "Bästa grupptrea" },
           { number: 78, home: "2E", away: "2I" },
           { number: 79, home: "1A", away: "Bästa grupptrea" },
           { number: 80, home: "1L", away: "Bästa grupptrea" },
-          { number: 81, home: "1D", away: "Bästa grupptrea" },
-          { number: 82, home: "1G", away: "Bästa grupptrea" },
           { number: 83, home: "2K", away: "2L" },
           { number: 84, home: "1H", away: "2J" },
-          { number: 85, home: "1B", away: "Bästa grupptrea" },
+          { number: 81, home: "1D", away: "Bästa grupptrea" },
+          { number: 82, home: "1G", away: "Bästa grupptrea" },
           { number: 86, home: "1J", away: "2H" },
-          { number: 87, home: "1K", away: "Bästa grupptrea" },
-          { number: 88, home: "2D", away: "2G" }
+          { number: 88, home: "2D", away: "2G" },
+          { number: 85, home: "1B", away: "Bästa grupptrea" },
+          { number: 87, home: "1K", away: "Bästa grupptrea" }
         ]
       },
       {
@@ -684,10 +692,11 @@
     function sourceMapFromFixtures(fixtures) {
       const buckets = fixtureBuckets(fixtures);
       const map = new Map();
-      ROUND_DEFS.filter(round => round.key !== "champion").forEach(round => {
-        round.slots.forEach((slot, index) => {
-          const source = buckets[round.key]?.[index];
-          if (source) map.set(slot.number, source);
+      Object.entries(SOURCE_MATCH_NUMBERS).forEach(([roundKey, numbers]) => {
+        if (roundKey === "bronze") return;
+        numbers.forEach((number, index) => {
+          const source = buckets[roundKey]?.[index];
+          if (source) map.set(number, source);
         });
       });
       if (buckets.bronze[0]) map.set(BRONZE_SLOT.number, buckets.bronze[0]);
