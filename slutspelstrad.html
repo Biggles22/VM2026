@@ -232,6 +232,7 @@
     }
 
     .round-stack {
+      position: relative;
       min-height: var(--tree-height);
       display: flex;
       flex-direction: column;
@@ -900,8 +901,65 @@
       }).join("");
 
       renderBronze(sourceMap);
-      requestAnimationFrame(drawConnectors);
-      window.setTimeout(drawConnectors, 250);
+      document.querySelectorAll(".team-logo").forEach(image => {
+        if (!image.complete) image.addEventListener("load", layoutAndDraw, { once: true });
+      });
+      layoutAndDraw();
+      window.setTimeout(layoutAndDraw, 250);
+    }
+
+    function resetBracketLayout() {
+      document.querySelectorAll(".round-stack").forEach(stack => {
+        stack.style.display = "";
+      });
+      document.querySelectorAll(".bracket-grid .match-card").forEach(card => {
+        card.style.position = "";
+        card.style.top = "";
+        card.style.left = "";
+        card.style.right = "";
+      });
+    }
+
+    function alignBracketCards() {
+      const track = document.getElementById("bracketTrack");
+      const trackRect = track.getBoundingClientRect();
+      resetBracketLayout();
+
+      ROUND_DEFS.slice(1).forEach(round => {
+        const stack = document.querySelector(`.round[data-round="${round.key}"] .round-stack`);
+        if (!stack) return;
+        const stackTop = stack.getBoundingClientRect().top - trackRect.top;
+        stack.style.display = "block";
+
+        round.slots.forEach(slot => {
+          const card = track.querySelector(`[data-match="${slot.number}"]`);
+          const parents = slot.parents || [];
+          if (!card || !parents.length) return;
+
+          const parentCenters = parents.map(parent => {
+            const parentCard = track.querySelector(`[data-match="${parent}"]`);
+            if (!parentCard) return null;
+            const rect = parentCard.getBoundingClientRect();
+            return rect.top + rect.height / 2 - trackRect.top;
+          }).filter(value => value !== null);
+
+          if (!parentCenters.length) return;
+          const targetCenter = parentCenters.reduce((sum, value) => sum + value, 0) / parentCenters.length;
+          const cardHeight = card.getBoundingClientRect().height;
+          const top = Math.max(0, targetCenter - stackTop - cardHeight / 2);
+          card.style.position = "absolute";
+          card.style.top = `${Math.round(top)}px`;
+          card.style.left = "0";
+          card.style.right = "0";
+        });
+      });
+    }
+
+    function layoutAndDraw() {
+      requestAnimationFrame(() => {
+        alignBracketCards();
+        drawConnectors();
+      });
     }
 
     function drawConnectors() {
@@ -961,8 +1019,8 @@
       }
     }
 
-    window.addEventListener("resize", drawConnectors);
-    window.addEventListener("load", drawConnectors);
+    window.addEventListener("resize", layoutAndDraw);
+    window.addEventListener("load", layoutAndDraw);
     loadBracket();
   </script>
 
