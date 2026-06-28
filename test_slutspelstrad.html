@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Preliminart slutspel - VM 2026</title>
+  <title>Slutspelstrad - VM 2026</title>
   <style>
     :root {
       color: #14213d;
@@ -251,7 +251,7 @@
 </head>
 <body>
   <header>
-    <h1>Preliminart slutspel</h1>
+    <h1>Slutspelstrad</h1>
     <p class="lead">Baserat pa dagens gruppstallning: gruppettor, grupptvaor och de 8 basta grupptreorna placeras i VM 2026:s Round of 32.</p>
   </header>
 
@@ -270,7 +270,7 @@
       </aside>
 
       <div id="bracket" class="bracket" aria-live="polite">
-        <div class="loading">Bygger preliminart slutspel...</div>
+        <div class="loading">Bygger slutspelstrad...</div>
       </div>
     </section>
   </main>
@@ -539,7 +539,7 @@
       `;
     }
 
-    async function loadPreliminaryBracket() {
+    async function loadBracket() {
       const status = document.getElementById("status");
       const thirdsContainer = document.getElementById("thirds");
       const bracket = document.getElementById("bracket");
@@ -547,7 +547,7 @@
 
       reloadButton.disabled = true;
       status.textContent = "Hamtar gruppstallningar och spelade matcher...";
-      bracket.innerHTML = `<div class="loading">Bygger preliminart slutspel...</div>`;
+      bracket.innerHTML = `<div class="loading">Bygger slutspelstrad...</div>`;
 
       try {
         const standingsData = await apiFootball(`standings?league=${LEAGUE}&season=${SEASON}`);
@@ -585,15 +585,15 @@
       } catch (error) {
         console.error(error);
         thirdsContainer.innerHTML = `<div class="error">${escapeHtml(error.message)}</div>`;
-        bracket.innerHTML = `<div class="error">Kunde inte bygga preliminart slutspel.</div>`;
+        bracket.innerHTML = `<div class="error">Kunde inte bygga slutspelstrad.</div>`;
         status.textContent = "Fel vid hamtning eller berakning.";
       } finally {
         reloadButton.disabled = false;
       }
     }
 
-    document.getElementById("reloadButton").addEventListener("click", loadPreliminaryBracket);
-    loadPreliminaryBracket();
+    document.getElementById("reloadButton").addEventListener("click", loadBracket);
+    loadBracket();
   </script>
 </body>
 </html>
