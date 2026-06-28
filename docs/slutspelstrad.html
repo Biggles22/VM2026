@@ -6,9 +6,22 @@
   <title>Slutspelsträd - VM 2026</title>
   <style>
     :root {
-      color: #122547;
-      background: #eef4fb;
+      color: #172033;
+      background: #eef3f8;
       font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      --ink: #172033;
+      --muted: #657389;
+      --line: #b9c6d3;
+      --panel: #ffffff;
+      --surface: #f7fafc;
+      --navy: #0f2c45;
+      --teal: #087f6f;
+      --gold: #f4b740;
+      --green: #1f8a56;
+      --red: #b42318;
+      --tree-height: 1570px;
+      --card-width: 216px;
+      --round-gap: 16px;
     }
 
     * {
@@ -18,7 +31,11 @@
     body {
       margin: 0;
       min-height: 100vh;
-      background: radial-gradient(circle at top, #dce8ff 0%, #eef4fb 50%, #ffffff 100%);
+      background:
+        linear-gradient(135deg, rgba(9, 78, 118, 0.94), rgba(8, 127, 111, 0.86)),
+        radial-gradient(circle at 20% 0%, rgba(244, 183, 64, 0.38), transparent 32%),
+        #eef3f8;
+      color: var(--ink);
     }
 
     a {
@@ -27,223 +44,425 @@
     }
 
     .page {
-      width: min(1400px, 96%);
+      width: min(1680px, 96%);
       margin: 0 auto;
       padding: 32px 0 48px;
     }
 
     header {
-      text-align: center;
-      padding: 24px 20px 10px;
-      margin-bottom: 24px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 18px;
+      align-items: end;
+      color: #fff;
+      margin-bottom: 18px;
     }
 
     h1 {
       margin: 0;
-      font-size: clamp(2rem, 3vw, 2.8rem);
-      letter-spacing: -0.04em;
-      color: #0f2a4d;
+      font-size: clamp(2rem, 4vw, 3.8rem);
+      line-height: 1;
+      letter-spacing: 0;
     }
 
     .lead {
-      margin: 16px auto 0;
-      max-width: 800px;
-      color: #42526a;
-      font-size: 1rem;
-      line-height: 1.7;
-    }
-
-    .status-card,
-    .round {
-      background: #ffffff;
-      border: 1px solid rgba(18, 37, 71, 0.08);
-      border-radius: 24px;
-      box-shadow: 0 24px 60px rgba(18, 37, 71, 0.08);
-    }
-
-    .status-card {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-      margin-bottom: 24px;
-      padding: 18px 22px;
-      color: #42526a;
+      max-width: 780px;
+      margin: 12px 0 0;
+      color: rgba(255, 255, 255, 0.88);
       line-height: 1.6;
+      overflow-wrap: anywhere;
     }
 
     .status-pill {
-      flex: 0 0 auto;
       display: inline-flex;
       align-items: center;
-      min-height: 34px;
-      padding: 7px 12px;
-      border-radius: 999px;
-      background: rgba(31, 78, 120, 0.1);
-      color: #1f4e78;
-      font-size: 0.9rem;
-      font-weight: 700;
+      min-height: 42px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.94);
+      color: var(--navy);
+      font-size: 14px;
+      font-weight: 800;
+      box-shadow: 0 14px 34px rgba(15, 44, 69, 0.18);
       white-space: nowrap;
     }
 
-    .bracket {
+    .status-strip {
       display: grid;
-      grid-template-columns: repeat(5, minmax(230px, 1fr));
-      gap: 18px;
-      overflow-x: auto;
-      padding-bottom: 16px;
-    }
-
-    .round {
-      min-width: 230px;
-      overflow: hidden;
-    }
-
-    .round h2 {
-      margin: 0;
-      padding: 16px 18px;
-      background: linear-gradient(90deg, #1f4e78, #3e7cc8);
-      color: #ffffff;
-      font-size: 1rem;
-      letter-spacing: 0.02em;
-    }
-
-    .round-body {
-      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
       gap: 14px;
-      padding: 16px;
-    }
-
-    .match-card {
-      display: block;
-      padding: 14px;
-      border: 1px solid rgba(18, 37, 71, 0.08);
-      border-radius: 16px;
-      background: #ffffff;
-      box-shadow: 0 12px 28px rgba(18, 37, 71, 0.07);
-      transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
-    }
-
-    .match-card:hover {
-      transform: translateY(-2px);
-      border-color: rgba(31, 78, 120, 0.28);
-      box-shadow: 0 18px 36px rgba(18, 37, 71, 0.12);
-    }
-
-    .match-meta {
-      display: flex;
-      justify-content: space-between;
-      gap: 10px;
-      margin-bottom: 10px;
-      color: #4d657f;
-      font-size: 0.84rem;
-      line-height: 1.4;
-    }
-
-    .team-row {
-      display: grid;
-      grid-template-columns: 28px 1fr auto;
       align-items: center;
-      gap: 10px;
-      min-height: 38px;
-      padding: 8px;
-      border-top: 1px solid rgba(18, 37, 71, 0.08);
-    }
-
-    .team-row:first-of-type {
-      border-top: 0;
-    }
-
-    .team-row img {
-      width: 26px;
-      height: 26px;
-      object-fit: contain;
-    }
-
-    .team-name {
       min-width: 0;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      font-weight: 700;
-      color: #122547;
+      margin-bottom: 18px;
+      padding: 14px 16px;
+      border: 1px solid rgba(15, 44, 69, 0.08);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.95);
+      color: #334e68;
+      line-height: 1.5;
+      box-shadow: 0 12px 32px rgba(15, 44, 69, 0.08);
     }
 
-    .score {
-      min-width: 34px;
-      text-align: right;
-      color: #1f4e78;
-      font-weight: 800;
+    #statusText {
+      min-width: 0;
+      overflow-wrap: anywhere;
     }
 
-    .winner {
-      background: rgba(32, 122, 79, 0.08);
-      color: #207a4f;
-    }
-
-    .winner .team-name::after {
-      content: " ✓";
-      color: #207a4f;
-      font-weight: 800;
-    }
-
-    .match-footer {
+    .legend {
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
-      margin-top: 10px;
-      color: #4d657f;
-      font-size: 0.82rem;
+      justify-content: flex-end;
     }
 
-    .match-footer span {
+    .badge {
       display: inline-flex;
       align-items: center;
       min-height: 28px;
       padding: 5px 9px;
       border-radius: 999px;
-      background: rgba(31, 78, 120, 0.07);
+      background: #eef4fb;
+      color: #23435f;
+      font-size: 12px;
+      font-weight: 900;
+      white-space: nowrap;
     }
 
-    .empty,
-    .error,
-    .loading {
+    .badge.live {
+      background: #fee2e2;
+      color: var(--red);
+    }
+
+    .badge.done,
+    .badge.confirmed {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .badge.provisional {
+      background: #fff7ed;
+      color: #9a3412;
+    }
+
+    .badge.final {
+      background: #fff3c4;
+      color: #6a4300;
+    }
+
+    .bracket-shell {
+      position: relative;
+      max-width: 100%;
+      overflow-x: auto;
+      padding: 6px 2px 18px;
+      scrollbar-color: rgba(255, 255, 255, 0.7) rgba(15, 44, 69, 0.25);
+    }
+
+    .bracket-track {
+      position: relative;
+      min-width: calc((var(--card-width) * 6) + (var(--round-gap) * 5));
+      min-height: calc(var(--tree-height) + 66px);
+    }
+
+    .connector-layer {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      overflow: visible;
+    }
+
+    .connector-layer path {
+      fill: none;
+      stroke: rgba(255, 255, 255, 0.62);
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-width: 2.25;
+      vector-effect: non-scaling-stroke;
+    }
+
+    .connector-layer path.final-path {
+      stroke: rgba(244, 183, 64, 0.95);
+      stroke-width: 3;
+    }
+
+    .bracket-grid {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: repeat(6, var(--card-width));
+      gap: var(--round-gap);
+      align-items: stretch;
+    }
+
+    .round {
+      min-width: 0;
+      color: var(--ink);
+    }
+
+    .round-heading {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      min-height: 46px;
+      margin-bottom: 14px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.96);
+      border: 1px solid rgba(15, 44, 69, 0.08);
+      box-shadow: 0 12px 32px rgba(15, 44, 69, 0.08);
+    }
+
+    .round-heading h2 {
+      margin: 0;
+      color: var(--navy);
+      font-size: 15px;
+      line-height: 1.2;
+    }
+
+    .round-heading span {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 900;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .round-stack {
+      min-height: var(--tree-height);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-around;
+      gap: 10px;
+    }
+
+    .round[data-round="champion"] .round-stack {
+      justify-content: center;
+    }
+
+    .match-card {
+      position: relative;
+      display: grid;
+      gap: 8px;
+      width: 100%;
+      min-height: 88px;
+      padding: 10px;
+      border: 1px solid rgba(15, 44, 69, 0.1);
+      border-left: 4px solid var(--teal);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: 0 12px 32px rgba(15, 44, 69, 0.1);
+      transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+    }
+
+    a.match-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(8, 127, 111, 0.34);
+      box-shadow: 0 18px 42px rgba(15, 44, 69, 0.18);
+    }
+
+    .match-card.placeholder {
+      border-left-color: #9aa9b8;
+    }
+
+    .match-card.champion-card {
+      min-height: 118px;
+      border-left-color: var(--gold);
+      background:
+        linear-gradient(180deg, rgba(255, 248, 225, 0.92), #ffffff 58%),
+        #fff;
+    }
+
+    .match-topline {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+
+    .match-number {
+      color: var(--navy);
+    }
+
+    .match-date {
+      overflow: hidden;
+      text-align: right;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .teams {
+      display: grid;
+      gap: 4px;
+    }
+
+    .team-row {
+      display: grid;
+      grid-template-columns: 22px minmax(0, 1fr) auto;
+      gap: 8px;
+      align-items: center;
+      min-height: 28px;
+      padding: 5px 6px;
+      border: 1px solid transparent;
+      border-radius: 6px;
+      background: var(--surface);
+    }
+
+    .team-row.winner {
+      border-color: rgba(31, 138, 86, 0.3);
+      background: #eef9f1;
+      color: #166534;
+    }
+
+    .team-logo,
+    .team-logo-fallback {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+    }
+
+    .team-logo {
+      object-fit: contain;
+      background: #fff;
+    }
+
+    .team-logo-fallback {
+      display: inline-block;
+      background: #dbe5ef;
+    }
+
+    .team-copy {
+      min-width: 0;
+    }
+
+    .team-name,
+    .team-seed {
+      display: block;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .team-name {
+      color: var(--ink);
+      font-size: 13px;
+      font-weight: 900;
+    }
+
+    .team-row.winner .team-name {
+      color: #166534;
+    }
+
+    .team-seed {
+      margin-top: 1px;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 800;
+    }
+
+    .score {
+      min-width: 24px;
+      color: var(--navy);
+      font-size: 13px;
+      font-weight: 900;
+      text-align: right;
+    }
+
+    .match-footer {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .bronze-panel {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) var(--card-width);
+      gap: 16px;
+      align-items: center;
+      margin-top: 18px;
+      padding: 14px 16px;
+      border: 1px solid rgba(15, 44, 69, 0.08);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.95);
+      color: #334e68;
+      box-shadow: 0 12px 32px rgba(15, 44, 69, 0.08);
+    }
+
+    .bronze-panel h2 {
+      margin: 0 0 6px;
+      color: var(--navy);
+      font-size: 17px;
+    }
+
+    .bronze-panel p {
+      margin: 0;
+      line-height: 1.55;
+    }
+
+    .loading,
+    .error {
       padding: 16px;
-      border-radius: 16px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.96);
+      color: #334e68;
       line-height: 1.6;
-    }
-
-    .empty,
-    .loading {
-      background: rgba(31, 78, 120, 0.05);
-      border: 1px dashed rgba(31, 78, 120, 0.22);
-      color: #4d657f;
+      box-shadow: 0 12px 32px rgba(15, 44, 69, 0.08);
     }
 
     .error {
-      background: #fee2e2;
       border: 1px solid #fecaca;
-      color: #991b1b;
-    }
-
-    @media (max-width: 900px) {
-      .status-card {
-        align-items: flex-start;
-        flex-direction: column;
-      }
-
-      .bracket {
-        grid-template-columns: repeat(5, 250px);
-      }
+      background: #fff1f2;
+      color: #9f1239;
     }
 
     .mobile-bottom-nav {
       display: none;
     }
 
+    @media (max-width: 980px) {
+      header,
+      .status-strip,
+      .bronze-panel {
+        grid-template-columns: 1fr;
+      }
+
+      .status-pill,
+      .legend {
+        justify-self: start;
+      }
+
+      .bracket-track {
+        min-width: calc((212px * 6) + (30px * 5));
+      }
+
+      .bracket-grid {
+        grid-template-columns: repeat(6, 212px);
+        gap: 30px;
+      }
+
+      .bronze-panel {
+        align-items: stretch;
+      }
+    }
+
     @media (max-width: 820px) {
       body {
         padding-bottom: calc(78px + env(safe-area-inset-bottom));
+      }
+
+      .page {
+        width: min(100% - 20px, 1680px);
+        padding-top: 24px;
+      }
+
+      .lead {
+        font-size: 14px;
       }
 
       .mobile-bottom-nav {
@@ -265,31 +484,49 @@
         min-height: 48px;
         display: grid;
         place-items: center;
+        border-radius: 8px;
+        background: #eef4fb;
         color: #244761;
         font-size: 0.78rem;
         font-weight: 900;
-        text-decoration: none;
-        border-radius: 8px;
-        background: #eef4fb;
       }
     }
-
   </style>
 </head>
 <body>
   <main class="page">
     <header>
-      <h1>Slutspelsträd</h1>
-      <p class="lead">Här visas VM 2026-slutspelet. Matchkorten länkar vidare till matchdetaljer när match-ID finns tillgängligt.</p>
+      <div>
+        <h1>Slutspelsträd</h1>
+        <p class="lead">VM 2026 från Round of 32 till världsmästare, med preliminära platser tills FIFA-data fyller på med lag, tider och resultat.</p>
+      </div>
+      <div class="status-pill" id="statusPill">VM 2026</div>
     </header>
 
-    <section class="status-card">
-      <div id="statusText">Laddar slutspelsmatcher från FIFA...</div>
-      <div class="status-pill" id="statusPill">VM 2026</div>
+    <section class="status-strip" aria-live="polite">
+      <div id="statusText">Laddar slutspelsträdet...</div>
+      <div class="legend" aria-label="Förklaring">
+        <span class="badge confirmed">FIFA-data</span>
+        <span class="badge provisional">Preliminär</span>
+        <span class="badge final">Mästare</span>
+      </div>
     </section>
 
-    <section id="bracket" class="bracket" aria-live="polite">
-      <div class="loading">Hämtar slutspelsträdet...</div>
+    <section class="bracket-shell" aria-label="Grafiskt slutspelsträd">
+      <div class="bracket-track" id="bracketTrack">
+        <svg class="connector-layer" id="connectorLayer" aria-hidden="true"></svg>
+        <div class="bracket-grid" id="bracketGrid">
+          <div class="loading">Bygger slutspelsträd...</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="bronze-panel" id="bronzePanel" aria-live="polite">
+      <div>
+        <h2>Bronsmatch</h2>
+        <p>Matchen om tredjeplats visas separat eftersom den inte leder vidare till finalen.</p>
+      </div>
+      <div class="loading">Laddar bronsmatchen...</div>
     </section>
   </main>
 
@@ -298,138 +535,422 @@
     const BASE_URL = "https://v3.football.api-sports.io";
     const LEAGUE = 1;
     const SEASON = 2026;
+    const FINISHED_STATUSES = new Set(["FT", "AET", "PEN"]);
+    const LIVE_STATUSES = new Set(["1H", "HT", "2H", "ET", "BT", "P", "SUSP", "INT", "LIVE"]);
 
-    const ROUNDS = [
-      { title: "Round of 32", keys: ["round of 32", "1/16", "sixteenth"] },
-      { title: "Åttondelsfinaler", keys: ["round of 16", "8th finals", "eighth", "1/8"] },
-      { title: "Kvartsfinaler", keys: ["quarter", "kvarts"] },
-      { title: "Semifinaler", keys: ["semi", "semif"] },
-      { title: "Final", keys: ["final"] }
+    const KNOCKOUT_TIMES = [
+      "2026-06-28T21:00:00+02:00", "2026-06-29T19:00:00+02:00", "2026-06-29T22:30:00+02:00", "2026-06-30T03:00:00+02:00",
+      "2026-06-30T19:00:00+02:00", "2026-06-30T23:00:00+02:00", "2026-07-01T03:00:00+02:00", "2026-07-01T18:00:00+02:00",
+      "2026-07-01T22:00:00+02:00", "2026-07-02T02:00:00+02:00", "2026-07-02T21:00:00+02:00", "2026-07-03T01:00:00+02:00",
+      "2026-07-03T05:00:00+02:00", "2026-07-03T20:00:00+02:00", "2026-07-04T00:00:00+02:00", "2026-07-04T03:30:00+02:00",
+      "2026-07-04T19:00:00+02:00", "2026-07-04T23:00:00+02:00", "2026-07-05T22:00:00+02:00", "2026-07-06T02:00:00+02:00",
+      "2026-07-06T21:00:00+02:00", "2026-07-07T02:00:00+02:00", "2026-07-07T18:00:00+02:00", "2026-07-07T22:00:00+02:00",
+      "2026-07-09T22:00:00+02:00", "2026-07-10T21:00:00+02:00", "2026-07-11T23:00:00+02:00", "2026-07-12T03:00:00+02:00",
+      "2026-07-14T21:00:00+02:00", "2026-07-15T21:00:00+02:00", "2026-07-18T23:00:00+02:00", "2026-07-19T21:00:00+02:00"
     ];
 
-    function normalizeRound(round) {
-      return String(round || "").toLowerCase();
+    const MATCH_NUMBERS_BY_TIME = [
+      73, 74, 75, 76, 77, 78, 79, 80,
+      81, 82, 83, 84, 85, 86, 87, 88,
+      89, 90, 91, 92, 93, 94, 95, 96,
+      97, 98, 99, 100, 101, 102, 103, 104
+    ];
+    const MATCH_TIMES = Object.fromEntries(MATCH_NUMBERS_BY_TIME.map((number, index) => [number, KNOCKOUT_TIMES[index]]));
+
+    const ROUND_DEFS = [
+      {
+        key: "round32",
+        label: "Round of 32",
+        slots: [
+          { number: 73, home: "2A", away: "2B" },
+          { number: 74, home: "1E", away: "Bästa grupptrea" },
+          { number: 75, home: "1F", away: "2C" },
+          { number: 76, home: "1C", away: "2F" },
+          { number: 77, home: "1I", away: "Bästa grupptrea" },
+          { number: 78, home: "2E", away: "2I" },
+          { number: 79, home: "1A", away: "Bästa grupptrea" },
+          { number: 80, home: "1L", away: "Bästa grupptrea" },
+          { number: 81, home: "1D", away: "Bästa grupptrea" },
+          { number: 82, home: "1G", away: "Bästa grupptrea" },
+          { number: 83, home: "2K", away: "2L" },
+          { number: 84, home: "1H", away: "2J" },
+          { number: 85, home: "1B", away: "Bästa grupptrea" },
+          { number: 86, home: "1J", away: "2H" },
+          { number: 87, home: "1K", away: "Bästa grupptrea" },
+          { number: 88, home: "2D", away: "2G" }
+        ]
+      },
+      {
+        key: "round16",
+        label: "Åttondelsfinaler",
+        slots: [
+          { number: 89, home: "Vinnare match 74", away: "Vinnare match 77", parents: [74, 77] },
+          { number: 90, home: "Vinnare match 73", away: "Vinnare match 75", parents: [73, 75] },
+          { number: 91, home: "Vinnare match 76", away: "Vinnare match 78", parents: [76, 78] },
+          { number: 92, home: "Vinnare match 79", away: "Vinnare match 80", parents: [79, 80] },
+          { number: 93, home: "Vinnare match 83", away: "Vinnare match 84", parents: [83, 84] },
+          { number: 94, home: "Vinnare match 81", away: "Vinnare match 82", parents: [81, 82] },
+          { number: 95, home: "Vinnare match 86", away: "Vinnare match 88", parents: [86, 88] },
+          { number: 96, home: "Vinnare match 85", away: "Vinnare match 87", parents: [85, 87] }
+        ]
+      },
+      {
+        key: "quarter",
+        label: "Kvartsfinaler",
+        slots: [
+          { number: 97, home: "Vinnare match 89", away: "Vinnare match 90", parents: [89, 90] },
+          { number: 98, home: "Vinnare match 93", away: "Vinnare match 94", parents: [93, 94] },
+          { number: 99, home: "Vinnare match 91", away: "Vinnare match 92", parents: [91, 92] },
+          { number: 100, home: "Vinnare match 95", away: "Vinnare match 96", parents: [95, 96] }
+        ]
+      },
+      {
+        key: "semi",
+        label: "Semifinaler",
+        slots: [
+          { number: 101, home: "Vinnare match 97", away: "Vinnare match 98", parents: [97, 98] },
+          { number: 102, home: "Vinnare match 99", away: "Vinnare match 100", parents: [99, 100] }
+        ]
+      },
+      {
+        key: "final",
+        label: "Final",
+        slots: [
+          { number: 104, home: "Vinnare match 101", away: "Vinnare match 102", parents: [101, 102] }
+        ]
+      },
+      {
+        key: "champion",
+        label: "Världsmästare",
+        slots: [
+          { number: "champion", home: "Vinnare finalen", parents: [104], virtual: true }
+        ]
+      }
+    ];
+
+    const BRONZE_SLOT = { key: "bronze", number: 103, home: "Förlorare match 101", away: "Förlorare match 102", parents: [101, 102] };
+    let renderedEdges = [];
+
+    function escapeHtml(value) {
+      return String(value ?? "").replace(/[&<>"']/g, char => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+      }[char]));
     }
 
-    function belongsToRound(match, roundDef) {
-      const round = normalizeRound(match.league?.round);
-      if (roundDef.title === "Final" && (round.includes("3rd") || round.includes("third"))) return false;
-      return roundDef.keys.some(key => round.includes(key));
+    function normalize(value) {
+      return String(value ?? "")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9]+/g, " ")
+        .trim();
+    }
+
+    async function apiFootball(endpoint) {
+      const response = await fetch(`${BASE_URL}/${endpoint}`, {
+        headers: { "x-apisports-key": API_KEY }
+      });
+      if (!response.ok) throw new Error(`API-fel ${response.status}`);
+      return response.json();
+    }
+
+    function roundKeyForFixture(match) {
+      const round = normalize(match.league?.round);
+      if (round.includes("third") || round.includes("3rd") || round.includes("bronze") || round.includes("brons")) return "bronze";
+      if (round.includes("round of 32") || round.includes("1 16") || round.includes("sixteenth")) return "round32";
+      if (round.includes("round of 16") || round.includes("8th finals") || round.includes("eighth") || round.includes("1 8")) return "round16";
+      if (round.includes("quarter") || round.includes("kvarts")) return "quarter";
+      if (round.includes("semi") || round.includes("semif")) return "semi";
+      if (round.includes("final")) return "final";
+      return null;
+    }
+
+    function fixtureBuckets(fixtures) {
+      const buckets = { round32: [], round16: [], quarter: [], semi: [], bronze: [], final: [] };
+      fixtures.forEach(match => {
+        const key = roundKeyForFixture(match);
+        if (key) buckets[key].push(match);
+      });
+      Object.values(buckets).forEach(list => {
+        list.sort((a, b) => new Date(a.fixture?.date || 0) - new Date(b.fixture?.date || 0));
+      });
+      return buckets;
+    }
+
+    function sourceMapFromFixtures(fixtures) {
+      const buckets = fixtureBuckets(fixtures);
+      const map = new Map();
+      ROUND_DEFS.filter(round => round.key !== "champion").forEach(round => {
+        round.slots.forEach((slot, index) => {
+          const source = buckets[round.key]?.[index];
+          if (source) map.set(slot.number, source);
+        });
+      });
+      if (buckets.bronze[0]) map.set(BRONZE_SLOT.number, buckets.bronze[0]);
+      return { map, buckets };
     }
 
     function formatDate(dateString) {
-      if (!dateString) return "Datum ej klart";
+      if (!dateString) return "Tid ej klar";
       const date = new Date(dateString);
-      if (Number.isNaN(date.getTime())) return "Datum ej klart";
-
-      return date.toLocaleString("sv-SE", {
+      if (Number.isNaN(date.getTime())) return "Tid ej klar";
+      return new Intl.DateTimeFormat("sv-SE", {
         weekday: "short",
         day: "2-digit",
         month: "short",
         hour: "2-digit",
         minute: "2-digit",
+        hour12: false,
         timeZone: "Europe/Stockholm"
-      });
+      }).format(date);
     }
 
-    function scoreFor(match, side) {
-      const goals = match.goals?.[side];
-      const penalty = match.score?.penalty?.[side];
+    function scoreFor(source, side) {
+      const goals = source?.goals?.[side];
+      const penalty = source?.score?.penalty?.[side];
       if (goals === null || goals === undefined) return "-";
-      return penalty !== null && penalty !== undefined ? `${goals} (${penalty})` : goals;
+      return penalty !== null && penalty !== undefined ? `${goals} (${penalty})` : String(goals);
+    }
+
+    function stateFor(source, virtualWinner) {
+      if (virtualWinner) return "done";
+      const short = source?.fixture?.status?.short || "";
+      if (LIVE_STATUSES.has(short)) return "live";
+      if (FINISHED_STATUSES.has(short)) return "done";
+      return "upcoming";
+    }
+
+    function stateLabel(state) {
+      if (state === "live") return "Live";
+      if (state === "done") return "Klar";
+      return "Kommande";
+    }
+
+    function participantFromSource(source, side, fallback) {
+      const team = source?.teams?.[side] || {};
+      return {
+        name: team.name || fallback,
+        logo: team.logo || "",
+        seed: fallback,
+        winner: team.winner === true,
+        confirmed: Boolean(team.name)
+      };
+    }
+
+    function championFromFinal(finalSource) {
+      const home = finalSource?.teams?.home;
+      const away = finalSource?.teams?.away;
+      const winner = home?.winner ? home : away?.winner ? away : null;
+      return {
+        name: winner?.name || "Vinnare finalen",
+        logo: winner?.logo || "",
+        seed: "Efter match 104",
+        winner: Boolean(winner),
+        confirmed: Boolean(winner)
+      };
+    }
+
+    function buildMatch(slot, roundKey, sourceMap) {
+      if (slot.virtual) {
+        const finalSource = sourceMap.get(104);
+        const champion = championFromFinal(finalSource);
+        return {
+          round: roundKey,
+          number: slot.number,
+          parents: slot.parents || [],
+          virtual: true,
+          source: finalSource,
+          home: champion,
+          date: finalSource?.fixture?.date || MATCH_TIMES[104],
+          published: Boolean(champion.confirmed)
+        };
+      }
+
+      const source = sourceMap.get(slot.number);
+      return {
+        round: roundKey,
+        number: slot.number,
+        parents: slot.parents || [],
+        source,
+        home: participantFromSource(source, "home", slot.home),
+        away: participantFromSource(source, "away", slot.away),
+        date: source?.fixture?.date || MATCH_TIMES[slot.number],
+        venue: [source?.fixture?.venue?.name, source?.fixture?.venue?.city].filter(Boolean).join(", "),
+        published: Boolean(source)
+      };
+    }
+
+    function buildAllMatches(sourceMap) {
+      return Object.fromEntries(ROUND_DEFS.map(round => [
+        round.key,
+        round.slots.map(slot => buildMatch(slot, round.key, sourceMap))
+      ]));
     }
 
     function teamRow(match, side) {
-      const team = match.teams?.[side] || {};
-      const isWinner = team.winner === true;
-      const name = team.name || "Ej klart";
-      const logo = team.logo || "";
+      const team = match[side];
+      const source = match.source;
+      const logo = team.logo
+        ? `<img class="team-logo" src="${escapeHtml(team.logo)}" alt="">`
+        : '<span class="team-logo-fallback" aria-hidden="true"></span>';
+      const score = match.virtual ? "" : `<span class="score">${escapeHtml(scoreFor(source, side))}</span>`;
+      const winnerClass = team.winner ? " winner" : "";
 
       return `
-        <div class="team-row ${isWinner ? "winner" : ""}">
-          ${logo ? `<img src="${logo}" alt="">` : "<span></span>"}
-          <span class="team-name">${name}</span>
-          <span class="score">${scoreFor(match, side)}</span>
+        <div class="team-row${winnerClass}">
+          ${logo}
+          <span class="team-copy">
+            <span class="team-name">${escapeHtml(team.name)}</span>
+            <span class="team-seed">${escapeHtml(team.seed)}</span>
+          </span>
+          ${score}
+        </div>
+      `;
+    }
+
+    function matchBadges(match) {
+      const state = stateFor(match.source, match.virtual && match.home.confirmed);
+      const sourceBadge = match.published ? "confirmed" : "provisional";
+      const sourceLabel = match.published ? "FIFA-data" : "Preliminär";
+      return `
+        <div class="match-footer">
+          <span class="badge ${state === "live" ? "live" : state === "done" ? "done" : ""}">${stateLabel(state)}</span>
+          <span class="badge ${sourceBadge}">${sourceLabel}</span>
         </div>
       `;
     }
 
     function matchCard(match) {
-      const fixtureId = match.fixture?.id || "";
-      const homeId = match.teams?.home?.id || "";
-      const awayId = match.teams?.away?.id || "";
-      const href = fixtureId
-        ? `FIFA2026-match-details.html?fixture=${fixtureId}&home=${homeId}&away=${awayId}`
-        : "#";
-      const venue = match.fixture?.venue?.name || "Arena ej klar";
-      const status = match.fixture?.status?.long || match.fixture?.status?.short || "Status ej klar";
+      const isChampion = match.virtual;
+      const numberLabel = isChampion ? "Mästare" : `Match ${match.number}`;
+      const date = isChampion ? "Efter finalen" : formatDate(match.date);
+      const footer = isChampion
+        ? '<div class="match-footer"><span class="badge final">Världsmästare</span></div>'
+        : matchBadges(match);
+      const teams = isChampion
+        ? `<div class="teams">${teamRow(match, "home")}</div>`
+        : `<div class="teams">${teamRow(match, "home")}${teamRow(match, "away")}</div>`;
+      const href = match.source?.fixture?.id && !isChampion
+        ? `FIFA2026-match-details.html?fixture=${match.source.fixture.id}&home=${match.source.teams.home.id}&away=${match.source.teams.away.id}&back=slutspelstrad.html`
+        : "";
+      const tag = href ? "a" : "article";
+      const hrefAttr = href ? ` href="${escapeHtml(href)}"` : "";
+      const cardClass = `match-card${match.published ? "" : " placeholder"}${isChampion ? " champion-card" : ""}`;
 
       return `
-        <a class="match-card" href="${href}">
-          <div class="match-meta">
-            <span>${formatDate(match.fixture?.date)}</span>
-            <span>${match.fixture?.status?.short || ""}</span>
+        <${tag} class="${cardClass}" data-match="${escapeHtml(match.number)}"${hrefAttr}>
+          <div class="match-topline">
+            <span class="match-number">${escapeHtml(numberLabel)}</span>
+            <span class="match-date">${escapeHtml(date)}</span>
           </div>
-          ${teamRow(match, "home")}
-          ${teamRow(match, "away")}
-          <div class="match-footer">
-            <span>${status}</span>
-            <span>${venue}</span>
-          </div>
-        </a>
+          ${teams}
+          ${footer}
+        </${tag}>
       `;
     }
 
-    function renderBracket(fixtures) {
-      const bracket = document.getElementById("bracket");
+    function renderBronze(sourceMap) {
+      const bronze = buildMatch(BRONZE_SLOT, "bronze", sourceMap);
+      document.getElementById("bronzePanel").innerHTML = `
+        <div>
+          <h2>Bronsmatch</h2>
+          <p>Match 103 spelas mellan förlorarna i semifinalerna.</p>
+        </div>
+        ${matchCard(bronze)}
+      `;
+    }
 
-      bracket.innerHTML = ROUNDS.map(round => {
-        const matches = fixtures
-          .filter(match => belongsToRound(match, round))
-          .sort((a, b) => new Date(a.fixture?.date || 0) - new Date(b.fixture?.date || 0));
+    function renderBracket(sourceMap) {
+      const matchesByRound = buildAllMatches(sourceMap);
+      renderedEdges = [];
 
-        const cards = matches.length
-          ? matches.map(matchCard).join("")
-          : `<div class="empty">Inga matcher hittade ännu för denna runda.</div>`;
+      document.getElementById("bracketGrid").innerHTML = ROUND_DEFS.map(round => {
+        const matches = matchesByRound[round.key];
+        matches.forEach(match => {
+          match.parents.forEach(parent => renderedEdges.push({ from: parent, to: match.number, final: match.virtual }));
+        });
 
         return `
-          <section class="round">
-            <h2>${round.title}</h2>
-            <div class="round-body">${cards}</div>
+          <section class="round" data-round="${escapeHtml(round.key)}">
+            <div class="round-heading">
+              <h2>${escapeHtml(round.label)}</h2>
+              <span>${matches.length}</span>
+            </div>
+            <div class="round-stack">
+              ${matches.map(matchCard).join("")}
+            </div>
           </section>
         `;
       }).join("");
+
+      renderBronze(sourceMap);
+      requestAnimationFrame(drawConnectors);
+      window.setTimeout(drawConnectors, 250);
+    }
+
+    function drawConnectors() {
+      const track = document.getElementById("bracketTrack");
+      const svg = document.getElementById("connectorLayer");
+      const trackRect = track.getBoundingClientRect();
+      const width = Math.max(track.scrollWidth, track.offsetWidth);
+      const height = Math.max(track.scrollHeight, track.offsetHeight);
+
+      svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+      svg.setAttribute("width", width);
+      svg.setAttribute("height", height);
+
+      const paths = renderedEdges.map(edge => {
+        const fromEl = track.querySelector(`[data-match="${edge.from}"]`);
+        const toEl = track.querySelector(`[data-match="${edge.to}"]`);
+        if (!fromEl || !toEl) return "";
+
+        const fromRect = fromEl.getBoundingClientRect();
+        const toRect = toEl.getBoundingClientRect();
+        const x1 = fromRect.right - trackRect.left;
+        const y1 = fromRect.top + fromRect.height / 2 - trackRect.top;
+        const x2 = toRect.left - trackRect.left;
+        const y2 = toRect.top + toRect.height / 2 - trackRect.top;
+        const midX = x1 + Math.max(18, (x2 - x1) / 2);
+        const className = edge.final ? ' class="final-path"' : "";
+
+        return `<path${className} d="M ${x1} ${y1} H ${midX} V ${y2} H ${x2}" />`;
+      }).join("");
+
+      svg.innerHTML = paths;
     }
 
     async function loadBracket() {
       const statusText = document.getElementById("statusText");
       const statusPill = document.getElementById("statusPill");
-      const bracket = document.getElementById("bracket");
 
       try {
-        const response = await fetch(`${BASE_URL}/fixtures?league=${LEAGUE}&season=${SEASON}`, {
-          headers: { "x-apisports-key": API_KEY }
-        });
-
-        if (!response.ok) throw new Error(`API-fel ${response.status}`);
-
-        const data = await response.json();
-        if (data.errors && Object.keys(data.errors).length) {
-          throw new Error(JSON.stringify(data.errors));
-        }
-
+        const data = await apiFootball(`fixtures?league=${LEAGUE}&season=${SEASON}`);
         const fixtures = data.response || [];
-        renderBracket(fixtures);
-        statusText.textContent = `Hämtade ${fixtures.length} matcher. Slutspelsrundorna fylls i när FIFA har publicerat dem.`;
-        statusPill.textContent = `Uppdaterad ${new Date().toLocaleTimeString("sv-SE", { hour: "2-digit", minute: "2-digit" })}`;
+        const { map, buckets } = sourceMapFromFixtures(fixtures);
+        renderBracket(map);
+
+        const published = map.size;
+        const knockoutFixtures = Object.values(buckets).reduce((sum, list) => sum + list.length, 0);
+        const now = new Date().toLocaleTimeString("sv-SE", { hour: "2-digit", minute: "2-digit" });
+        statusText.textContent = `Visar slutspelsträd med ${published} match${published === 1 ? "" : "er"} från FIFA-data och resterande platser enligt VM-strukturen.`;
+        statusPill.textContent = `Uppdaterad ${now}`;
+        if (!knockoutFixtures) {
+          statusText.textContent = "FIFA har inte skickat några slutspelsmatcher ännu, så trädet visas med matchnummer och preliminära platser.";
+        }
       } catch (error) {
         console.error(error);
-        bracket.innerHTML = `<div class="error">Kunde inte hämta slutspelsträdet: ${error.message}</div>`;
-        statusText.textContent = "API-anropet misslyckades.";
-        statusPill.textContent = "Fel";
+        renderBracket(new Map());
+        statusText.innerHTML = `Kunde inte hämta FIFA-data. Visar preliminärt träd. <span class="error-inline">${escapeHtml(error.message)}</span>`;
+        statusPill.textContent = "Offlinevy";
       }
     }
 
+    window.addEventListener("resize", drawConnectors);
+    window.addEventListener("load", drawConnectors);
     loadBracket();
   </script>
 
@@ -439,6 +960,5 @@
     <a href="FIFA2026-matcher-plus.html?v=7">Matcher</a>
     <a href="chat.html">Chat</a>
   </nav>
-
 </body>
 </html>
