@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Slutspelstrad - VM 2026</title>
+  <title>Slutspelsträd - VM 2026</title>
   <style>
     :root {
       color: #14213d;
@@ -251,26 +251,26 @@
 </head>
 <body>
   <header>
-    <h1>Slutspelstrad</h1>
-    <p class="lead">Baserat pa dagens gruppstallning: gruppettor, grupptvaor och de 8 basta grupptreorna placeras i VM 2026:s Round of 32.</p>
+    <h1>Slutspelsträd</h1>
+    <p class="lead">Baserat på dagens gruppställning: gruppettor, grupptvåor och de 8 bästa grupptreorna placeras i VM 2026:s Round of 32.</p>
   </header>
 
   <main class="page">
     <section class="toolbar">
-      <div id="status">Laddar gruppstallningar fran api-football...</div>
+      <div id="status">Laddar gruppställningar från api-football...</div>
       <button class="button" id="reloadButton" type="button">Uppdatera</button>
     </section>
 
     <section class="grid">
       <aside class="panel">
-        <h2>Basta grupptreor</h2>
+        <h2>Bästa grupptreor</h2>
         <div id="thirds" class="third-list">
-          <div class="loading">Hamtar tabeller...</div>
+          <div class="loading">Hämtar tabeller...</div>
         </div>
       </aside>
 
       <div id="bracket" class="bracket" aria-live="polite">
-        <div class="loading">Bygger slutspelstrad...</div>
+        <div class="loading">Bygger slutspelsträd...</div>
       </div>
     </section>
   </main>
@@ -459,7 +459,7 @@
         return `
           <div class="third-row ${qualified ? "" : "out"}">
             <span class="rank">${index + 1}</span>
-            <span>${escapeHtml(team.team?.name || "Okant lag")} <span class="seed">3${team.groupLetter}</span></span>
+            <span>${escapeHtml(team.team?.name || "Okänt lag")} <span class="seed">3${team.groupLetter}</span></span>
             <span class="stats">${stats.played ?? 0} sp, ${team.points ?? 0} p, ${team.goalsDiff ?? 0}</span>
           </div>
         `;
@@ -546,8 +546,8 @@
       const reloadButton = document.getElementById("reloadButton");
 
       reloadButton.disabled = true;
-      status.textContent = "Hamtar gruppstallningar och spelade matcher...";
-      bracket.innerHTML = `<div class="loading">Bygger slutspelstrad...</div>`;
+      status.textContent = "Hämtar gruppställningar och spelade matcher...";
+      bracket.innerHTML = `<div class="loading">Bygger slutspelsträd...</div>`;
 
       try {
         const standingsData = await apiFootball(`standings?league=${LEAGUE}&season=${SEASON}`);
@@ -555,7 +555,7 @@
         const realStandings = standings.filter(isRealGroup);
 
         if (realStandings.length !== 12) {
-          throw new Error(`Hittade ${realStandings.length} grupper, forvantade 12.`);
+          throw new Error(`Hittade ${realStandings.length} grupper, förväntade 12.`);
         }
 
         let fixtures = [];
@@ -563,7 +563,7 @@
           const fixturesData = await apiFootball(`fixtures?league=${LEAGUE}&season=${SEASON}`);
           fixtures = fixturesData.response || [];
         } catch (fixtureError) {
-          console.warn("Kunde inte hamta matcher, anvander API-standings.", fixtureError);
+          console.warn("Kunde inte hämta matcher, använder API-standings.", fixtureError);
         }
 
         const groups = fixtures.length ? buildComputedGroups(realStandings, fixtures) : cloneGroups(realStandings);
@@ -581,12 +581,12 @@
           /^Group Stage\b/i.test(match.league?.round || "")
         ).length;
         const time = new Date().toLocaleString("sv-SE", { dateStyle: "short", timeStyle: "short" });
-        status.textContent = `Om VM slutade idag: ${bestThirds.map(team => `3${team.groupLetter}`).join(", ")} gar vidare. Gruppmatcher inraknade: ${finishedMatches}. Uppdaterad ${time}.`;
+        status.textContent = `Om VM slutade idag: ${bestThirds.map(team => `3${team.groupLetter}`).join(", ")} går vidare. Gruppmatcher inräknade: ${finishedMatches}. Uppdaterad ${time}.`;
       } catch (error) {
         console.error(error);
         thirdsContainer.innerHTML = `<div class="error">${escapeHtml(error.message)}</div>`;
-        bracket.innerHTML = `<div class="error">Kunde inte bygga slutspelstrad.</div>`;
-        status.textContent = "Fel vid hamtning eller berakning.";
+        bracket.innerHTML = `<div class="error">Kunde inte bygga slutspelsträd.</div>`;
+        status.textContent = "Fel vid hämtning eller beräkning.";
       } finally {
         reloadButton.disabled = false;
       }
