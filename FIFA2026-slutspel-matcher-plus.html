@@ -48,20 +48,6 @@
       line-height: 1.65;
     }
 
-    .status-box {
-      display: inline-flex;
-      align-items: center;
-      min-height: 42px;
-      padding: 10px 14px;
-      border-radius: 8px;
-      background: rgba(255, 255, 255, 0.94);
-      color: #0f2c45;
-      font-size: 14px;
-      font-weight: 700;
-      box-shadow: 0 14px 34px rgba(15, 44, 69, 0.18);
-      white-space: nowrap;
-    }
-
     .container { width: min(1180px, 94%); margin: 0 auto; padding: 0 0 42px; }
 
     .qualification-note,
@@ -99,7 +85,7 @@
     }
 
     .third-place-panel {
-      margin: 0 0 18px;
+      margin: 0 0 14px;
       color: #fff;
     }
 
@@ -108,49 +94,49 @@
       justify-content: space-between;
       gap: 12px;
       align-items: baseline;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
     }
 
     .third-place-heading h2 {
       margin: 0;
-      font-size: 20px;
+      font-size: 16px;
     }
 
     .third-place-heading span {
       color: rgba(255, 255, 255, 0.86);
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 700;
     }
 
     .third-list {
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 10px;
+      grid-template-columns: repeat(8, minmax(92px, 1fr));
+      gap: 6px;
     }
 
     .third-team {
       display: grid;
       grid-template-columns: auto minmax(0, 1fr);
-      gap: 9px 10px;
+      gap: 6px;
       align-items: center;
-      min-height: 82px;
-      padding: 12px;
+      min-height: 42px;
+      padding: 7px 8px;
       border: 1px solid rgba(15, 44, 69, 0.08);
       border-radius: 8px;
       background: #fff;
       color: #172033;
-      box-shadow: 0 12px 32px rgba(15, 44, 69, 0.08);
+      box-shadow: 0 8px 18px rgba(15, 44, 69, 0.06);
     }
 
     .third-rank {
       display: grid;
       place-items: center;
-      width: 30px;
-      height: 30px;
+      width: 22px;
+      height: 22px;
       border-radius: 50%;
       background: #0f2c45;
       color: #fff;
-      font-size: 13px;
+      font-size: 11px;
       font-weight: 900;
     }
 
@@ -163,9 +149,8 @@
       white-space: nowrap;
     }
 
-    .third-team strong { font-size: 14px; }
-    .third-team small { margin-top: 3px; color: #657389; font-weight: 700; }
-    .third-team .badge { grid-column: 1 / -1; justify-self: start; }
+    .third-team strong { font-size: 12px; }
+    .third-team small { margin-top: 1px; color: #657389; font-size: 10px; font-weight: 800; }
 
     .toolbar {
       display: grid;
@@ -292,8 +277,7 @@
       .toolbar,
       .summary,
       .matches,
-      .third-list { grid-template-columns: 1fr; }
-      .status-box,
+      .third-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .kickoff { margin-left: 0; white-space: normal; }
     }
 
@@ -314,7 +298,6 @@
         <h1>VM 2026 slutspelsmatcher</h1>
         <p class="lead">Alla 32 slutspelsmatcher, från Round of 32 till final. Färdiga gruppplaceringar visas direkt och övriga platser följer den aktuella ställningen.</p>
       </div>
-      <p class="status-box" id="status">Laddar slutspel och gruppställning...</p>
     </div>
   </header>
 
@@ -753,12 +736,11 @@
     function renderBestThirds(thirds, groupStageComplete) {
       const container = document.getElementById("bestThirds");
       const status = document.getElementById("thirdPlaceStatus");
-      const qualifierState = groupStageComplete ? "confirmed" : "provisional";
       const qualifierText = groupStageComplete ? "Klara för slutspel" : "Preliminära tills gruppspelet är klart";
       status.textContent = qualifierText;
       container.innerHTML = thirds.map((team, index) => {
         const goalDiff = team.goalsDiff > 0 ? `+${team.goalsDiff}` : String(team.goalsDiff);
-        return `<article class="third-team"><span class="third-rank">${index + 1}</span><div><strong>${escapeHtml(team.team?.name || "Lag saknas")}</strong><small>3${team.groupLetter} · ${team.points} p · ${goalDiff} i MS</small></div><span class="badge ${qualifierState}">${qualifierText}</span></article>`;
+        return `<article class="third-team"><span class="third-rank">${index + 1}</span><div><strong>${escapeHtml(team.team?.name || "Lag saknas")}</strong><small>3${team.groupLetter} · ${team.points} p · ${goalDiff}</small></div></article>`;
       }).join("");
     }
 
@@ -967,7 +949,6 @@
     }
 
     async function loadMatches() {
-      const status = document.getElementById("status");
       try {
         const [standingsData, fixturesData, tips] = await Promise.all([
           apiFootball(`standings?league=${LEAGUE}&season=${SEASON}`),
@@ -983,12 +964,9 @@
         allMatches = knockout.matches;
         renderBestThirds(knockout.bestThirds, knockout.groupStageComplete);
         renderMatches();
-        const completeGroups = groups.filter(group => group.complete).map(group => group.letter);
-        status.textContent = `Visar ${allMatches.length} slutspelsmatcher med tips från ${tipParticipants.length} deltagare. Färdigspelade grupper: ${completeGroups.length ? completeGroups.join(", ") : "inga ännu"}.`;
       } catch (error) {
         console.error(error);
         document.getElementById("matches").innerHTML = `<div class="error">Kunde inte bygga slutspelsvyn: ${escapeHtml(error.message)}</div>`;
-        status.textContent = "Fel vid hämtning av matcher och gruppställning.";
         updateSummary([]);
       }
     }
