@@ -743,21 +743,80 @@
       return "Kommande";
     }
 
+    function isPlaceholderTeamName(name) {
+      const normalized = normalize(name);
+      return !normalized || [
+        "tbd",
+        "to be defined",
+        "to be decided",
+        "winner match",
+        "vinnare match",
+        "loser match",
+        "forlorare match"
+      ].some(placeholder => normalized.includes(placeholder));
+    }
+
     function participantFromSource(source, side, fallback) {
       const team = source?.teams?.[side] || {};
+      const confirmed = Boolean(team.name) && !isPlaceholderTeamName(team.name);
       return {
-        name: team.name || fallback,
-        logo: team.logo || "",
+        name: confirmed ? team.name : fallback,
+        logo: confirmed ? team.logo || "" : "",
         seed: fallback,
-        winner: team.winner === true,
-        confirmed: Boolean(team.name)
+        winner: confirmed && team.winner === true,
+        confirmed
       };
     }
 
-    function championFromFinal(finalSource) {
-      const home = finalSource?.teams?.home;
-      const away = finalSource?.teams?.away;
-      const winner = home?.winner ? home : away?.winner ? away : null;
+    function isFinishedSource(source) {
+      return FINISHED_STATUSES.has(source?.fixture?.status?.short || "");
+    }
+
+    function resultSide(source, resultType = "winner") {
+      if (!isFinishedSource(source)) return null;
+      const homeWon = source?.teams?.home?.winner === true;
+      const awayWon = source?.teams?.away?.winner === true;
+      if (resultType === "loser") {
+        if (homeWon) return "away";
+        if (awayWon) return "home";
+        return null;
+      }
+      if (homeWon) return "home";
+      if (awayWon) return "away";
+      return null;
+    }
+
+    function resultParticipantFromMatch(match, resultType = "winner") {
+      const side = resultSide(match?.source, resultType);
+      const participant = side ? match?.[side] : null;
+      return participant?.confirmed ? participant : null;
+    }
+
+    function participantFromParent(resolvedMatches, parentNumber, fallback, resultType = "winner") {
+      const participant = resultParticipantFromMatch(resolvedMatches.get(parentNumber), resultType);
+      if (!participant) return null;
+      return {
+        name: participant.name,
+        logo: participant.logo,
+        seed: fallback,
+        winner: false,
+        confirmed: true,
+        fromParent: true
+      };
+    }
+
+    function participantForSlot(source, side, slot, resolvedMatches, parentResultType) {
+      const fallback = slot[side];
+      const sourceParticipant = participantFromSource(source, side, fallback);
+      if (sourceParticipant.confirmed) return sourceParticipant;
+
+      const parentIndex = side === "home" ? 0 : 1;
+      const parentNumber = slot.parents?.[parentIndex];
+      return participantFromParent(resolvedMatches, parentNumber, fallback, parentResultType) || sourceParticipant;
+    }
+
+    function championFromFinal(finalMatch) {
+      const winner = resultParticipantFromMatch(finalMatch);
       return {
         name: winner?.name || "Vinnare finalen",
         logo: winner?.logo || "",
@@ -767,10 +826,10 @@
       };
     }
 
-    function buildMatch(slot, roundKey, sourceMap) {
+    function buildMatch(slot, roundKey, sourceMap, resolvedMatches, parentResultType = "winner") {
       if (slot.virtual) {
         const finalSource = sourceMap.get(104);
-        const champion = championFromFinal(finalSource);
+        const champion = championFromFinal(resolvedMatches.get(104));
         return {
           round: roundKey,
           number: slot.number,
@@ -784,24 +843,35 @@
       }
 
       const source = sourceMap.get(slot.number);
+      const home = participantForSlot(source, "home", slot, resolvedMatches, parentResultType);
+      const away = participantForSlot(source, "away", slot, resolvedMatches, parentResultType);
       return {
         round: roundKey,
         number: slot.number,
         parents: slot.parents || [],
         source,
-        home: participantFromSource(source, "home", slot.home),
-        away: participantFromSource(source, "away", slot.away),
+        home,
+        away,
         date: source?.fixture?.date || MATCH_TIMES[slot.number],
         venue: [source?.fixture?.venue?.name, source?.fixture?.venue?.city].filter(Boolean).join(", "),
-        published: Boolean(source)
+        published: Boolean(source),
+        resolvedFromParents: Boolean(home.fromParent || away.fromParent)
       };
     }
 
     function buildAllMatches(sourceMap) {
-      return Object.fromEntries(ROUND_DEFS.map(round => [
-        round.key,
-        round.slots.map(slot => buildMatch(slot, round.key, sourceMap))
-      ]));
+      const resolvedMatches = new Map();
+      const matchesByRound = {};
+
+      ROUND_DEFS.forEach(round => {
+        matchesByRound[round.key] = round.slots.map(slot => {
+          const match = buildMatch(slot, round.key, sourceMap, resolvedMatches);
+          resolvedMatches.set(slot.number, match);
+          return match;
+        });
+      });
+
+      return { matchesByRound, resolvedMatches };
     }
 
     function teamRow(match, side) {
@@ -827,8 +897,15 @@
 
     function matchBadges(match) {
       const state = stateFor(match.source, match.virtual && match.home.confirmed);
-      const sourceBadge = match.published ? "confirmed" : "provisional";
-      const sourceLabel = match.published ? "FIFA-data" : "Preliminär";
+      const resolvedCount = ["home", "away"].filter(side => match[side]?.fromParent).length;
+      const sourceBadge = match.published || match.resolvedFromParents ? "confirmed" : "provisional";
+      const sourceLabel = match.published
+        ? "FIFA-data"
+        : resolvedCount === 2
+          ? "Klara lag"
+          : resolvedCount === 1
+            ? "Delvis klar"
+            : "Preliminär";
       return `
         <div class="match-footer">
           <span class="badge ${state === "live" ? "live" : state === "done" ? "done" : ""}">${stateLabel(state)}</span>
@@ -866,8 +943,8 @@
       `;
     }
 
-    function renderBronze(sourceMap) {
-      const bronze = buildMatch(BRONZE_SLOT, "bronze", sourceMap);
+    function renderBronze(sourceMap, resolvedMatches) {
+      const bronze = buildMatch(BRONZE_SLOT, "bronze", sourceMap, resolvedMatches, "loser");
       document.getElementById("bronzePanel").innerHTML = `
         <div>
           <h2>Bronsmatch</h2>
@@ -878,7 +955,7 @@
     }
 
     function renderBracket(sourceMap) {
-      const matchesByRound = buildAllMatches(sourceMap);
+      const { matchesByRound, resolvedMatches } = buildAllMatches(sourceMap);
       renderedEdges = [];
 
       document.getElementById("bracketGrid").innerHTML = ROUND_DEFS.map(round => {
@@ -900,7 +977,7 @@
         `;
       }).join("");
 
-      renderBronze(sourceMap);
+      renderBronze(sourceMap, resolvedMatches);
       document.querySelectorAll(".team-logo").forEach(image => {
         if (!image.complete) image.addEventListener("load", layoutAndDraw, { once: true });
       });
