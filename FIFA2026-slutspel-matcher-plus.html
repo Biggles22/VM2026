@@ -251,6 +251,30 @@
     .team small { color: #657389; font-weight: 700; }
     .team small.confirmed { color: #16703c; }
     .team small.provisional { color: #a34a0b; }
+    .tip-count {
+      display: inline-flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+      width: fit-content;
+      min-height: 26px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: #eef4fb;
+      color: #23435f;
+      font-size: 12px;
+      font-weight: 800;
+    }
+    .team.away .tip-count { justify-self: end; }
+    .tip-count.selected {
+      background: #dcfce7;
+      color: #166534;
+    }
+    .tip-count strong {
+      color: inherit;
+      font-size: 11px;
+      text-transform: uppercase;
+    }
     .score { min-width: 92px; padding: 10px 12px; border-radius: 8px; background: #0f2c45; color: #fff; text-align: center; font-size: 26px; font-weight: 900; }
     .meta-row { color: #40536b; font-size: 14px; line-height: 1.45; }
 
@@ -278,6 +302,7 @@
       .qualification-note,
       .scoreboard { grid-template-columns: 1fr; }
       .team.away { text-align: left; }
+      .team.away .tip-count { justify-self: start; }
       .score { width: 100%; }
     }
   </style>
@@ -334,6 +359,7 @@
     const LEAGUE = 1;
     const SEASON = 2026;
     const FINISHED_STATUSES = new Set(["FT", "AET", "PEN"]);
+    const PROFILE_KEY = "vm2026-selected-participant";
 
     const ROUND_INFO = {
       round32: { label: "Round of 32", terms: ["round of 32", "1/16", "sixteenth"] },
@@ -382,7 +408,111 @@
       "TV4 / TV4 Play", "SVT / SVT Play", "TV4 / TV4 Play", "SVT / SVT Play", "SVT / SVT Play", "TV4 / TV4 Play", "SVT / SVT Play", "TV4 / TV4 Play"
     ];
 
+    const TIP_STAGES = {
+      round32: { label: "till åttondel", start: 0, count: 16 },
+      round16: { label: "till kvart", start: 16, count: 8 },
+      quarter: { label: "till semi", start: 24, count: 4 },
+      semi: { label: "till final", start: 28, count: 2 },
+      final: { label: "som mästare", start: 30, count: 1 },
+      bronze: { label: "som bronslag", start: 31, count: 1 }
+    };
+
+    const TEAM_NAME_ALIASES = {
+      algeria: "algeria",
+      algeriet: "algeria",
+      argentina: "argentina",
+      australia: "australia",
+      australien: "australia",
+      austria: "austria",
+      osterrike: "austria",
+      belgien: "belgium",
+      belgium: "belgium",
+      "bosnia and herzegovina": "bosnia and herzegovina",
+      "bosnia herzegovina": "bosnia and herzegovina",
+      bosnien: "bosnia and herzegovina",
+      "bosnien och hercegovina": "bosnia and herzegovina",
+      brasilien: "brazil",
+      brazil: "brazil",
+      canada: "canada",
+      kanada: "canada",
+      "cape verde": "cape verde",
+      "cape verde islands": "cape verde",
+      "kap verde": "cape verde",
+      colombia: "colombia",
+      croatia: "croatia",
+      kroatien: "croatia",
+      curacao: "curacao",
+      "czech republic": "czechia",
+      czechia: "czechia",
+      tjeckien: "czechia",
+      "d r congo": "dr congo",
+      "demokratiska republiken kongo": "dr congo",
+      "dr congo": "dr congo",
+      "congo dr": "dr congo",
+      "dr kongo": "dr congo",
+      ecuador: "ecuador",
+      egypt: "egypt",
+      egypten: "egypt",
+      elfenbenskusten: "ivory coast",
+      england: "england",
+      france: "france",
+      frankrike: "france",
+      germany: "germany",
+      tyskland: "germany",
+      ghana: "ghana",
+      haiti: "haiti",
+      iran: "iran",
+      iraq: "iraq",
+      irak: "iraq",
+      "ivory coast": "ivory coast",
+      "cote d ivoire": "ivory coast",
+      japan: "japan",
+      jordan: "jordan",
+      jordanien: "jordan",
+      mexico: "mexico",
+      mexiko: "mexico",
+      morocco: "morocco",
+      marocko: "morocco",
+      netherlands: "netherlands",
+      nederlanderna: "netherlands",
+      nederländerna: "netherlands",
+      "new zealand": "new zealand",
+      "nya zeeland": "new zealand",
+      norway: "norway",
+      norge: "norway",
+      panama: "panama",
+      paraguay: "paraguay",
+      portugal: "portugal",
+      qatar: "qatar",
+      "saudi arabia": "saudi arabia",
+      saudiarabien: "saudi arabia",
+      scotland: "scotland",
+      skottland: "scotland",
+      senegal: "senegal",
+      "south africa": "south africa",
+      sydafrika: "south africa",
+      "south korea": "south korea",
+      southkorea: "south korea",
+      sydkorea: "south korea",
+      spain: "spain",
+      spanien: "spain",
+      sweden: "sweden",
+      sverige: "sweden",
+      switzerland: "switzerland",
+      schweiz: "switzerland",
+      tunisia: "tunisia",
+      tunisien: "tunisia",
+      turkey: "turkey",
+      turkiye: "turkey",
+      turkiet: "turkey",
+      uruguay: "uruguay",
+      usa: "usa",
+      "united states": "usa",
+      uzbekistan: "uzbekistan"
+    };
+
     let allMatches = [];
+    let tipParticipants = [];
 
     function escapeHtml(value) {
       return String(value ?? "").replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[char]));
@@ -396,6 +526,33 @@
 
     function normalize(value) {
       return String(value ?? "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, " ").trim();
+    }
+
+    function normalizeName(value) {
+      return String(value || "")
+        .trim()
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9]+/g, " ")
+        .trim()
+        .replace(/\s+/g, " ");
+    }
+
+    function canonicalTeamName(value) {
+      const normalized = normalizeName(value);
+      return TEAM_NAME_ALIASES[normalized] || normalized;
+    }
+
+    function isConcreteTeamName(value) {
+      const normalized = normalizeName(value);
+      return Boolean(normalized) && ![
+        "vinnare match",
+        "forlorare match",
+        "basta grupptrea",
+        "lag ej klart",
+        "plats ej klar"
+      ].some(placeholder => normalized.includes(placeholder));
     }
 
     function formatDate(date) {
@@ -416,6 +573,10 @@
 
     function isFinished(match) {
       return FINISHED_STATUSES.has(match.fixture?.status?.short);
+    }
+
+    function isFinishedSource(source) {
+      return FINISHED_STATUSES.has(source?.fixture?.status?.short || "");
     }
 
     function stateFor(match) {
@@ -534,6 +695,37 @@
       return { name: value, note: "Ej klar", confirmed: false, seed: value };
     }
 
+    function resultSide(source, resultType = "winner") {
+      if (!isFinishedSource(source)) return null;
+      const homeWon = source?.teams?.home?.winner === true;
+      const awayWon = source?.teams?.away?.winner === true;
+      if (resultType === "loser") {
+        if (homeWon) return "away";
+        if (awayWon) return "home";
+        return null;
+      }
+      if (homeWon) return "home";
+      if (awayWon) return "away";
+      return null;
+    }
+
+    function candidateFromParent(seed, resolvedMatches) {
+      const match = String(seed).match(/^(Vinnare|Förlorare)\s+match\s+(\d+)$/i);
+      if (!match) return null;
+      const resultType = normalizeName(match[1]) === "forlorare" ? "loser" : "winner";
+      const parentNumber = Number(match[2]);
+      const parent = resolvedMatches.get(parentNumber);
+      const side = resultSide(parent?.source, resultType);
+      const team = side ? parent?.[side] : null;
+      if (!team?.name || !isConcreteTeamName(team.name)) return null;
+      return {
+        ...team,
+        note: `${resultType === "loser" ? "Förlorare" : "Vinnare"} match ${parentNumber}`,
+        confirmed: true,
+        seed
+      };
+    }
+
     function candidateForApiTeam(team, teamById, groupMap, groupStageComplete) {
       const row = teamById.get(String(team?.id));
       const group = row ? groupMap.get(row.groupLetter) : null;
@@ -587,6 +779,97 @@
       };
     }
 
+    function parsePlayoffTips(text) {
+      const lines = text.split(/\r?\n/).filter(line => line.trim());
+      const headers = (lines.shift() || "").split("\t").map(cell => cell.trim());
+      return lines.map(line => {
+        const cells = line.split("\t").map(cell => cell.trim());
+        return {
+          name: cells[0] || "",
+          values: headers.slice(1).map((header, index) => ({
+            header,
+            value: cells[index + 1] || ""
+          }))
+        };
+      }).filter(participant => participant.name);
+    }
+
+    async function loadPlayoffTips() {
+      try {
+        const response = await fetch("slutspelstips.txt", { cache: "no-store" });
+        if (!response.ok) throw new Error(`Kunde inte läsa slutspelstips.txt (${response.status})`);
+        return parsePlayoffTips(await response.text());
+      } catch (error) {
+        console.warn(error);
+        return [];
+      }
+    }
+
+    function picksForStage(participant, stage) {
+      if (!participant || !stage) return [];
+      return participant.values
+        .slice(stage.start, stage.start + stage.count)
+        .map(item => item.value)
+        .filter(Boolean);
+    }
+
+    function participantHasTeamInStage(participant, stage, teamName) {
+      const canonical = canonicalTeamName(teamName);
+      if (!canonical || !isConcreteTeamName(teamName)) return false;
+      return picksForStage(participant, stage).some(value => canonicalTeamName(value) === canonical);
+    }
+
+    function tipsForTeam(stage, teamName) {
+      if (!stage || !isConcreteTeamName(teamName)) return 0;
+      return tipParticipants.filter(participant => participantHasTeamInStage(participant, stage, teamName)).length;
+    }
+
+    function selectedTipText(match, stage, selectedParticipant) {
+      const selectedName = localStorage.getItem(PROFILE_KEY) || "";
+      if (!selectedName) return "Välj deltagare i Min vy";
+      if (!selectedParticipant) return "Inget tips hittat för vald deltagare";
+
+      const selectedTeams = ["home", "away"]
+        .filter(side => participantHasTeamInStage(selectedParticipant, stage, match[side].name))
+        .map(side => match[side].name);
+
+      if (selectedTeams.length) return `${selectedName}: ${selectedTeams.join(" och ")} ${stage.label}`;
+
+      const picks = picksForStage(selectedParticipant, stage);
+      return picks.length
+        ? `${selectedName}: inget av lagen ${stage.label}`
+        : `${selectedName}: inget tips i detta steg`;
+    }
+
+    function tipSummaryForMatch(match) {
+      const stage = TIP_STAGES[match.round];
+      const selectedName = localStorage.getItem(PROFILE_KEY) || "";
+      const selectedParticipant = tipParticipants.find(participant => participant.name === selectedName);
+      if (!stage || !tipParticipants.length) {
+        return {
+          label: "Slutspelstips",
+          selectedText: "Tipsdata saknas",
+          home: { count: 0, selected: false, available: false },
+          away: { count: 0, selected: false, available: false }
+        };
+      }
+
+      return {
+        label: `Tips ${stage.label}`,
+        selectedText: selectedTipText(match, stage, selectedParticipant),
+        home: {
+          count: tipsForTeam(stage, match.home.name),
+          selected: participantHasTeamInStage(selectedParticipant, stage, match.home.name),
+          available: isConcreteTeamName(match.home.name)
+        },
+        away: {
+          count: tipsForTeam(stage, match.away.name),
+          selected: participantHasTeamInStage(selectedParticipant, stage, match.away.name),
+          available: isConcreteTeamName(match.away.name)
+        }
+      };
+    }
+
     function buildKnockoutMatches(fixtures, groups) {
       const groupMap = new Map(groups.map(group => [group.letter, group]));
       const teamById = new Map();
@@ -612,20 +895,30 @@
         const away = source ? candidateForApiTeam(source.teams.away, teamById, groupMap, groupStageComplete) : slot.thirdColumn ? candidateForThirdSeed(awaySeed, groupMap, groupStageComplete) : candidateForSeed(awaySeed, groupMap);
         return buildMatch("round32", 73 + index, home, away, index, source);
       });
+      const resolvedMatches = new Map(round32.map(match => [match.number, match]));
 
       const future = FUTURE_MATCHES.map(([round, number, homeSeed, awaySeed], index) => {
         const source = byRound[round][round === "round16" ? index : round === "quarter" ? index - 8 : round === "semi" ? index - 12 : round === "bronze" ? 0 : 0];
-        const home = source ? candidateForApiTeam(source.teams.home, teamById, groupMap, groupStageComplete) : candidateForPlaceholder(homeSeed);
-        const away = source ? candidateForApiTeam(source.teams.away, teamById, groupMap, groupStageComplete) : candidateForPlaceholder(awaySeed);
-        return buildMatch(round, number, home, away, 16 + index, source);
+        const home = source
+          ? candidateForApiTeam(source.teams.home, teamById, groupMap, groupStageComplete)
+          : candidateFromParent(homeSeed, resolvedMatches) || candidateForPlaceholder(homeSeed);
+        const away = source
+          ? candidateForApiTeam(source.teams.away, teamById, groupMap, groupStageComplete)
+          : candidateFromParent(awaySeed, resolvedMatches) || candidateForPlaceholder(awaySeed);
+        const match = buildMatch(round, number, home, away, 16 + index, source);
+        resolvedMatches.set(number, match);
+        return match;
       });
       return { matches: [...round32, ...future], bestThirds, groupStageComplete };
     }
 
-    function teamMarkup(team, side) {
+    function teamMarkup(team, side, tip) {
       const state = team.confirmed ? "confirmed" : "provisional";
       const role = side === "home" ? "Hemmalag" : "Bortalag";
-      return `<div class="team ${side === "away" ? "away" : ""}"><div class="team-name">${escapeHtml(team.name)}</div><small class="${state}">${escapeHtml(team.note)} · ${role}</small></div>`;
+      const tipMarkup = tip?.available
+        ? `<div class="tip-count ${tip.selected ? "selected" : ""}"><span>${tip.count} ${tip.count === 1 ? "tips" : "tips"}</span>${tip.selected ? "<strong>Min vy</strong>" : ""}</div>`
+        : "";
+      return `<div class="team ${side === "away" ? "away" : ""}"><div class="team-name">${escapeHtml(team.name)}</div><small class="${state}">${escapeHtml(team.note)} · ${role}</small>${tipMarkup}</div>`;
     }
 
     function buildMatchCard(match) {
@@ -633,7 +926,8 @@
       const source = match.source;
       const score = source ? `${source.goals.home ?? "-"} - ${source.goals.away ?? "-"}` : "- - -";
       const venue = [match.venue, match.city].filter(Boolean).join(", ");
-      const content = `<article class="match-card"><div class="match-topline"><span class="badge ${state === "live" ? "live" : state === "finished" ? "done" : ""}">${stateLabel(state)}</span><span class="badge">${ROUND_INFO[match.round].label}</span><span class="badge">Match ${match.number}</span><span class="badge tv">${escapeHtml(match.channel)}</span>${match.published ? '<span class="badge confirmed">FIFA-publicerad</span>' : '<span class="badge provisional">Preliminär placering</span>'}<span class="kickoff">${escapeHtml(formatDate(match.date))}</span></div><div class="scoreboard">${teamMarkup(match.home, "home")}<div class="score">${score}</div>${teamMarkup(match.away, "away")}</div><div class="meta-row"><span>${escapeHtml(venue)}</span></div><div class="fact-grid"><div class="fact"><span>Status</span><strong>${source?.fixture?.status?.long || "Inte startad"}</strong></div><div class="fact"><span>TV-kanal</span><strong>${escapeHtml(match.channel)}</strong></div><div class="fact"><span>Matchning</span><strong>${match.published ? "FIFA-data" : "Aktuell gruppställning"}</strong></div><div class="fact"><span>Domare</span><strong>${escapeHtml(match.referee)}</strong></div></div></article>`;
+      const tips = tipSummaryForMatch(match);
+      const content = `<article class="match-card"><div class="match-topline"><span class="badge ${state === "live" ? "live" : state === "finished" ? "done" : ""}">${stateLabel(state)}</span><span class="badge">${ROUND_INFO[match.round].label}</span><span class="badge">Match ${match.number}</span><span class="badge tv">${escapeHtml(match.channel)}</span>${match.published ? '<span class="badge confirmed">FIFA-publicerad</span>' : '<span class="badge provisional">Preliminär placering</span>'}<span class="kickoff">${escapeHtml(formatDate(match.date))}</span></div><div class="scoreboard">${teamMarkup(match.home, "home", tips.home)}<div class="score">${score}</div>${teamMarkup(match.away, "away", tips.away)}</div><div class="meta-row"><span>${escapeHtml(venue)}</span></div><div class="fact-grid"><div class="fact"><span>Status</span><strong>${source?.fixture?.status?.long || "Inte startad"}</strong></div><div class="fact"><span>${escapeHtml(tips.label)}</span><strong>${tips.home.available || tips.away.available ? `${tips.home.count} - ${tips.away.count}` : "Inväntar lag"}</strong></div><div class="fact"><span>Min vy</span><strong>${escapeHtml(tips.selectedText)}</strong></div><div class="fact"><span>TV-kanal</span><strong>${escapeHtml(match.channel)}</strong></div><div class="fact"><span>Matchning</span><strong>${match.published ? "FIFA-data" : "Aktuell gruppställning"}</strong></div><div class="fact"><span>Domare</span><strong>${escapeHtml(match.referee)}</strong></div></div></article>`;
       if (!source?.fixture?.id) return content;
       return `<a class="match-link" href="FIFA2026-match-details.html?fixture=${source.fixture.id}&home=${source.teams.home.id}&away=${source.teams.away.id}&back=FIFA2026-slutspel-matcher-plus.html">${content}</a>`;
     }
@@ -675,10 +969,12 @@
     async function loadMatches() {
       const status = document.getElementById("status");
       try {
-        const [standingsData, fixturesData] = await Promise.all([
+        const [standingsData, fixturesData, tips] = await Promise.all([
           apiFootball(`standings?league=${LEAGUE}&season=${SEASON}`),
-          apiFootball(`fixtures?league=${LEAGUE}&season=${SEASON}`)
+          apiFootball(`fixtures?league=${LEAGUE}&season=${SEASON}`),
+          loadPlayoffTips()
         ]);
+        tipParticipants = tips;
         const standings = standingsData.response?.[0]?.league?.standings || [];
         const fixtures = fixturesData.response || [];
         const groups = buildGroups(standings, fixtures);
@@ -688,7 +984,7 @@
         renderBestThirds(knockout.bestThirds, knockout.groupStageComplete);
         renderMatches();
         const completeGroups = groups.filter(group => group.complete).map(group => group.letter);
-        status.textContent = `Visar ${allMatches.length} slutspelsmatcher. Färdigspelade grupper: ${completeGroups.length ? completeGroups.join(", ") : "inga ännu"}.`;
+        status.textContent = `Visar ${allMatches.length} slutspelsmatcher med tips från ${tipParticipants.length} deltagare. Färdigspelade grupper: ${completeGroups.length ? completeGroups.join(", ") : "inga ännu"}.`;
       } catch (error) {
         console.error(error);
         document.getElementById("matches").innerHTML = `<div class="error">Kunde inte bygga slutspelsvyn: ${escapeHtml(error.message)}</div>`;
@@ -700,6 +996,15 @@
     document.getElementById("searchInput").addEventListener("input", renderMatches);
     document.getElementById("roundFilter").addEventListener("change", renderMatches);
     document.getElementById("statusFilter").addEventListener("change", renderMatches);
+    window.addEventListener("message", event => {
+      if (event.origin !== window.location.origin) return;
+      if (event.data?.type !== "vm2026:selectedParticipant") return;
+      localStorage.setItem(PROFILE_KEY, event.data.name || "");
+      renderMatches();
+    });
+    window.addEventListener("storage", event => {
+      if (event.key === PROFILE_KEY) renderMatches();
+    });
     loadMatches();
   </script>
 </body>
