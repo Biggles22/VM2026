@@ -202,6 +202,14 @@
             createOfficialGoldenBootEntry("Erling Haaland", "Norway", 2, 0, 103),
             createOfficialGoldenBootEntry("Kylian Mbappé", "France", 2, 0, 106)
         ];
+        const TOPSCORER_MINIMUM_CORRECTIONS = [
+            {
+                player: "Erling Haaland",
+                aliases: ["E. Haaland", "Erling Braut Haaland"],
+                team: "Norway",
+                goals: 5
+            }
+        ];
 
         async function apiFootball(endpoint) {
             const separator = endpoint.includes("?") ? "&" : "?";
@@ -234,6 +242,15 @@
 
         function personKey(person, team) {
             return String(person.id || `${person.name || ""}-${team.id || team.name || ""}`).toLowerCase();
+        }
+
+        function normalizeKey(value) {
+            return String(value ?? "")
+                .toLowerCase()
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "")
+                .replace(/[^a-z0-9]+/g, " ")
+                .trim();
         }
 
         function createPlayerEntry(player, team) {
@@ -397,6 +414,79 @@
             return data.response || [];
         }
 
+        function copyTopscorer(item) {
+            const statistics = item.statistics || [];
+            return {
+                ...item,
+                player: { ...(item.player || {}) },
+                team: item.team ? { ...item.team } : item.team,
+                statistics: statistics.map(stat => ({
+                    ...stat,
+                    team: stat.team ? { ...stat.team } : stat.team,
+                    games: { ...(stat.games || {}) },
+                    goals: { ...(stat.goals || {}) },
+                    penalties: stat.penalties ? { ...stat.penalties } : stat.penalties,
+                    penalty: stat.penalty ? { ...stat.penalty } : stat.penalty
+                }))
+            };
+        }
+
+        function playerMatchesCorrection(item, correction) {
+            const statistics = item.statistics?.[0] || {};
+            const teamName = item.team?.name || statistics.team?.name || "";
+            if (normalizeKey(teamName) !== normalizeKey(correction.team)) return false;
+
+            const player = item.player || {};
+            const candidateNames = [
+                player.name,
+                [player.firstname, player.lastname].filter(Boolean).join(" ")
+            ].map(normalizeKey).filter(Boolean);
+            const correctionNames = [correction.player, ...(correction.aliases || [])]
+                .map(normalizeKey)
+                .filter(Boolean);
+
+            return correctionNames.some(name => candidateNames.includes(name));
+        }
+
+        function applyTopscorerCorrections(players) {
+            if (!players.length) return { players: [], correctionsApplied: 0 };
+
+            const correctedPlayers = players.map(copyTopscorer);
+            let correctionsApplied = 0;
+
+            TOPSCORER_MINIMUM_CORRECTIONS.forEach(correction => {
+                const item = correctedPlayers.find(player => playerMatchesCorrection(player, correction));
+                if (!item) {
+                    correctedPlayers.push(createOfficialGoldenBootEntry(
+                        correction.player,
+                        correction.team,
+                        correction.goals,
+                        correction.assists || 0,
+                        correction.minutes || 0
+                    ));
+                    correctionsApplied += 1;
+                    return;
+                }
+
+                item.player = { ...(item.player || {}), name: correction.player, nationality: item.player?.nationality || correction.team };
+                item.team = item.team ? { ...item.team, name: item.team.name || correction.team } : { name: correction.team };
+                item.statistics = item.statistics?.length ? item.statistics : [{ games: {}, goals: {}, penalties: {} }];
+                const statistics = item.statistics[0];
+                statistics.goals = { ...(statistics.goals || {}) };
+                const previousGoals = Number(statistics.goals.total || 0);
+                if (previousGoals < correction.goals) {
+                    statistics.goals.total = correction.goals;
+                    correctionsApplied += 1;
+                }
+                if (correction.assists !== undefined && Number(statistics.goals.assists || 0) < correction.assists) {
+                    statistics.goals.assists = correction.assists;
+                }
+                statistics.source = statistics.source ? `${statistics.source}+events` : "API+events";
+            });
+
+            return { players: normalizeTopscorers(correctedPlayers), correctionsApplied };
+        }
+
         function compareByGoldenBootRules(a, b) {
             const aStats = a.statistics?.[0] || {};
             const bStats = b.statistics?.[0] || {};
@@ -545,7 +635,12 @@
             });
 
             if (apiPlayers.length) {
-                return { players: normalizeTopscorers(apiPlayers), source: "api", hasApiPlayers: true };
+                const corrected = applyTopscorerCorrections(apiPlayers);
+                return {
+                    players: corrected.players,
+                    source: corrected.correctionsApplied ? "api-corrected" : "api",
+                    hasApiPlayers: true
+                };
             }
 
             let eventPlayers = [];
@@ -556,7 +651,8 @@
                 console.warn("Kunde inte bygga skytteliga från matchhändelser:", error);
             }
 
-            return { players: eventPlayers, source: "events", hasApiPlayers: false };
+            const corrected = applyTopscorerCorrections(eventPlayers);
+            return { players: corrected.players, source: "events", hasApiPlayers: false };
         }
 
         function renderTopscorers(players) {
@@ -616,7 +712,9 @@
                     container.innerHTML = renderTopscorers(live.players);
                     status.textContent = live.source === "events"
                         ? `Visar top ${Math.min(live.players.length, MAX_PLAYERS)} från matchhändelser enligt FIFA:s Golden Boot-regel.`
-                        : `Visar top ${Math.min(live.players.length, MAX_PLAYERS)} från API:s skytteliga enligt FIFA:s Golden Boot-regel.`;
+                        : live.source === "api-corrected"
+                            ? `Visar top ${Math.min(live.players.length, MAX_PLAYERS)} från API:s skytteliga med senaste matchkorrigeringar enligt FIFA:s Golden Boot-regel.`
+                            : `Visar top ${Math.min(live.players.length, MAX_PLAYERS)} från API:s skytteliga enligt FIFA:s Golden Boot-regel.`;
                     return;
                 }
             } catch (error) {
