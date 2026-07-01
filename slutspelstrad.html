@@ -693,15 +693,73 @@
       return buckets;
     }
 
+    function firstUnmappedSource(unmappedSources) {
+      return unmappedSources.values().next().value || null;
+    }
+
+    function mapSourcesByOrder(map, sources, numbers) {
+      const unmappedSources = new Set(sources);
+      numbers.forEach(number => {
+        if (map.has(number)) return;
+        const source = firstUnmappedSource(unmappedSources);
+        if (!source) return;
+        map.set(number, source);
+        unmappedSources.delete(source);
+      });
+      return unmappedSources;
+    }
+
+    function sourceWinnerName(source, resultType = "winner") {
+      const side = resultSide(source, resultType);
+      return side ? source?.teams?.[side]?.name || "" : "";
+    }
+
+    function sourceMatchesSlotParents(source, slot, sourceMap) {
+      if (!slot.parents?.length || slot.parents.length < 2) return false;
+      const expectedNames = slot.parents.map(parent => sourceWinnerName(sourceMap.get(parent)));
+      if (expectedNames.some(name => !name)) return false;
+
+      const actualNames = [source?.teams?.home?.name, source?.teams?.away?.name];
+      if (actualNames.some(name => !name || isPlaceholderTeamName(name))) return false;
+
+      const expected = expectedNames.map(normalize);
+      const actual = actualNames.map(normalize);
+      return expected[0] === actual[0] && expected[1] === actual[1];
+    }
+
+    function mapSourcesByParents(map, sources, roundKey, fallbackNumbers) {
+      const round = ROUND_DEFS.find(item => item.key === roundKey);
+      const unmappedSources = new Set(sources);
+      if (!round) return mapSourcesByOrder(map, sources, fallbackNumbers);
+
+      round.slots.forEach(slot => {
+        if (map.has(slot.number)) return;
+        const source = sources.find(item =>
+          unmappedSources.has(item) && sourceMatchesSlotParents(item, slot, map)
+        );
+        if (!source) return;
+        map.set(slot.number, source);
+        unmappedSources.delete(source);
+      });
+
+      fallbackNumbers.forEach(number => {
+        if (map.has(number)) return;
+        const source = firstUnmappedSource(unmappedSources);
+        if (!source) return;
+        map.set(number, source);
+        unmappedSources.delete(source);
+      });
+
+      return unmappedSources;
+    }
+
     function sourceMapFromFixtures(fixtures) {
       const buckets = fixtureBuckets(fixtures);
       const map = new Map();
-      Object.entries(SOURCE_MATCH_NUMBERS).forEach(([roundKey, numbers]) => {
-        if (roundKey === "bronze") return;
-        numbers.forEach((number, index) => {
-          const source = buckets[roundKey]?.[index];
-          if (source) map.set(number, source);
-        });
+
+      mapSourcesByOrder(map, buckets.round32, SOURCE_MATCH_NUMBERS.round32);
+      ["round16", "quarter", "semi", "final"].forEach(roundKey => {
+        mapSourcesByParents(map, buckets[roundKey] || [], roundKey, SOURCE_MATCH_NUMBERS[roundKey] || []);
       });
       if (buckets.bronze[0]) map.set(BRONZE_SLOT.number, buckets.bronze[0]);
       return { map, buckets };
