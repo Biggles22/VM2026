@@ -578,7 +578,10 @@
 
     function isFinal(match) {
       const round = normalizeRound(match.league?.round);
-      return round.includes("final") && !isThirdPlace(match);
+      return round.includes("final")
+        && !round.includes("quarter")
+        && !round.includes("semi")
+        && !isThirdPlace(match);
     }
 
     function isFinished(match) {
