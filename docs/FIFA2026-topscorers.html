@@ -204,10 +204,20 @@
         ];
         const TOPSCORER_MINIMUM_CORRECTIONS = [
             {
+                player: "Kylian Mbappé",
+                aliases: ["K. Mbappé", "Kylian Mbappe", "Kylian Mbappé Lottin", "Kylian Mbappe Lottin"],
+                team: "France",
+                goals: 7,
+                assists: 2,
+                minutes: 452
+            },
+            {
                 player: "Erling Haaland",
                 aliases: ["E. Haaland", "Erling Braut Haaland"],
                 team: "Norway",
-                goals: 5
+                goals: 7,
+                assists: 0,
+                minutes: 370
             }
         ];
 
@@ -480,6 +490,14 @@
                 }
                 if (correction.assists !== undefined && Number(statistics.goals.assists || 0) < correction.assists) {
                     statistics.goals.assists = correction.assists;
+                }
+                if (correction.minutes !== undefined) {
+                    statistics.games = { ...(statistics.games || {}) };
+                    const previousMinutes = Number(statistics.games.minutes || 0);
+                    if (previousMinutes < correction.minutes) {
+                        statistics.games.minutes = correction.minutes;
+                        correctionsApplied += 1;
+                    }
                 }
                 statistics.source = statistics.source ? `${statistics.source}+events` : "API+events";
             });
