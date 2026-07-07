@@ -397,6 +397,7 @@
     const API_KEY = "170d2afb853fb860d9432d14d7eaaaa5";
     const BASE_URL = "https://v3.football.api-sports.io";
     const TOPSCORERS_PROXY_URL = "https://vm2026-worker.anders-h-engstrom.workers.dev/api/football/topscorers";
+    const FIFA_GOLDEN_BOOT_ARTICLE_ENDPOINT = "https://cxm-api.fifa.com/fifaplusweb/api/sections/article/6z1agAwt7pwNgagXvawwK7?locale=en";
     const LEAGUE = 1;
     const SEASON = 2026;
     const PROFILE_KEY = "vm2026-selected-participant";
@@ -710,7 +711,123 @@
         && aMinutes === bMinutes;
     }
 
+    function createOfficialTopscorerEntry(name, country, goals, assists = 0) {
+      return {
+        player: { name, nationality: country },
+        team: { name: country },
+        statistics: [{
+          games: { minutes: 0, hasMinutes: false },
+          goals: { total: goals, assists: assists || 0 },
+          penalties: { total: null },
+          source: "FIFA"
+        }]
+      };
+    }
+
+    function richTextToText(node) {
+      if (!node) return "";
+      if (node.nodeType === "text") return node.value || "";
+      return (node.content || []).map(richTextToText).join("");
+    }
+
+    function numberTextToValue(value) {
+      const normalized = String(value || "")
+        .toLowerCase()
+        .replace(/(\d+)(?:st|nd|rd|th)$/i, "$1");
+      const numbers = {
+        zero: 0,
+        one: 1,
+        first: 1,
+        two: 2,
+        second: 2,
+        three: 3,
+        third: 3,
+        four: 4,
+        fourth: 4,
+        five: 5,
+        fifth: 5,
+        six: 6,
+        sixth: 6,
+        seven: 7,
+        seventh: 7,
+        eight: 8,
+        eighth: 8,
+        nine: 9,
+        ninth: 9,
+        ten: 10,
+        tenth: 10
+      };
+      if (numbers[normalized] !== undefined) return numbers[normalized];
+      const number = Number(normalized);
+      return Number.isFinite(number) ? number : null;
+    }
+
+    function parseOfficialLeadPlayers(article) {
+      const content = article?.richtext?.content || [];
+      const text = content
+        .map(richTextToText)
+        .join(" ")
+        .replace(/\s+/g, " ")
+        .trim();
+      const players = new Map();
+      const countryPattern = "(Argentina|France|Norway|England)";
+      const namePattern = "([A-ZÀ-Ý][A-Za-zÀ-ÿ'’-]+(?:\\s+[A-ZÀ-Ý][A-Za-zÀ-ÿ'’-]+)+?)";
+      const numberPattern = "(\\d+|zero|one|two|three|four|five|six|seven|eight|nine|ten|first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth)";
+
+      function addPlayer(name, country, goals, assists) {
+        const goalCount = numberTextToValue(goals);
+        if (!name || !country || goalCount === null) return;
+
+        const key = `${normalizeName(name)}-${normalizeName(country)}`;
+        const existing = players.get(key);
+        const assistCount = assists === undefined ? undefined : numberTextToValue(assists);
+        players.set(key, createOfficialTopscorerEntry(
+          name.trim(),
+          country.trim(),
+          Math.max(goalCount, Number(existing?.statistics?.[0]?.goals?.total || 0)),
+          Math.max(assistCount ?? 0, Number(existing?.statistics?.[0]?.goals?.assists || 0))
+        ));
+      }
+
+      const returnedMatch = text.match(new RegExp(`${countryPattern}\\s+(?:legend|forward|captain|striker|midfielder)?\\s*${namePattern}\\s+has returned[\\s\\S]*?scored\\s+(?:his|her|their)\\s+${numberPattern}(?:st|nd|rd|th)?\\s+goal`, "i"));
+      if (returnedMatch) addPlayer(returnedMatch[2], returnedMatch[1], returnedMatch[3]);
+
+      const hasGoalsPattern = new RegExp(`${countryPattern}\\s+(?:legend|forward|captain|striker|midfielder)?\\s*${namePattern},\\s+who has\\s+${numberPattern}\\s+goals?(?:\\s+and\\s+${numberPattern}\\s+assists?)?`, "gi");
+      for (const match of text.matchAll(hasGoalsPattern)) {
+        addPlayer(match[2], match[1], match[3], match[4]);
+      }
+
+      const nowAlsoPattern = new RegExp(`${countryPattern}'?s\\s+${namePattern}\\s+now also on\\s+${numberPattern}`, "gi");
+      for (const match of text.matchAll(nowAlsoPattern)) {
+        addPlayer(match[2], match[1], match[3]);
+      }
+
+      const oneBackPattern = new RegExp(`${countryPattern}\\s+(?:legend|forward|captain|striker|midfielder)?\\s*${namePattern}\\s+is one goal back on\\s+${numberPattern}`, "gi");
+      for (const match of text.matchAll(oneBackPattern)) {
+        addPlayer(match[2], match[1], match[3]);
+      }
+
+      return Array.from(players.values()).sort(compareTopscorers);
+    }
+
+    async function loadOfficialTopscorerLeaders() {
+      const response = await fetch(`${FIFA_GOLDEN_BOOT_ARTICLE_ENDPOINT}&_=${Date.now()}`, { cache: "no-store" });
+      if (!response.ok) throw new Error(`FIFA-fel ${response.status}`);
+      const players = parseOfficialLeadPlayers(await response.json());
+      if (!players.length) return [];
+
+      const leader = players[0];
+      return players.filter(player => sameTopscorerRank(player, leader));
+    }
+
     async function loadTopscorerLeaders() {
+      try {
+        const officialLeaders = await loadOfficialTopscorerLeaders();
+        if (officialLeaders.length) return officialLeaders;
+      } catch (error) {
+        console.warn("Kunde inte hämta FIFA:s Golden Boot-artikel:", error);
+      }
+
       try {
         const response = await fetch(`${TOPSCORERS_PROXY_URL}?_=${Date.now()}`, { cache: "no-store" });
         if (!response.ok) throw new Error(`Worker-fel ${response.status}`);
@@ -975,8 +1092,8 @@
 
   <nav class="mobile-bottom-nav" aria-label="Snabbnavigering">
     <a href="landing-mobile.html?v=7">Start</a>
-    <a href="Ledartabell-gruppspel.html?v=3">Ledare</a>
-    <a href="poangstallning_slutspel.html?v=3">Slutspel</a>
+    <a href="Ledartabell-gruppspel.html?v=4">Ledare</a>
+    <a href="poangstallning_slutspel.html?v=4">Slutspel</a>
     <a href="FIFA2026-matcher-plus.html?v=10">Matcher</a>
   </nav>
 </body>

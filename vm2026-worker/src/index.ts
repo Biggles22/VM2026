@@ -363,8 +363,10 @@ function hasApiErrors(errors: unknown): boolean {
 function applyOfficialTopscorerOverrides(players: unknown[]): unknown[] {
 	const cloned = players.map((player) => structuredClone(player)) as Array<Record<string, unknown>>;
 	const overrides = [
-		{ name: "Kylian Mbappé", matchNames: ["mbappe", "mbappe lottin"], team: "France", goals: 7, assists: 2, minutes: 452 },
-		{ name: "Erling Haaland", matchNames: ["haaland"], team: "Norway", goals: 7, assists: 0, minutes: 370 },
+		{ name: "Lionel Messi", matchNames: ["messi"], team: "Argentina", goals: 8, assists: 0, minutes: 0 },
+		{ name: "Kylian Mbappé", matchNames: ["mbappe", "mbappe lottin"], team: "France", goals: 7, assists: 2, minutes: 0 },
+		{ name: "Erling Haaland", matchNames: ["haaland"], team: "Norway", goals: 7, assists: 0, minutes: 0 },
+		{ name: "Harry Kane", matchNames: ["kane"], team: "England", goals: 6, assists: 0, minutes: 0 },
 	];
 
 	for (const override of overrides) {
