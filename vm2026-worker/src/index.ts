@@ -62,6 +62,9 @@ const WORLD_CUP_LEAGUE = 1;
 const WORLD_CUP_SEASON = 2026;
 const FOOTBALL_TOPSCORERS_CACHE_KEY = "football:topscorers:2026";
 const FOOTBALL_TOPSCORERS_CACHE_TTL_SECONDS = 300;
+const FIFA_GAMEDAY_TOKEN_URL = "https://cxm-api.fifa.com/fifaplusweb/api/external/gameDay/token";
+const FIFA_TOPSCORER_STORY_URL =
+	"https://gameday-prod.fifa.mangodev.co.uk/1-0/stories?query=(and%20resourceStatus==`urn:gd:resourceStatus:active`%20_externalId~`urn:gd:story:classification:gcp_top_scorer:competitionId:285023:(.*):rank_asc:page:1$`)&skip=0&limit=1&sort=tags.name==urn:gd:tag:story:fifa:column_number:asc";
 
 const JSON_HEADERS = {
 	"content-type": "application/json; charset=utf-8",
@@ -284,6 +287,23 @@ async function handlePresencePing(request: Request, env: WorkerEnv): Promise<Res
 async function handleFootballTopscorers(request: Request, env: WorkerEnv): Promise<Response> {
 	const cached = await env.SUBSCRIPTIONS.get(FOOTBALL_TOPSCORERS_CACHE_KEY, "json");
 
+	try {
+		const result = {
+			ok: true,
+			source: "fifa-gameday",
+			updatedAt: new Date().toISOString(),
+			response: await fetchFifaTopscorers(),
+		};
+
+		await env.SUBSCRIPTIONS.put(FOOTBALL_TOPSCORERS_CACHE_KEY, JSON.stringify(result), {
+			expirationTtl: FOOTBALL_TOPSCORERS_CACHE_TTL_SECONDS,
+		});
+
+		return json(request, result);
+	} catch (error) {
+		console.warn("FIFA GameDay topscorers failed", error);
+	}
+
 	const apiKey = env.APISPORTS_KEY || APISPORTS_KEY_FALLBACK;
 	const endpoint = `${APISPORTS_BASE_URL}/players/topscorers?league=${WORLD_CUP_LEAGUE}&season=${WORLD_CUP_SEASON}`;
 	try {
@@ -312,9 +332,9 @@ async function handleFootballTopscorers(request: Request, env: WorkerEnv): Promi
 
 		const result = {
 			ok: true,
-			source: "api-football+fifa-overrides",
+			source: "api-football",
 			updatedAt: new Date().toISOString(),
-			response: applyOfficialTopscorerOverrides(Array.isArray(payload.response) ? payload.response : []),
+			response: sortTopscorers(Array.isArray(payload.response) ? payload.response : []),
 		};
 
 		await env.SUBSCRIPTIONS.put(FOOTBALL_TOPSCORERS_CACHE_KEY, JSON.stringify(result), {
@@ -360,58 +380,126 @@ function hasApiErrors(errors: unknown): boolean {
 	return Boolean(errors);
 }
 
-function applyOfficialTopscorerOverrides(players: unknown[]): unknown[] {
-	const cloned = players.map((player) => structuredClone(player)) as Array<Record<string, unknown>>;
-	const overrides = [
-		{ name: "Lionel Messi", matchNames: ["messi"], team: "Argentina", goals: 8, assists: 0, minutes: 0 },
-		{ name: "Kylian Mbappé", matchNames: ["mbappe", "mbappe lottin"], team: "France", goals: 7, assists: 2, minutes: 0 },
-		{ name: "Erling Haaland", matchNames: ["haaland"], team: "Norway", goals: 7, assists: 0, minutes: 0 },
-		{ name: "Harry Kane", matchNames: ["kane"], team: "England", goals: 6, assists: 0, minutes: 0 },
-	];
+type TopscorerEntry = Record<string, unknown>;
 
-	for (const override of overrides) {
-		let entry = cloned.find((item) => {
-			const playerName = normalizeName((item.player as { name?: string } | undefined)?.name || "");
-			const teamName = normalizeName(((item.statistics as Array<{ team?: { name?: string } }> | undefined)?.[0]?.team?.name) || "");
-			return override.matchNames.some((name) => playerName.includes(name)) && teamName.includes(normalizeName(override.team));
-		});
+type FifaGameDayActor = {
+	key?: {
+		_externalSportsPersonId?: string;
+		_externalTeamId?: string;
+	};
+	name?: {
+		eng?: string;
+	};
+	tags?: Array<{
+		name?: string;
+		value?: unknown;
+	}>;
+};
 
-		if (!entry) {
-			entry = {
-				player: { name: override.name, nationality: override.team },
-				statistics: [{
-					team: { name: override.team },
-					games: { minutes: override.minutes },
-					goals: { total: override.goals, assists: override.assists },
-					penalty: { scored: 0 },
-				}],
-			};
-			cloned.push(entry);
-		}
-
-		const statistics = (entry.statistics as Array<Record<string, unknown>> | undefined) || [{}];
-		entry.statistics = statistics;
-		const stats = statistics[0] || {};
-		statistics[0] = stats;
-
-		const goals = (stats.goals as Record<string, unknown> | undefined) || {};
-		stats.goals = goals;
-		const games = (stats.games as Record<string, unknown> | undefined) || {};
-		stats.games = games;
-		const player = (entry.player as Record<string, unknown> | undefined) || {};
-		entry.player = player;
-
-		player.name = override.name;
-		player.nationality = override.team;
-		goals.total = Math.max(Number(goals.total || 0), override.goals);
-		goals.assists = Math.max(Number(goals.assists || 0), override.assists);
-		games.minutes = Math.max(Number(games.minutes || 0), override.minutes);
+async function fetchFifaTopscorers(): Promise<TopscorerEntry[]> {
+	const tokenResponse = await fetch(FIFA_GAMEDAY_TOKEN_URL, {
+		headers: { accept: "application/json" },
+	});
+	const tokenBody = await tokenResponse.text();
+	if (!tokenResponse.ok) {
+		throw new HttpError(`FIFA token svarade ${tokenResponse.status}: ${tokenBody}`, tokenResponse.status);
 	}
 
-	return cloned.sort(compareTopscorers);
+	let tokenData: { token?: string };
+	try {
+		tokenData = JSON.parse(tokenBody) as { token?: string };
+	} catch {
+		throw new HttpError("FIFA token svarade inte med giltig JSON.", 502);
+	}
+
+	if (!tokenData.token) {
+		throw new HttpError("FIFA token saknas.", 502);
+	}
+
+	const response = await fetch(FIFA_TOPSCORER_STORY_URL, {
+		headers: {
+			accept: "application/json",
+			authorization: `Bearer ${tokenData.token}`,
+		},
+	});
+	const text = await response.text();
+	if (!response.ok) {
+		throw new HttpError(`FIFA GameDay svarade ${response.status}: ${text}`, response.status);
+	}
+
+	let data: { items?: Array<{ actors?: FifaGameDayActor[] }> };
+	try {
+		data = JSON.parse(text) as { items?: Array<{ actors?: FifaGameDayActor[] }> };
+	} catch {
+		throw new HttpError("FIFA GameDay svarade inte med giltig JSON.", 502);
+	}
+
+	const actors = data.items?.[0]?.actors || [];
+	const players = actors
+		.map(createFifaTopscorerEntry)
+		.filter((player) => Number(scorerStats(player).goals?.total || 0) > 0);
+
+	if (!players.length) {
+		throw new HttpError("FIFA GameDay saknar skytteligaspelare.", 502);
+	}
+
+	return sortTopscorers(players);
 }
 
-function compareTopscorers(a: Record<string, unknown>, b: Record<string, unknown>): number {
+function createFifaTopscorerEntry(actor: FifaGameDayActor): TopscorerEntry {
+	const team = {
+		id: actor.key?._externalTeamId,
+		name: fifaTagValue(actor, "urn:gd:tag:story:team:name:eng") || "-",
+		logo: fifaTagValue(actor, "urn:gd:tag:story:team:image"),
+	};
+
+	return {
+		player: {
+			id: actor.key?._externalSportsPersonId,
+			name: actor.name?.eng || fifaTagValue(actor, "urn:gd:tag:story:staff:display_name:eng") || "-",
+			nationality: team.name,
+			photo: fifaTagValue(actor, "urn:gd:tag:story:staff:image"),
+		},
+		team,
+		statistics: [{
+			team,
+			games: {
+				minutes: fifaNumberTag(actor, "urn:gd:tag:football:stats:total_competition_minutes_played"),
+				hasMinutes: true,
+			},
+			goals: {
+				total: fifaNumberTag(actor, "urn:gd:tag:football:stats:goals"),
+				assists: fifaNumberTag(actor, "urn:gd:tag:football:stats:assists"),
+			},
+			penalties: { total: null },
+			penalty: { scored: null },
+			source: "FIFA GameDay",
+			rank: fifaNumberTag(actor, "urn:gd:tag:football:stats:fdcp_top_scorer_rank"),
+		}],
+	};
+}
+
+function fifaTagValue(actor: FifaGameDayActor, tagName: string): string {
+	const value = actor.tags?.find((tag) => tag.name === tagName)?.value;
+	if (typeof value === "string") return value;
+	if (typeof value === "number" || typeof value === "boolean") return String(value);
+	return "";
+}
+
+function fifaNumberTag(actor: FifaGameDayActor, tagName: string): number {
+	const value = Number(fifaTagValue(actor, tagName));
+	return Number.isFinite(value) ? value : 0;
+}
+
+function sortTopscorers(players: unknown[]): TopscorerEntry[] {
+	return (players as TopscorerEntry[]).slice().sort(compareTopscorers);
+}
+
+function scorerStats(player: TopscorerEntry): { goals?: { total?: number; assists?: number }; games?: { minutes?: number } } {
+	return (player.statistics as Array<{ goals?: { total?: number; assists?: number }; games?: { minutes?: number } }> | undefined)?.[0] || {};
+}
+
+function compareTopscorers(a: TopscorerEntry, b: TopscorerEntry): number {
 	const aStats = (a.statistics as Array<{ goals?: { total?: number; assists?: number }; games?: { minutes?: number } }> | undefined)?.[0] || {};
 	const bStats = (b.statistics as Array<{ goals?: { total?: number; assists?: number }; games?: { minutes?: number } }> | undefined)?.[0] || {};
 	const goalDiff = Number(bStats.goals?.total || 0) - Number(aStats.goals?.total || 0);
@@ -421,13 +509,6 @@ function compareTopscorers(a: Record<string, unknown>, b: Record<string, unknown
 	const minuteDiff = Number(aStats.games?.minutes || Number.MAX_SAFE_INTEGER) - Number(bStats.games?.minutes || Number.MAX_SAFE_INTEGER);
 	if (minuteDiff) return minuteDiff;
 	return String((a.player as { name?: string } | undefined)?.name || "").localeCompare(String((b.player as { name?: string } | undefined)?.name || ""), "sv");
-}
-
-function normalizeName(value: string): string {
-	return value
-		.toLowerCase()
-		.normalize("NFD")
-		.replace(/[\u0300-\u036f]/g, "");
 }
 
 async function listChatMessages(env: WorkerEnv): Promise<ChatMessage[]> {

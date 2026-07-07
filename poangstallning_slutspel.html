@@ -711,17 +711,36 @@
         && aMinutes === bMinutes;
     }
 
-    function createOfficialTopscorerEntry(name, country, goals, assists = 0) {
+    function createOfficialTopscorerEntry(name, country, goals, assists = 0, minutes = 0) {
+      const knownMinutes = Number(minutes);
+      const hasMinutes = Number.isFinite(knownMinutes) && knownMinutes > 0;
       return {
         player: { name, nationality: country },
         team: { name: country },
         statistics: [{
-          games: { minutes: 0, hasMinutes: false },
+          games: { minutes: hasMinutes ? knownMinutes : 0, hasMinutes },
           goals: { total: goals, assists: assists || 0 },
           penalties: { total: null },
           source: "FIFA"
         }]
       };
+    }
+
+    async function loadFifaStatsTopscorers() {
+      const response = await fetch(`${TOPSCORERS_PROXY_URL}?_=${Date.now()}`, { cache: "no-store" });
+      if (!response.ok) throw new Error(`Worker-fel ${response.status}`);
+
+      return ((await response.json()).response || [])
+        .filter(player => (scorerStats(player).goals?.total ?? 0) > 0)
+        .sort(compareTopscorers);
+    }
+
+    async function loadFifaStatsTopscorerLeaders() {
+      const players = await loadFifaStatsTopscorers();
+      if (!players.length) return [];
+
+      const leader = players[0];
+      return players.filter(player => sameTopscorerRank(player, leader));
     }
 
     function richTextToText(node) {
@@ -822,8 +841,15 @@
 
     async function loadTopscorerLeaders() {
       try {
-        const officialLeaders = await loadOfficialTopscorerLeaders();
-        if (officialLeaders.length) return officialLeaders;
+        const statsLeaders = await loadFifaStatsTopscorerLeaders();
+        if (statsLeaders.length) return statsLeaders;
+      } catch (error) {
+        console.warn("Kunde inte hämta FIFA:s automatiska skytteliga:", error);
+      }
+
+      try {
+        const articleLeaders = await loadOfficialTopscorerLeaders();
+        if (articleLeaders.length) return articleLeaders;
       } catch (error) {
         console.warn("Kunde inte hämta FIFA:s Golden Boot-artikel:", error);
       }
@@ -1092,8 +1118,8 @@
 
   <nav class="mobile-bottom-nav" aria-label="Snabbnavigering">
     <a href="landing-mobile.html?v=7">Start</a>
-    <a href="Ledartabell-gruppspel.html?v=4">Ledare</a>
-    <a href="poangstallning_slutspel.html?v=4">Slutspel</a>
+    <a href="Ledartabell-gruppspel.html?v=5">Ledare</a>
+    <a href="poangstallning_slutspel.html?v=5">Slutspel</a>
     <a href="FIFA2026-matcher-plus.html?v=10">Matcher</a>
   </nav>
 </body>
