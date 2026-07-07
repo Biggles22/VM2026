@@ -65,6 +65,13 @@ const FOOTBALL_TOPSCORERS_CACHE_TTL_SECONDS = 300;
 const FIFA_GAMEDAY_TOKEN_URL = "https://cxm-api.fifa.com/fifaplusweb/api/external/gameDay/token";
 const FIFA_TOPSCORER_STORY_URL =
 	"https://gameday-prod.fifa.mangodev.co.uk/1-0/stories?query=(and%20resourceStatus==`urn:gd:resourceStatus:active`%20_externalId~`urn:gd:story:classification:gcp_top_scorer:competitionId:285023:(.*):rank_asc:page:1$`)&skip=0&limit=1&sort=tags.name==urn:gd:tag:story:fifa:column_number:asc";
+const FIFA_REQUEST_HEADERS = {
+	accept: "application/json, text/plain, */*",
+	"accept-language": "en-US,en;q=0.9",
+	origin: "https://www.fifa.com",
+	referer: "https://www.fifa.com/",
+	"user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126 Safari/537.36",
+};
 
 const JSON_HEADERS = {
 	"content-type": "application/json; charset=utf-8",
@@ -398,7 +405,7 @@ type FifaGameDayActor = {
 
 async function fetchFifaTopscorers(): Promise<TopscorerEntry[]> {
 	const tokenResponse = await fetch(FIFA_GAMEDAY_TOKEN_URL, {
-		headers: { accept: "application/json" },
+		headers: FIFA_REQUEST_HEADERS,
 	});
 	const tokenBody = await tokenResponse.text();
 	if (!tokenResponse.ok) {
@@ -418,7 +425,7 @@ async function fetchFifaTopscorers(): Promise<TopscorerEntry[]> {
 
 	const response = await fetch(FIFA_TOPSCORER_STORY_URL, {
 		headers: {
-			accept: "application/json",
+			...FIFA_REQUEST_HEADERS,
 			authorization: `Bearer ${tokenData.token}`,
 		},
 	});

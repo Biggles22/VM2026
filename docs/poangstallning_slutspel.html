@@ -398,8 +398,6 @@
     const BASE_URL = "https://v3.football.api-sports.io";
     const TOPSCORERS_PROXY_URL = "https://vm2026-worker.anders-h-engstrom.workers.dev/api/football/topscorers";
     const FIFA_GOLDEN_BOOT_ARTICLE_ENDPOINT = "https://cxm-api.fifa.com/fifaplusweb/api/sections/article/6z1agAwt7pwNgagXvawwK7?locale=en";
-    const FIFA_GAMEDAY_TOKEN_URL = "https://cxm-api.fifa.com/fifaplusweb/api/external/gameDay/token";
-    const FIFA_TOPSCORER_STORY_URL = "https://gameday-prod.fifa.mangodev.co.uk/1-0/stories?query=(and%20resourceStatus==`urn:gd:resourceStatus:active`%20_externalId~`urn:gd:story:classification:gcp_top_scorer:competitionId:285023:(.*):rank_asc:page:1$`)&skip=0&limit=1&sort=tags.name==urn:gd:tag:story:fifa:column_number:asc";
     const LEAGUE = 1;
     const SEASON = 2026;
     const PROFILE_KEY = "vm2026-selected-participant";
@@ -728,37 +726,13 @@
       };
     }
 
-    function tagValue(actor, tagName) {
-      return actor.tags?.find(tag => tag.name === tagName)?.value;
-    }
-
-    function createFifaStatsEntry(actor) {
-      const name = actor.name?.eng || tagValue(actor, "urn:gd:tag:story:staff:display_name:eng") || "-";
-      const country = tagValue(actor, "urn:gd:tag:story:team:name:eng") || "-";
-      const goals = Number(tagValue(actor, "urn:gd:tag:football:stats:goals") || 0);
-      const assists = Number(tagValue(actor, "urn:gd:tag:football:stats:assists") || 0);
-      const minutes = Number(tagValue(actor, "urn:gd:tag:football:stats:total_competition_minutes_played") || 0);
-      return createOfficialTopscorerEntry(name, country, goals, assists, minutes);
-    }
-
     async function loadFifaStatsTopscorers() {
-      const tokenResponse = await fetch(`${FIFA_GAMEDAY_TOKEN_URL}?_=${Date.now()}`, { cache: "no-store" });
-      if (!tokenResponse.ok) throw new Error(`FIFA token-fel ${tokenResponse.status}`);
-      const tokenData = await tokenResponse.json();
-      if (!tokenData.token) throw new Error("FIFA token saknas.");
+      const response = await fetch(`${TOPSCORERS_PROXY_URL}?_=${Date.now()}`, { cache: "no-store" });
+      if (!response.ok) throw new Error(`Worker-fel ${response.status}`);
 
-      const response = await fetch(`${FIFA_TOPSCORER_STORY_URL}&_=${Date.now()}`, {
-        cache: "no-store",
-        headers: {
-          authorization: `Bearer ${tokenData.token}`
-        }
-      });
-      if (!response.ok) throw new Error(`FIFA stats-fel ${response.status}`);
-
-      return (await response.json()).items?.[0]?.actors
-        ?.map(createFifaStatsEntry)
+      return ((await response.json()).response || [])
         .filter(player => (scorerStats(player).goals?.total ?? 0) > 0)
-        .sort(compareTopscorers) || [];
+        .sort(compareTopscorers);
     }
 
     async function loadFifaStatsTopscorerLeaders() {
@@ -878,21 +852,6 @@
         if (articleLeaders.length) return articleLeaders;
       } catch (error) {
         console.warn("Kunde inte hämta FIFA:s Golden Boot-artikel:", error);
-      }
-
-      try {
-        const response = await fetch(`${TOPSCORERS_PROXY_URL}?_=${Date.now()}`, { cache: "no-store" });
-        if (!response.ok) throw new Error(`Worker-fel ${response.status}`);
-        const data = await response.json();
-        const players = (data.response || [])
-          .filter(player => (scorerStats(player).goals?.total ?? 0) > 0)
-          .sort(compareTopscorers);
-
-        if (!players.length) return [];
-        const leader = players[0];
-        return players.filter(player => sameTopscorerRank(player, leader));
-      } catch (error) {
-        console.warn("Kunde inte hämta skyttekungar via worker:", error);
       }
 
       try {
@@ -1144,8 +1103,8 @@
 
   <nav class="mobile-bottom-nav" aria-label="Snabbnavigering">
     <a href="landing-mobile.html?v=7">Start</a>
-    <a href="Ledartabell-gruppspel.html?v=5">Ledare</a>
-    <a href="poangstallning_slutspel.html?v=5">Slutspel</a>
+    <a href="Ledartabell-gruppspel.html?v=6">Ledare</a>
+    <a href="poangstallning_slutspel.html?v=6">Slutspel</a>
     <a href="FIFA2026-matcher-plus.html?v=10">Matcher</a>
   </nav>
 </body>

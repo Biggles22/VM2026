@@ -1044,20 +1044,6 @@
       }
 
       try {
-        const response = await fetch(`${TOPSCORERS_PROXY_URL}?_=${Date.now()}`, { cache: "no-store" });
-        if (!response.ok) throw new Error(`Worker-fel ${response.status}`);
-        const data = await response.json();
-        const players = (data.response || [])
-          .filter(player => (scorerStats(player).goals?.total ?? 0) > 0)
-          .sort(compareTopscorers);
-        if (!players.length) return [];
-        const leader = players[0];
-        return players.filter(player => sameTopscorerRank(player, leader));
-      } catch (error) {
-        console.warn("Kunde inte hämta skyttekungar via worker:", error);
-      }
-
-      try {
         const response = await fetch(`${BASE_URL}/players/topscorers?league=${LEAGUE}&season=${SEASON}`, {
           cache: "no-store",
           headers: { "x-apisports-key": API_KEY }
@@ -1344,8 +1330,8 @@
 
   <nav class="mobile-bottom-nav" aria-label="Snabbnavigering">
     <a href="landing-mobile.html?v=7">Start</a>
-    <a href="Ledartabell-gruppspel.html?v=5">Ledare</a>
-    <a href="poangstallning_slutspel.html?v=5">Slutspel</a>
+    <a href="Ledartabell-gruppspel.html?v=6">Ledare</a>
+    <a href="poangstallning_slutspel.html?v=6">Slutspel</a>
     <a href="FIFA2026-matcher-plus.html?v=10">Matcher</a>
   </nav>
 </body>
