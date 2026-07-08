@@ -970,6 +970,31 @@
       return Number.isFinite(number) ? number : null;
     }
 
+    function goalsFromHeading(value) {
+      const normalized = String(value || "").toLowerCase();
+      const digitMatch = normalized.match(/(\d+)\s+goals?/);
+      if (digitMatch) return Number(digitMatch[1]);
+      const wordMatch = normalized.match(/\b(one|two|three|four|five|six|seven|eight|nine|ten)\s+goals?\b/);
+      return wordMatch ? numberTextToValue(wordMatch[1]) : null;
+    }
+
+    function parseAssistCount(value) {
+      const normalized = String(value || "").toLowerCase();
+      return numberTextToValue(normalized) ?? 0;
+    }
+
+    function parseGoldenBootLine(line, goals) {
+      const match = String(line || "").trim().match(/^(.+?)\s*\((.+?)\)\s*[-–]\s*(.+?)\s+assists?,\s*(\d+)\s+minutes?\s+played/i);
+      if (!match || !Number.isFinite(goals)) return null;
+      return createOfficialTopscorerEntry(
+        match[1].trim(),
+        match[2].trim(),
+        goals,
+        parseAssistCount(match[3]),
+        Number(match[4])
+      );
+    }
+
     function parseOfficialLeadPlayers(article) {
       const content = article?.richtext?.content || [];
       const text = content
@@ -1018,10 +1043,50 @@
       return Array.from(players.values()).sort(compareTopscorers);
     }
 
+    function parseOfficialGoldenBootPlayers(article) {
+      const content = article?.richtext?.content || [];
+      const players = [];
+      let currentGoals = null;
+      let inStandings = false;
+
+      content.forEach(node => {
+        const text = richTextToText(node).trim();
+        if (!text) return;
+
+        if (/adidas golden boot standings/i.test(text)) {
+          inStandings = true;
+          return;
+        }
+        if (/adidas golden boot criteria/i.test(text)) {
+          inStandings = false;
+          currentGoals = null;
+          return;
+        }
+        if (!inStandings) return;
+
+        if (/^heading-/.test(node.nodeType)) {
+          currentGoals = goalsFromHeading(text);
+          return;
+        }
+
+        if (node.nodeType === "paragraph" && currentGoals !== null) {
+          text.split(/\n+/)
+            .map(line => line.trim())
+            .filter(Boolean)
+            .forEach(line => {
+              const player = parseGoldenBootLine(line, currentGoals);
+              if (player) players.push(player);
+            });
+        }
+      });
+
+      return (players.length ? players : parseOfficialLeadPlayers(article)).sort(compareTopscorers);
+    }
+
     async function loadOfficialTopscorerLeaders() {
       const response = await fetch(`${FIFA_GOLDEN_BOOT_ARTICLE_ENDPOINT}&_=${Date.now()}`, { cache: "no-store" });
       if (!response.ok) throw new Error(`FIFA-fel ${response.status}`);
-      const players = parseOfficialLeadPlayers(await response.json());
+      const players = parseOfficialGoldenBootPlayers(await response.json());
       if (!players.length) return [];
 
       const leader = players[0];
@@ -1030,17 +1095,17 @@
 
     async function loadTopscorerLeaders() {
       try {
-        const statsLeaders = await loadFifaStatsTopscorerLeaders();
-        if (statsLeaders.length) return statsLeaders;
-      } catch (error) {
-        console.warn("Kunde inte hämta FIFA:s automatiska skytteliga:", error);
-      }
-
-      try {
         const articleLeaders = await loadOfficialTopscorerLeaders();
         if (articleLeaders.length) return articleLeaders;
       } catch (error) {
-        console.warn("Kunde inte hämta FIFA:s Golden Boot-artikel:", error);
+        console.warn("Kunde inte hämta FIFA:s officiella Golden Boot-sida:", error);
+      }
+
+      try {
+        const statsLeaders = await loadFifaStatsTopscorerLeaders();
+        if (statsLeaders.length) return statsLeaders;
+      } catch (error) {
+        console.warn("Kunde inte hämta FIFA:s automatiska skytteliga via worker:", error);
       }
 
       try {
@@ -1330,8 +1395,8 @@
 
   <nav class="mobile-bottom-nav" aria-label="Snabbnavigering">
     <a href="landing-mobile.html?v=7">Start</a>
-    <a href="Ledartabell-gruppspel.html?v=6">Ledare</a>
-    <a href="poangstallning_slutspel.html?v=6">Slutspel</a>
+    <a href="Ledartabell-gruppspel.html?v=7">Ledare</a>
+    <a href="poangstallning_slutspel.html?v=7">Slutspel</a>
     <a href="FIFA2026-matcher-plus.html?v=10">Matcher</a>
   </nav>
 </body>
