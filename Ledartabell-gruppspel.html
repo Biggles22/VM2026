@@ -1231,9 +1231,9 @@
             <tr>
               <th>Placering</th>
               <th>Deltagare</th>
+              <th>Totalt</th>
               <th>Gruppspel</th>
               <th>Slutspel</th>
-              <th>Totalt</th>
               <th>Utslagsfråga</th>
               <th>Gruppträffar</th>
               <th>Slutspelsträffar</th>
@@ -1244,9 +1244,9 @@
               <tr data-name="${escapeHtml(row.name)}">
                 <td class="rank">${row.rank}</td>
                 <td class="name">${escapeHtml(row.name)}</td>
+                <td class="num total">${row.totalPoints}</td>
                 <td class="num">${row.groupPoints}</td>
                 <td class="num pending">${row.playoffPoints}</td>
-                <td class="num total">${row.totalPoints}</td>
                 <td class="num">${escapeHtml(row.tieBreaker || "-")}</td>
                 <td class="details">${row.groupHits.length ? escapeHtml(row.groupHits.join(", ")) : "-"}</td>
                 <td class="details">${row.playoffHits.length ? escapeHtml(row.playoffHits.join(", ")) : "-"}</td>
@@ -1395,7 +1395,7 @@
 
   <nav class="mobile-bottom-nav" aria-label="Snabbnavigering">
     <a href="landing-mobile.html?v=7">Start</a>
-    <a href="Ledartabell-gruppspel.html?v=7">Ledare</a>
+    <a href="Ledartabell-gruppspel.html?v=8">Ledare</a>
     <a href="poangstallning_slutspel.html?v=7">Slutspel</a>
     <a href="FIFA2026-matcher-plus.html?v=10">Matcher</a>
   </nav>
