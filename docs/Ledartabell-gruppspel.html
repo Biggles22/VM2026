@@ -850,9 +850,14 @@
       return result;
     }
 
+    function teamsInRoundOrWinners(fixtures, roundPredicate, fallbackWinnerPredicate) {
+      const roundTeams = teamsInRound(fixtures, roundPredicate);
+      return roundTeams.size ? roundTeams : winnersOfRound(fixtures, fallbackWinnerPredicate);
+    }
+
     function buildActualPlayoffStages(fixtures, scorerLeaders) {
       return {
-        r16: unionSets(teamsInRound(fixtures, isRoundOf16), winnersOfRound(fixtures, isRoundOf32)),
+        r16: teamsInRoundOrWinners(fixtures, isRoundOf16, isRoundOf32),
         qf: unionSets(teamsInRound(fixtures, isQuarterFinal), winnersOfRound(fixtures, isRoundOf16)),
         sf: unionSets(teamsInRound(fixtures, isSemiFinal), winnersOfRound(fixtures, isQuarterFinal)),
         final: unionSets(teamsInRound(fixtures, isFinal), winnersOfRound(fixtures, isSemiFinal)),
@@ -1395,8 +1400,8 @@
 
   <nav class="mobile-bottom-nav" aria-label="Snabbnavigering">
     <a href="landing-mobile.html?v=7">Start</a>
-    <a href="Ledartabell-gruppspel.html?v=8">Ledare</a>
-    <a href="poangstallning_slutspel.html?v=7">Slutspel</a>
+    <a href="Ledartabell-gruppspel.html?v=10">Ledare</a>
+    <a href="poangstallning_slutspel.html?v=9">Slutspel</a>
     <a href="FIFA2026-matcher-plus.html?v=10">Matcher</a>
   </nav>
 </body>
