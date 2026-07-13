@@ -132,12 +132,17 @@
                 const rows = Array.from(scoreFrame.contentDocument.querySelectorAll("#leaderboard tbody tr"))
                     .map(row => {
                         const cells = row.querySelectorAll("td");
+                        const groupCell = Array.from(cells).find(cell =>
+                            cell.classList.contains("num") &&
+                            !cell.classList.contains("total") &&
+                            !cell.classList.contains("pending")
+                        );
                         return {
-                            rank: cells[0]?.textContent.trim() || "",
-                            name: cells[1]?.textContent.trim() || "",
-                            groupPoints: cells[2]?.textContent.trim() || "0",
-                            playoffPoints: cells[3]?.textContent.trim() || "0",
-                            points: cells[4]?.textContent.trim() || "0",
+                            rank: row.querySelector(".rank")?.textContent.trim() || "",
+                            name: row.querySelector(".name")?.textContent.trim() || "",
+                            groupPoints: groupCell?.textContent.trim() || "0",
+                            playoffPoints: row.querySelector(".pending")?.textContent.trim() || "0",
+                            points: row.querySelector(".total")?.textContent.trim() || "0",
                         };
                     })
                     .filter(row => row.name);
