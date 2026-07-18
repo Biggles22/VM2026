@@ -1027,6 +1027,20 @@
         ));
       }
 
+      // FIFA:s tabell är dynamiskt inbäddad. Efter bronsmatchen anger ingressen
+      // i stället att Mbappé gjort sitt nionde och tionde mål och leder med två.
+      const advantageMatch = text.match(new RegExp(`^${namePattern}[\\s\\S]*?netted (?:his|her|their)\\s+${numberPattern}\\s+and\\s+${numberPattern}[\\s\\S]*?${numberPattern}-goal advantage over\\s+${countryPattern}\\s+(?:legend|forward|captain|striker|midfielder)?\\s*${namePattern}`, "i"));
+      if (advantageMatch) {
+        const leaderGoals = numberTextToValue(advantageMatch[3]);
+        const advantage = numberTextToValue(advantageMatch[4]);
+        addPlayer(
+          advantageMatch[1],
+          /kylian mbapp[eé]/i.test(advantageMatch[1]) ? "France" : "",
+          leaderGoals
+        );
+        addPlayer(advantageMatch[6], advantageMatch[5], leaderGoals - advantage);
+      }
+
       const returnedMatch = text.match(new RegExp(`${countryPattern}\\s+(?:legend|forward|captain|striker|midfielder)?\\s*${namePattern}\\s+has returned[\\s\\S]*?scored\\s+(?:his|her|their)\\s+${numberPattern}(?:st|nd|rd|th)?\\s+goal`, "i"));
       if (returnedMatch) addPlayer(returnedMatch[2], returnedMatch[1], returnedMatch[3]);
 
