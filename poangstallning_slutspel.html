@@ -854,6 +854,19 @@
         ));
       }
 
+      const advantageMatch = text.match(new RegExp(`^${namePattern}[\\s\\S]*?netted (?:his|her|their)\\s+${numberPattern}\\s+and\\s+${numberPattern}[\\s\\S]*?${numberPattern}-goal advantage over\\s+${countryPattern}\\s+(?:legend|forward|captain|striker|midfielder)?\\s*${namePattern}`, "i"));
+      if (advantageMatch) {
+        const leaderGoals = numberTextToValue(advantageMatch[3]);
+        const advantage = numberTextToValue(advantageMatch[4]);
+        const leaderCountry = /kylian mbapp[eé]/i.test(advantageMatch[1]) ? "France" : "";
+        players.set(`${normalizeName(advantageMatch[1])}-${normalizeName(leaderCountry)}`, createOfficialTopscorerEntry(
+          advantageMatch[1], leaderCountry, leaderGoals, null, 0, 1
+        ));
+        players.set(`${normalizeName(advantageMatch[6])}-${normalizeName(advantageMatch[5])}`, createOfficialTopscorerEntry(
+          advantageMatch[6], advantageMatch[5], leaderGoals - advantage, null, 0, 2
+        ));
+      }
+
       const returnedMatch = text.match(new RegExp(`${countryPattern}\\s+(?:legend|forward|captain|striker|midfielder)?\\s*${namePattern}\\s+has returned[\\s\\S]*?scored\\s+(?:his|her|their)\\s+${numberPattern}(?:st|nd|rd|th)?\\s+goal`, "i"));
       if (returnedMatch) addPlayer(returnedMatch[2], returnedMatch[1], returnedMatch[3]);
 

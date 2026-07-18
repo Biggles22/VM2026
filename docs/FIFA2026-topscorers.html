@@ -194,8 +194,8 @@
         const FIFA_REFRESH_INTERVAL_MS = 10 * 60 * 1000;
         const FINISHED_STATUSES = new Set(["FT", "AET", "PEN"]);
         const FALLBACK_GOLDEN_BOOT_PLAYERS = [
+            createOfficialGoldenBootEntry("Kylian Mbappé", "France", 10),
             createOfficialGoldenBootEntry("Lionel Messi", "Argentina", 8),
-            createOfficialGoldenBootEntry("Kylian Mbappé", "France", 8, 2),
             createOfficialGoldenBootEntry("Erling Haaland", "Norway", 7),
             createOfficialGoldenBootEntry("Harry Kane", "England", 6),
             createOfficialGoldenBootEntry("Jude Bellingham", "England", 6)
@@ -552,6 +552,14 @@
                 addPlayer(levelMatch[2], /kylian mbapp[eé]/i.test(levelMatch[2]) ? "France" : "-", levelMatch[1]);
             }
 
+            const advantageMatch = text.match(new RegExp(`^${namePattern}[\\s\\S]*?netted (?:his|her|their)\\s+${numberPattern}\\s+and\\s+${numberPattern}[\\s\\S]*?${numberPattern}-goal advantage over\\s+${countryPattern}\\s+(?:legend|forward|captain|striker|midfielder)?\\s*${namePattern}`, "i"));
+            if (advantageMatch) {
+                const leaderGoals = numberTextToValue(advantageMatch[3]);
+                const advantage = numberTextToValue(advantageMatch[4]);
+                addPlayer(advantageMatch[1], /kylian mbapp[eé]/i.test(advantageMatch[1]) ? "France" : "-", leaderGoals);
+                addPlayer(advantageMatch[6], advantageMatch[5], leaderGoals - advantage);
+            }
+
             const hyphenGoalPattern = new RegExp(`${numberPattern}-goal\\s+${namePattern}`, "gi");
             for (const match of text.matchAll(hyphenGoalPattern)) {
                 addPlayer(match[2], /erling haaland/i.test(match[2]) ? "Norway" : "-", match[1]);
@@ -748,17 +756,12 @@
                     return;
                 }
             } catch (error) {
-                console.warn("Kunde inte hämta live-skytteliga från API-Football, använder sparad FIFA-fallback.", error);
-                try {
-                    const fallbackPlayers = FALLBACK_GOLDEN_BOOT_PLAYERS.slice();
-                    container.innerHTML = renderTopscorers(fallbackPlayers);
-                    status.textContent = `Visar sparad FIFA-lista eftersom varken FIFA eller API-Football svarade.`;
-                } catch (fallbackError) {
-                    console.error(fallbackError);
-                    container.innerHTML = `<div class="error">Kunde inte hämta toppskyttar. Kontrollera API-nyckeln och att tjänsten är tillgänglig.</div>`;
-                    status.textContent = "Fel vid hämtning av toppskyttar.";
-                }
+                console.warn("Kunde inte hämta live-skytteliga från API-Football.", error);
             }
+
+            // Även ett lyckat men tomt API-svar ska lämna laddningsläget.
+            container.innerHTML = renderTopscorers(FALLBACK_GOLDEN_BOOT_PLAYERS.slice());
+            status.textContent = `Visar sparad FIFA-lista eftersom varken FIFA eller API-Football gav användbar statistik.`;
         }
 
         loadTopscorers();
