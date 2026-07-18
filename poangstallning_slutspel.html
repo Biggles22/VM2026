@@ -716,7 +716,7 @@
         && aMinutes === bMinutes;
     }
 
-    function createOfficialTopscorerEntry(name, country, goals, assists = 0, minutes = 0) {
+    function createOfficialTopscorerEntry(name, country, goals, assists = null, minutes = 0, officialRank = null) {
       const knownMinutes = Number(minutes);
       const hasMinutes = Number.isFinite(knownMinutes) && knownMinutes > 0;
       return {
@@ -724,8 +724,9 @@
         team: { name: country },
         statistics: [{
           games: { minutes: hasMinutes ? knownMinutes : 0, hasMinutes },
-          goals: { total: goals, assists: assists || 0 },
+          goals: { total: goals, assists: assists !== null && Number.isFinite(Number(assists)) ? Number(assists) : null },
           penalties: { total: null },
+          officialRank,
           source: "FIFA"
         }]
       };
@@ -838,6 +839,21 @@
         ));
       }
 
+      // FIFA:s lista ligger numera i ett dynamiskt embedded-entry-block och finns
+      // inte i richtext-JSON:en. Ingressen anger ändå den officiella ordningen.
+      const leaderMatch = text.match(new RegExp(`^${namePattern}\\s+has returned to the front`, "i"));
+      const levelMatch = text.match(new RegExp(`locked on\\s+${numberPattern}\\s+goals?\\s+with\\s+${namePattern}[^.]*?moved ahead`, "i"));
+      if (leaderMatch && levelMatch) {
+        const leaderCountry = /lionel messi/i.test(leaderMatch[1]) ? "Argentina" : "";
+        const runnerUpCountry = /kylian mbapp[eé]/i.test(levelMatch[2]) ? "France" : "";
+        players.set(`${normalizeName(leaderMatch[1])}-${normalizeName(leaderCountry)}`, createOfficialTopscorerEntry(
+          leaderMatch[1], leaderCountry, numberTextToValue(levelMatch[1]), null, 0, 1
+        ));
+        players.set(`${normalizeName(levelMatch[2])}-${normalizeName(runnerUpCountry)}`, createOfficialTopscorerEntry(
+          levelMatch[2], runnerUpCountry, numberTextToValue(levelMatch[1]), null, 0, 2
+        ));
+      }
+
       const returnedMatch = text.match(new RegExp(`${countryPattern}\\s+(?:legend|forward|captain|striker|midfielder)?\\s*${namePattern}\\s+has returned[\\s\\S]*?scored\\s+(?:his|her|their)\\s+${numberPattern}(?:st|nd|rd|th)?\\s+goal`, "i"));
       if (returnedMatch) addPlayer(returnedMatch[2], returnedMatch[1], returnedMatch[3]);
 
@@ -856,7 +872,11 @@
         addPlayer(match[2], match[1], match[3]);
       }
 
-      return Array.from(players.values()).sort(compareTopscorers);
+      return Array.from(players.values()).sort((a, b) => {
+        const rankDiff = (scorerStats(a).officialRank ?? Number.MAX_SAFE_INTEGER)
+          - (scorerStats(b).officialRank ?? Number.MAX_SAFE_INTEGER);
+        return rankDiff || compareTopscorers(a, b);
+      });
     }
 
     function parseOfficialGoldenBootPlayers(article) {
@@ -906,7 +926,10 @@
       if (!players.length) return [];
 
       const leader = players[0];
-      return players.filter(player => sameTopscorerRank(player, leader));
+      const officialRank = scorerStats(leader).officialRank;
+      return officialRank
+        ? players.filter(player => scorerStats(player).officialRank === officialRank)
+        : players.filter(player => sameTopscorerRank(player, leader));
     }
 
     async function loadTopscorerLeaders() {

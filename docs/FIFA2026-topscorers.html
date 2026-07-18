@@ -195,9 +195,10 @@
         const FINISHED_STATUSES = new Set(["FT", "AET", "PEN"]);
         const FALLBACK_GOLDEN_BOOT_PLAYERS = [
             createOfficialGoldenBootEntry("Lionel Messi", "Argentina", 8),
-            createOfficialGoldenBootEntry("Kylian Mbappé", "France", 7, 2),
+            createOfficialGoldenBootEntry("Kylian Mbappé", "France", 8, 2),
             createOfficialGoldenBootEntry("Erling Haaland", "Norway", 7),
-            createOfficialGoldenBootEntry("Harry Kane", "England", 6)
+            createOfficialGoldenBootEntry("Harry Kane", "England", 6),
+            createOfficialGoldenBootEntry("Jude Bellingham", "England", 6)
         ];
 
         async function apiFootball(endpoint) {
@@ -542,6 +543,26 @@
                 ));
             }
 
+            // Själva tabellen levereras nu som ett dynamiskt embedded-entry-block.
+            // Ingressen innehåller dock målantal och FIFA:s officiella ledarordning.
+            const leaderMatch = text.match(new RegExp(`^${namePattern}\\s+has returned to the front`, "i"));
+            const levelMatch = text.match(new RegExp(`locked on\\s+${numberPattern}\\s+goals?\\s+with\\s+${namePattern}[^.]*?moved ahead`, "i"));
+            if (leaderMatch && levelMatch) {
+                addPlayer(leaderMatch[1], /lionel messi/i.test(leaderMatch[1]) ? "Argentina" : "-", levelMatch[1]);
+                addPlayer(levelMatch[2], /kylian mbapp[eé]/i.test(levelMatch[2]) ? "France" : "-", levelMatch[1]);
+            }
+
+            const hyphenGoalPattern = new RegExp(`${numberPattern}-goal\\s+${namePattern}`, "gi");
+            for (const match of text.matchAll(hyphenGoalPattern)) {
+                addPlayer(match[2], /erling haaland/i.test(match[2]) ? "Norway" : "-", match[1]);
+            }
+
+            const duoPattern = text.match(new RegExp(`${countryPattern}\\s+duo\\s+${namePattern}\\s+and\\s+${namePattern}\\s+are on\\s+${numberPattern}`, "i"));
+            if (duoPattern) {
+                addPlayer(duoPattern[2], duoPattern[1], duoPattern[4]);
+                addPlayer(duoPattern[3], duoPattern[1], duoPattern[4]);
+            }
+
             const returnedMatch = text.match(new RegExp(`${countryPattern}\\s+(?:legend|forward|captain|striker|midfielder)?\\s*${namePattern}\\s+has returned[\\s\\S]*?scored\\s+(?:his|her|their)\\s+${numberPattern}(?:st|nd|rd|th)?\\s+goal`, "i"));
             if (returnedMatch) addPlayer(returnedMatch[2], returnedMatch[1], returnedMatch[3]);
 
@@ -560,7 +581,9 @@
                 addPlayer(match[2], match[1], match[3]);
             }
 
-            return Array.from(players.values()).sort(compareByGoldenBootRules);
+            // Brödtexten beskriver placeringen i ordning (ledaren först), även när
+            // den inte publicerar alla assist/minuter som krävs för egen sortering.
+            return Array.from(players.values());
         }
 
         function parseOfficialGoldenBootArticle(article) {
