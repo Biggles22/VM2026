@@ -434,6 +434,7 @@
     const SEASON = 2026;
     const FINISHED_STATUSES = new Set(["FT", "AET", "PEN"]);
     const TOTAL_WORLD_CUP_MATCHES = 104;
+    const TIE_BREAKER_ACTUAL_GOALS = 308;
     const PROFILE_KEY = "vm2026-selected-participant";
     const GROUP_WINNER_POINTS = 5;
     const GROUP_RUNNER_UP_POINTS = 3;
@@ -1194,6 +1195,13 @@
       }));
     }
 
+    function tieBreakerDistance(value) {
+      const guess = Number(String(value || "").replace(/[^0-9.-]+/g, ""));
+      return Number.isFinite(guess) && String(value || "").trim()
+        ? Math.abs(guess - TIE_BREAKER_ACTUAL_GOALS)
+        : Number.MAX_SAFE_INTEGER;
+    }
+
     function combineScores(groupParticipants, playoffParticipants, groupScores, playoffScores) {
       const names = new Set([
         ...groupParticipants.map(participant => participant.name),
@@ -1219,6 +1227,7 @@
 
       rows.sort((a, b) =>
         b.totalPoints - a.totalPoints ||
+        tieBreakerDistance(a.tieBreaker) - tieBreakerDistance(b.tieBreaker) ||
         b.groupPoints - a.groupPoints ||
         b.playoffPoints - a.playoffPoints ||
         a.name.localeCompare(b.name, "sv")
@@ -1253,7 +1262,7 @@
               <th>Totalt</th>
               <th>Gruppspel</th>
               <th>Slutspel</th>
-              <th>Utslagsfråga</th>
+              <th title="Närmast 308 gjorda mål placeras först vid lika totalpoäng.">Utslagsfråga (308 mål)</th>
               <th>Gruppträffar</th>
               <th>Slutspelsträffar</th>
             </tr>
@@ -1266,7 +1275,7 @@
                 <td class="num total">${row.totalPoints}</td>
                 <td class="num">${row.groupPoints}</td>
                 <td class="num pending">${row.playoffPoints}</td>
-                <td class="num">${escapeHtml(row.tieBreaker || "-")}</td>
+                <td class="num" title="${row.tieBreaker ? `${tieBreakerDistance(row.tieBreaker)} mål från rätt svar` : "Inget svar"}">${escapeHtml(row.tieBreaker || "-")}</td>
                 <td class="details">${row.groupHits.length ? escapeHtml(row.groupHits.join(", ")) : "-"}</td>
                 <td class="details">${row.playoffHits.length ? escapeHtml(row.playoffHits.join(", ")) : "-"}</td>
               </tr>
